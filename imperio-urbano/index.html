@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v1.4</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v1.4</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">100 terrenos · 25 quadras</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v1.5</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v1.5</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">100 terrenos · 25 quadras</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar.</div><div id="actions"></div><div id="status"></div></section><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||state.lots?.length!==100)state={balance:0,lots:Array.from({length:100},(_,i)=>({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'}))};
@@ -13,7 +13,54 @@ function box(w,h,d,x,y,z,m,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeo
 box(148,.5,148,0,-.4,0,grass);for(let i=0;i<6;i++){const pos=-65+i*26;box(145,.15,6,0,-.1,pos,road);box(6,.15,145,pos,-.1,0,road);for(let j=-65;j<=65;j+=10){box(3,.03,.18,j,.02,pos,line);box(.18,.03,3,pos,.02,j,line)}}
 const lots=[],raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);let selected=-1;
 for(let row=0;row<5;row++)for(let col=0;col<5;col++){const bx=-52+col*26,bz=-52+row*26;box(19,.4,19,bx,0,bz,sidewalk);for(let k=0;k<4;k++){const id=(row*5+col)*4+k,x=bx+(k%2?4.65:-4.65),z=bz+(k>=2?4.65:-4.65);const plot=box(8.6,.24,8.6,x,.26,z,mat(0x5ecb81));plot.userData.id=id;lots[id]={plot,x,z,building:null};}}
-function house(id,kind){const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);scene.add(group);const height=kind==='predio'?13:4.3;box(kind==='predio'?5.6:6,height,kind==='predio'?5.5:5.7,0,height/2,0,mat(state.lots[id].color||'#e3e1d4'),group);if(kind==='casa'){const r=new THREE.Mesh(new THREE.ConeGeometry(4.9,2.5,4),roof);r.rotation.y=Math.PI/4;r.position.y=height+1.1;r.castShadow=true;group.add(r);box(1.4,2,.15,0,1,2.92,dark,group)}else{box(6.1,.4,6.1,0,height+.2,0,roof,group)}for(let level=1;level<height-1;level+=2.6)for(let side of [-1,1]){box(1.3,1.3,.12,side*1.5,level,kind==='predio'?2.81:2.91,windowmat,group);box(.12,1.3,1.3,kind==='predio'?2.81:3.06,level,side*1.5,windowmat,group)}return group}
+function house(id,kind){
+ const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);scene.add(group);
+ const facade=mat(state.lots[id].color||'#e3e1d4'),trim=mat('#f4eee2'),concrete=mat('#b7b6ae'),glass=mat('#397c9b'),frames=mat('#243b4c'),wood=mat('#875c3e'),plants=mat('#3d8755'),metal=mat('#485766');
+ const add=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,group);
+ const window=(x,y,z,w=1.2,h=1.45)=>{add(w+.22,h+.22,.12,x,y,z,trim);add(w,h,.16,x,y,z+.1,frames);add(w-.13,h-.13,.17,x,y,z+.2,glass);add(.07,h,.2,x,y,z+.3,trim);add(w,.06,.2,x,y,z+.3,trim);add(w+.38,.13,.4,x,y-h/2-.13,z+.2,concrete)};
+ if(kind==='casa'){
+  // Casa contemporanea com telhado em dois planos, garagem, varanda e jardim.
+  add(6.3,.25,6.4,0,.12,0,concrete);
+  add(5.8,3.4,5.2,0,1.85,-.25,facade);
+  add(2.5,2.5,.3,-1.55,1.4,2.5,frames);
+  add(2.22,2.2,.33,-1.55,1.4,2.7,wood);
+  for(let i=0;i<4;i++)add(.06,2.15,.35,-2.35+i*.48,1.4,2.88,metal);
+  add(2.1,.24,2.3,1.55,2.95,3.02,concrete);
+  add(.18,2.8,.18,2.5,1.45,3.9,trim);
+  add(2.1,.12,2.1,1.5,.23,3.25,trim);
+  window(1.3,1.75,2.47,1.45,1.55);
+  // Telhado de duas aguas com beiral e cumeeira visiveis.
+  const roofMat=mat('#873f33');
+  for(const side of [-1,1]){const slab=add(3.7,.27,6.1,side*1.57,4.14,-.2,roofMat);slab.rotation.z=side*.31}
+  add(.22,.23,6.2,0,4.75,-.2,roofMat);
+  add(1.1,.95,.85,-1.8,4.55,-1.25,concrete);
+  add(.8,.12,.9,-1.8,5.08,-1.25,metal);
+  for(const px of [-2.55,2.55]){add(.8,.75,.8,px,.4,-2.45,plants);add(.93,.22,.93,px,.12,-2.45,concrete)}
+ }else{
+  // Predio residencial com fachada modulada, sacadas e cobertura.
+  add(6.5,.28,6.5,0,.15,0,concrete);
+  add(5.4,14.2,5.3,0,7.25,-.2,facade);
+  add(1.05,14.35,.3,-2.25,7.25,2.52,trim);add(1.05,14.35,.3,2.25,7.25,2.52,trim);
+  add(5.7,.45,5.7,0,14.6,-.2,concrete);
+  add(2.1,.2,2.1,0,15.1,-.3,metal);
+  add(1.8,.65,1.7,0,15.5,-.3,concrete);
+  add(2.1,2.6,.25,0,1.45,2.56,frames);add(1.65,2.2,.29,0,1.35,2.75,glass);
+  for(let floor=1;floor<=4;floor++){
+   const y=1.2+floor*2.55;
+   add(5.7,.22,1.2,0,y-.96,3.05,concrete);
+   for(const side of [-1,1]){
+    window(side*1.32,y,2.52,1.45,1.55);
+    add(.09,1.05,.09,side*2.63,y-.35,3.65,metal);
+   }
+   add(5.5,.08,.08,0,y-.32,3.66,metal);
+   add(5.5,.09,.09,0,y+.14,3.66,metal);
+   for(const xx of [-2.65,0,2.65])add(.08,.62,.08,xx,y-.12,3.66,metal);
+  }
+  for(const side of [-1,1]){for(let floor=1;floor<=4;floor++){const y=1.2+floor*2.55;add(.18,1.4,1.55,side*2.75,y,-.6,frames);add(.13,1.25,1.3,side*2.87,y,-.6,glass)}}
+  add(2,.18,1.4,0,.3,3.15,trim);
+ }
+ return group;
+}
 function renderState(){document.getElementById('balance').textContent=fmt(state.balance)+' IU$';for(let i=0;i<100;i++){const l=state.lots[i],p=lots[i];p.plot.material.color.setHex(l.owner==='npc'?0xd97578:l.owner==='me'?(l.price?0xffb45e:0x4a9fdd):0x5ecb81);p.plot.scale.y=selected===i?2:1;if(p.building){scene.remove(p.building);p.building=null}if(l.building)p.building=house(i,l.building)}actions.replaceChildren();if(selected<0){document.getElementById('title').textContent='🏠 Mercado imobiliário';document.getElementById('desc').textContent='Toque em um terreno para negociar.';return}const l=state.lots[selected],name='#'+String(selected+1).padStart(3,'0');document.getElementById('title').textContent='📍 Terreno '+name;document.getElementById('desc').textContent=(180+(selected%8)*25)+' m² · '+(l.owner==='free'?'Disponível · '+fmt(cost(selected))+' IU$':l.owner==='npc'?'Outro proprietário':'Seu terreno'+(l.building?' · '+l.building:'')+(l.price?' · À venda por '+fmt(l.price):''));function btn(t,fn,alt=false){let b=document.createElement('button');b.textContent=t;if(alt)b.className='alt';b.onclick=fn;actions.append(b)}if(l.owner==='free')btn('Comprar',()=>{if(state.balance<cost(selected))return status.textContent='Saldo insuficiente';state.balance-=cost(selected);l.owner='me';save();renderState()});if(l.owner==='me'){
  if(!l.building){for(const [type,price] of [['casa',7000],['predio',18000]])btn('Construir '+type+' · '+fmt(price),()=>{
  if(state.balance<price){status.textContent='Saldo insuficiente';return}
