@@ -21,8 +21,8 @@ function renderState(){document.getElementById('balance').textContent=fmt(state.
 let yaw=.7,pitch=.83,distance=105,target=new THREE.Vector3(0,0,0);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.18,1.52);distance=THREE.MathUtils.clamp(distance,18,185);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
 const canvas=renderer.domElement;
 const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){down={x:e.clientX,y:e.clientY,moved:false};wasGesture=false}else{wasGesture=true;down=null;gesture=measure()}});
-canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.preventDefault();const old=touches.get(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>9)down.moved=true; // Um dedo: deslizar cidade, sem alterar a câmera.
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
+canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.preventDefault();const old=touches.get(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1&&!wasGesture){if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>9)down.moved=true; // Um dedo: deslizar cidade, sem alterar a câmera.
  const dx=e.clientX-old.x,dy=e.clientY-old.y,scale=distance*.002;target.x-=dx*Math.cos(yaw)*scale+dy*Math.sin(yaw)*scale;target.z+=dx*Math.sin(yaw)*scale-dy*Math.cos(yaw)*scale;
  }else if(touches.size===2){const now=measure();if(gesture){
  // Dois dedos: arrastar gira a camera, pinca controla zoom. Nao desloca o alvo.
@@ -36,8 +36,8 @@ canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.
  yaw+=twist*.95;
  }gesture=now;
  }else{const pts=[...touches.values()];const prev=old;const dx=e.clientX-prev.x,dy=e.clientY-prev.y;const f=distance*.0018;target.x-=dx*Math.cos(yaw)*f;target.z+=dy*f;gesture=null}updateCam()});
-canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(lots.map(l=>l.plot))[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null});
-canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null});
+canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(lots.map(l=>l.plot))[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
 document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=105;target.set(0,0,0);updateCam()};
 renderState();loading.remove();function animate(){requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
