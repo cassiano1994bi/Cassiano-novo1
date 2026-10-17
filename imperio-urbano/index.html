@@ -111,8 +111,8 @@ for(let di=0;di<4;di++){
 }
 // Calcadas junto as avenidas, mantendo a faixa de rolamento livre.
 for(const z of [-15,294])path([[minX,z],[maxX,z]],2.3,walk,.12);
-// Eixo central liga os cinco bairros de ponta a ponta.
-path([[minX,141],[maxX,141]],8,road,.10);
+// Eixo central ocupa o corredor publico entre as linhas 4 e 5.
+path([[minX,140.5],[maxX,140.5]],4.6,road,.085);
 // Praças nos corredores publicos entre setores, fora dos lotes.
 for(let di=0;di<4;di++){
  const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
