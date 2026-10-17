@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v6.5</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v6.5</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v7.0</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v7.0</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:0,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
@@ -61,24 +61,44 @@ function grove(cx,cz,rx,rz,count,seed){
   tree(x,z,.65+(i%5)*.14,i%4);
  }
 }
-// Grande lago na borda norte, praias sinuosas e tres ilhas arborizadas.
-surface(155,-205,550,178,sand,-.52,.7);
-surface(155,-205,538,165,water,-.35,.7);
-for(const [x,z,rx,rz,seed] of [[-80,-215,48,24,1],[200,-241,65,27,2],[435,-190,42,22,3]]){
- surface(x,z,rx+6,rz+5,sand,-.22,seed);surface(x,z,rx,rz,park,-.13,seed);
- grove(x,z,rx*.7,rz*.65,24,seed);
+// Orla v7.0: lago, areia, faixa verde e calcadao publico, sem avenida torta.
+const lakeNear=x=>-59+5*Math.sin(x*.012)+2.5*Math.sin(x*.033+.7);
+const lakeFar=x=>-345+15*Math.sin(x*.008);
+function waterCap(x){return Math.min(THREE.MathUtils.clamp((x+450)/65,0,1),THREE.MathUtils.clamp((585-x)/65,0,1))}
+function bankNear(x){const f=waterCap(x);return lakeNear(x)*f-198*(1-f)}
+function bankFar(x){const f=waterCap(x);return lakeFar(x)*f-198*(1-f)}
+function lakeRibbon(z1,z2,m,y){
+ const v=[],ind=[],n=160;
+ for(let i=0;i<=n;i++){const x=-450+1035*i/n;v.push(x,y,z1(x),x,y,z2(x));
+  if(i<n){const p=i*2;ind.push(p,p+1,p+2,p+1,p+3,p+2)}}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(ind);g.computeVertexNormals();
+ const obj=new THREE.Mesh(g,m);obj.receiveShadow=true;scene.add(obj);
 }
-// Florestas e corredores ecologicos contornam a area urbana.
-grove(-335,-80,55,150,65,3);grove(660,-30,100,270,130,5);
-grove(100,400,560,75,130,1);grove(-150,-60,85,18,22,4);
-grove(450,-55,85,18,22,8);
-// Orla publica com passeio e avenida de acesso.
-path([[-335,-30],[-220,-36],[-100,-27],[30,-40],[150,-29],[285,-38],[415,-28],[575,-40]],8,road);
-path([[-335,-18],[-220,-24],[-100,-15],[30,-28],[150,-17],[285,-26],[415,-16],[575,-28]],3,walk,.15);
-for(let i=0;i<58;i++){const x=-320+i*15.2;tree(x,-12+Math.sin(i*.31)*2,.64,i%4)}
+const waterMat=water.clone(),beachMat=sand.clone();waterMat.side=THREE.DoubleSide;beachMat.side=THREE.DoubleSide;
+lakeRibbon(x=>bankNear(x)+12,x=>bankNear(x)-2,beachMat,-.14);
+lakeRibbon(x=>bankNear(x)-1,x=>bankFar(x)+1,waterMat,-.24);
+lakeRibbon(x=>bankFar(x)+1,x=>bankFar(x)-9,beachMat,-.14);
+for(const [x,z,rx,rz,n] of [[-160,-240,44,22,1],[125,-255,58,26,2],[387,-225,36,18,3]]){
+ surface(x,z,rx+5,rz+4,sand,-.12,n);surface(x,z,rx,rz,park,-.06,n);grove(x,z,rx*.68,rz*.6,17,n);
+}
+grove(-510,-75,50,135,65,3);grove(660,-30,80,230,100,5);grove(100,405,530,68,110,1);
+path([[-356,-34],[485,-34]],3.8,walk,.13);
+path([[-356,-37],[485,-37]],.18,white,.18);
+for(let i=0;i<46;i++){
+ const x=-340+i*18.1;tree(x,-20+(i%2)*.9,.68,i%4);
+ if(i%3===0){box(3,.23,1.2,x+.5,.5,-27,stone);box(3,.65,.18,x+.5,1,-27.7,stone)}
+}
+for(const x of [-315,-150,15,180,345]){
+ box(13,.10,7,x,.055,-25,walk);
+ for(const d of [-5,5])tree(x+d,-18,.55,2);
+}
+for(const x of [-316.5,-187.5,-22.5,142.5,307.5,472.5]){
+ path([[x,-34],[x,-14]],2.3,walk,.18);
+ for(let k=-3;k<=3;k++)box(1.3,.035,.32,x,.16,-7+k*1.12,white);
+}
 // Plano viario: cinco bairros com ruas locais, vias coletoras e parques entre setores.
 // Cada bairro possui 10 linhas x 5 quadras, com 4 lotes por quadra.
-// Planta v6.5: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
+// Planta v7.0: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
 // A ordem dos 250 quarteiroes e dos 1000 IDs permanece identica (5 setores de 50).
 const blocks=[];
 const districts=Array.from({length:5},(_,i)=>({x:-270+i*165,z:10,angle:0}));
@@ -117,20 +137,8 @@ for(let di=0;di<4;di++){
  }
  for(let j=0;j<8;j++)tree(x+14,10+j*36,.66,j%4);
 }
-// Sistema perimetral: fecha as extremidades da malha e liga todos os eixos.
-for(const x of [minX,maxX])path([[x,-7],[x,286]],8,road,.09);
-// A orla acompanha o lago; conectores reservados ligam-na a avenida norte,
-// sem atravessar nenhum terreno particular (os lotes comecam em z=-2.5).
-const shoreConnectors=[
- [[-335,-30],[minX,-7]],
- [[-100,-27],[-100,-7]],
- [[150,-29],[150,-7]],
- [[415,-28],[415,-7]],
- [[575,-40],[maxX,-7]]
-];
-for(const pts of shoreConnectors)path(pts,6.8,road,.092);
-// Faixa paisagistica publica ao longo da avenida da orla, sem ocupar lotes.
-for(let i=0;i<42;i++){const x=-320+i*21;tree(x,-20+Math.sin(i*.33)*2,.55,i%4)}
+// Limite urbano ortogonal, sem rua veicular perto da praia.
+for(const x of [minX,maxX])path([[x,-7],[x,286]],7.2,road,.09);
 // Calcadas junto as avenidas, mantendo a faixa de rolamento livre.
 for(const z of [-15,294])path([[minX,z],[maxX,z]],2.3,walk,.12);
 // Eixo central ocupa o corredor publico entre as linhas 4 e 5.
@@ -142,8 +150,10 @@ for(let di=0;di<4;di++){
   for(let j=0;j<7;j++)tree(x+Math.cos(j*2.4)*11,z+Math.sin(j*2.4)*10,.68,j%4);
  }
 }
-// Centro comercial publico reservado em area externa aos terrenos negociaveis.
-const commercial=new THREE.Group();commercial.position.set(-415,0,25);scene.add(commercial);
+// Centro civico acessivel em area publica fora dos lotes.
+path([[minX,47],[-373,47]],5.5,road,.09);
+box(35,.10,29,-389,.005,65,walk);
+const commercial=new THREE.Group();commercial.position.set(-405,0,61);scene.add(commercial);
 for(let i=0;i<5;i++){
  const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
  box(9,h,9,x,h/2,z,stone,commercial);box(9.6,.5,9.6,x,h+.3,z,roof,commercial);
