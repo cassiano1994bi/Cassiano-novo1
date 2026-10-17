@@ -149,7 +149,7 @@ for(let bi=0;bi<blocks.length;bi++){
   const x=historic?bx+(k%2?4.65:-4.65):bx-7.5+k*5;
   const z=historic?bz+(k>=2?4.65:-4.65):bz;
   const w=historic?8.35:4.8,d=historic?8.35:21.5;
-  const plot=box(w,historic?.24:.045,d,x,historic?.35:.16,z,historic?oldGreen:plotGreen);
+  const plot=box(w,historic?.24:.045,d,x,historic?.35:.16,z,(historic?oldGreen:plotGreen).clone());
   plot.userData.id=id;lots[id]={plot,x,z,building:null};
  }
  if(!historic&&(bi%4===0)){
@@ -158,7 +158,7 @@ for(let bi=0;bi<blocks.length;bi++){
  }
 }
 function house(id,kind){
- const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);scene.add(group);
+ const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);if(id>=100)group.scale.x=.65;scene.add(group);
  const facade=mat(state.lots[id].color||'#e3e1d4'),trim=mat('#f4eee2'),concrete=mat('#b7b6ae'),glass=mat('#397c9b'),frames=mat('#243b4c'),wood=mat('#875c3e'),plants=mat('#3d8755'),metal=mat('#485766');
  const add=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,group);
  const window=(x,y,z,w=1.2,h=1.45)=>{add(w+.22,h+.22,.12,x,y,z,trim);add(w,h,.16,x,y,z+.1,frames);add(w-.13,h-.13,.17,x,y,z+.2,glass);add(.07,h,.2,x,y,z+.3,trim);add(w,.06,.2,x,y,z+.3,trim);add(w+.38,.13,.4,x,y-h/2-.13,z+.2,concrete)};
