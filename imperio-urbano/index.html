@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v6.1</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v6.1</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v6.2</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v6.2</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:0,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
@@ -76,66 +76,54 @@ path([[-335,-61],[-220,-67],[-100,-58],[30,-71],[150,-60],[285,-69],[415,-59],[5
 for(let i=0;i<58;i++){const x=-320+i*15.2;tree(x,-48+Math.sin(i*.31)*5,.75,i%4)}
 // Plano viario: cinco bairros com ruas locais, vias coletoras e parques entre setores.
 // Cada bairro possui 10 linhas x 5 quadras, com 4 lotes por quadra.
+// Planta v6.2: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
+// A ordem dos 250 quarteiroes e dos 1000 IDs permanece identica (5 setores de 50).
 const blocks=[];
-const districts=[
- {x:-270,z:10,angle:-.07},{x:-72,z:20,angle:.035},
- {x:130,z:35,angle:-.05},{x:332,z:18,angle:.045},{x:530,z:25,angle:-.06}
-];
-function blockPoint(di,row,col){
- const d=districts[di],x=col*31-62,z=row*29;
- const xx=x*Math.cos(d.angle)-z*Math.sin(d.angle),zz=x*Math.sin(d.angle)+z*Math.cos(d.angle);
- return [d.x+xx,d.z+zz];
+const districts=Array.from({length:5},(_,i)=>({x:-270+i*165,z:10,angle:0}));
+const stepX=31,stepZ=29;
+function blockPoint(di,row,col){return [-270+di*165+(col-2)*stepX,10+row*stepZ]}
+for(let di=0;di<5;di++)for(let row=0;row<10;row++)for(let col=0;col<5;col++){
+ const [x,z]=blockPoint(di,row,col);blocks.push({x,z,di,row,col});
+ box(27,.11,25,x,.02,z,park);
+ for(const side of [-1,1]){box(27,.055,.12,x,.17,z+side*12.45,white);box(.12,.055,25,x+side*13.45,.17,z,white)}
+ box(.09,.05,25,x,.17,z,white);box(27,.05,.09,x,.17,z,white);
+ if((row+col)%3===0){tree(x-14,z-13,.63,(row+col)%4);tree(x+14,z+13,.66,(row+di)%4)}
 }
+// Ruas locais: todas as intersecoes conectadas, sem trechos mortos.
 for(let di=0;di<5;di++){
- const d=districts[di];
- // Vias locais ligadas em malha; avenidas transversais integram os cinco setores.
- for(let row=0;row<10;row++)for(let col=0;col<5;col++){
-  const [x,z]=blockPoint(di,row,col);
-  blocks.push({x,z,di,row,col});
-  box(27,.11,25,x,.02,z,park);
-  for(const side of [-1,1]){
-   box(27,.055,.12,x,.17,z+side*12.45,white);
-   box(.12,.055,25,x+side*13.45,.17,z,white);
-  }
-  box(.09,.05,25,x,.17,z,white);
-  box(27,.05,.09,x,.17,z,white);
-  if((row+col)%3===0){tree(x-14,z-13,.63,(row+col)%4);tree(x+14,z+13,.66,(row+di)%4)}
- }
-}
-// Rede viaria continua: ruas inteiras nos corredores entre quadras, sem segmentos soltos.
-for(let di=0;di<5;di++){
+ const left=blockPoint(di,0,0)[0],right=blockPoint(di,0,4)[0];
  for(let col=0;col<4;col++){
-  const [ax,az]=blockPoint(di,0,col),[bx,bz]=blockPoint(di,0,col+1);
-  const [cx,cz]=blockPoint(di,9,col),[dx,dz]=blockPoint(di,9,col+1);
-  path([[(ax+bx)/2,(az+bz)/2-13.6],[(cx+dx)/2,(cz+dz)/2+13.6]],4.1,road,.075);
+  const x=left+col*stepX+stepX/2;
+  path([[x,-6],[x,287]],4.6,road,.085);
  }
  for(let row=0;row<9;row++){
-  const [ax,az]=blockPoint(di,row,0),[bx,bz]=blockPoint(di,row+1,0);
-  const [cx,cz]=blockPoint(di,row,4),[dx,dz]=blockPoint(di,row+1,4);
-  path([[(ax+bx)/2-14.1,(az+bz)/2],[(cx+dx)/2+14.1,(cz+dz)/2]],4.1,road,.075);
+  const z=10+row*stepZ+stepZ/2;
+  path([[left-16,z],[right+16,z]],4.6,road,.085);
  }
- // Passeios nas extremidades dos bairros.
- const [x0,z0]=blockPoint(di,0,0),[x1,z1]=blockPoint(di,0,4);
- const [x2,z2]=blockPoint(di,9,0),[x3,z3]=blockPoint(di,9,4);
- path([[x0-16,z0-16],[x1+16,z1-16]],5.5,road,.06);
- path([[x2-16,z2+16],[x3+16,z3+16]],5.5,road,.06);
 }
-// Coletoras e passeios entre os bairros, sem atravessar os terrenos.
-path([[-340,322],[-170,324],[20,330],[220,332],[420,326],[620,320]],10,road,.06);
-path([[-340,336],[-170,338],[20,344],[220,346],[420,340],[620,334]],2.4,walk,.11);
+// Avenidas estruturantes: uma longitudinal continua e duas transversais.
+const minX=blockPoint(0,0,0)[0]-17,maxX=blockPoint(4,0,4)[0]+17;
+for(const z of [-7,286])path([[minX,z],[maxX,z]],9.5,road,.09);
 for(let di=0;di<4;di++){
- const a=districts[di].x+92,b=districts[di+1].x-92;
- path([[a,4],[b,4]],8,road,.06);path([[a,305],[b,305]],8,road,.06);
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ path([[x,-10],[x,290]],9,road,.09);
+ for(let j=0;j<8;j++)tree(x+15,12+j*36,.68,j%4);
 }
-// Parque metropolitano, praças de bairro e centro civico.
-for(let di=0;di<5;di++){
- const d=districts[di],px=d.x+96;
- surface(px,158,13,32,park,.03,di);
- for(let j=0;j<12;j++)tree(px+Math.cos(j*2.4)*9,158+Math.sin(j*2.4)*25,.7,j%4);
+// Calcadas junto as avenidas, mantendo a faixa de rolamento livre.
+for(const z of [-15,294])path([[minX,z],[maxX,z]],2.3,walk,.12);
+// Eixo central liga os cinco bairros de ponta a ponta.
+path([[minX,141],[maxX,141]],8,road,.10);
+// Praças nos corredores publicos entre setores, fora dos lotes.
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ for(const z of [65,215]){
+  for(let j=0;j<7;j++)tree(x+Math.cos(j*2.4)*11,z+Math.sin(j*2.4)*10,.68,j%4);
+ }
 }
-const commercial=new THREE.Group();commercial.position.set(-302,0,-5);scene.add(commercial);
-for(let i=0;i<6;i++){
- const x=(i%3)*12,z=Math.floor(i/3)*13,h=12+(i%3)*6;
+// Centro comercial publico reservado a oeste da primeira quadra.
+const commercial=new THREE.Group();commercial.position.set(-375,0,-35);scene.add(commercial);
+for(let i=0;i<5;i++){
+ const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
  box(9,h,9,x,h/2,z,stone,commercial);box(9.6,.5,9.6,x,h+.3,z,roof,commercial);
  for(let f=2;f<h;f+=3)for(const side of [-1,1])box(7,.85,.12,x,f,z+side*4.55,glass,commercial);
 }
@@ -209,7 +197,7 @@ function renderState(){document.getElementById('balance').textContent=fmt(state.
  btn('Cancelar',()=>renderState(),true);
  })}
  if(!l.price){const inp=document.createElement('input');inp.type='number';inp.value=String(cost(selected)*2);actions.append(inp);btn('Anunciar',()=>{let v=Number(inp.value);if(!Number.isSafeInteger(v)||v<1000||v>1e7)return; l.price=v;save();renderState()},true)}else{btn('Simular venda (apenas neste aparelho)',()=>{state.balance+=l.price;l.owner='npc';l.price=0;save();renderState()},true);btn('Retirar anúncio',()=>{l.price=0;save();renderState()})}}}
-let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(155,0,65);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
+let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
 const canvas=renderer.domElement;
 const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
@@ -230,6 +218,6 @@ canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.
 canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(lots.map(l=>l.plot))[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
-document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(155,0,65);updateCam()};
+document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(65,0,95);updateCam()};
 renderState();loading.remove();function animate(){requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
 </script></body></html>
