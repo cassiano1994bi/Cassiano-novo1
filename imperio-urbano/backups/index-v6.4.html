@@ -1,0 +1,247 @@
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v6.4</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview{position:absolute;right:10px;top:12px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v6.4</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
+const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:0,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+// Bônus de teste aplicado uma única vez, inclusive aos jogos já iniciados.
+if(!state.bonus100k_v11){state.balance=Math.max(0,Number(state.balance)||0)+100000;state.bonus100k_v11=true;try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+// O saldo nunca e recalculado a partir do desenho do mapa. Backup de patrimonio antes das operacoes.
+try{if(!localStorage.getItem(KEY+'_snapshot_v63'))localStorage.setItem(KEY+'_snapshot_v63',JSON.stringify(state))}catch{}
+const colors=['#e3e1d4','#f4a261','#f28482','#8ecae6','#a8dadc','#b8a0d9','#f6d365','#91c788','#fafafa','#5e7083'];
+const save=()=>{try{const prior=localStorage.getItem(KEY);if(prior)localStorage.setItem(KEY+'_previous',prior);localStorage.setItem(KEY,JSON.stringify(state))}catch{}};const fmt=n=>Math.round(n).toLocaleString('pt-BR');const rarityNames=['Comum','Incomum','Raro','Épico','Lendário'];
+const rarityColors=['#a6b4a7','#6fb6ff','#9b83ff','#edaa55','#ffd85d'];
+const rarityIndex=i=>{const n=(i*37+11)%100;return n<2?4:n<10?3:n<25?2:n<50?1:0};
+const area=i=>{const r=rarityIndex(i),n=(i*17+7)%100;return r===4?1200+n*8:r===3?650+n*3:r===2?420+n*3:r===1?220+n*2:120+n};
+const lotShape=i=>['Quadrado','Retangular','Esquina'][(i*7+3)%3];
+const cost=i=>Math.round((3500+area(i)*19)*(1+rarityIndex(i)*.42)/100)*100;
+// Planta-mestra v6: cinco bairros de 200 lotes, parque central e orla paisagistica.
+// Todos os IDs continuam estaveis; a economia permanece no armazenamento existente.
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa5c9df);scene.fog=new THREE.FogExp2(0xa5c9df,.00065);
+const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.24;renderer.outputColorSpace=THREE.SRGBColorSpace;stage.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe7f5ff,0x577448,1.8));
+const sun=new THREE.DirectionalLight(0xffefce,2.0);sun.position.set(-170,280,130);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;
+sun.shadow.camera.top=550;sun.shadow.camera.bottom=-550;sun.shadow.bias=-.0003;scene.add(sun);
+const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.94});
+const turf=mat(0x729b63),forest=mat(0x3d6b40),park=mat(0x82a66d),sand=mat(0xd9c79d),
+road=mat(0x555e64),walk=mat(0xbebdb0),white=mat(0xe9eadf),mark=mat(0xe9dfc2);
+const water=new THREE.MeshStandardMaterial({color:0x1680a2,roughness:.34,metalness:.03,side:THREE.DoubleSide});
+const trunk=mat(0x755439),leaf=[mat(0x315c3b),mat(0x40774b),mat(0x59884f),mat(0x326e54)];
+const roof=mat(0x8d5044),glass=mat(0x6c9caa),stone=mat(0xcac7b7);
+function box(w,h,d,x,y,z,m,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=h>1.5;parent.add(o);return o}
+box(1320,.6,1040,175,-1,15,turf);
+function surface(cx,cz,rx,rz,material,y,seed=0){
+ const n=160,p=[0,0,0],ids=[];
+ for(let i=0;i<=n;i++){
+  const a=i/n*Math.PI*2;
+  const f=1+.065*Math.sin(3*a+seed)+.04*Math.sin(7*a+seed*2)+.018*Math.cos(13*a+seed);
+  p.push(Math.cos(a)*rx*f,0,Math.sin(a)*rz*f);
+ }
+ for(let i=1;i<=n;i++)ids.push(0,i,i+1);
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setIndex(ids);g.computeVertexNormals();
+ const mesh=new THREE.Mesh(g,material);mesh.position.set(cx,y,cz);mesh.receiveShadow=true;scene.add(mesh);return mesh;
+}
+function path(points,width,material,y=.12){
+ for(let i=1;i<points.length;i++){
+  const [x,z]=points[i-1],[xx,zz]=points[i],dx=xx-x,dz=zz-z;
+  const b=box(width,.12,Math.hypot(dx,dz)+.3,(x+xx)/2,y,(z+zz)/2,material);b.rotation.y=Math.atan2(dx,dz);
+ }
+}
+function tree(x,z,size=1,type=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);scene.add(g);
+ const t=new THREE.Mesh(new THREE.CylinderGeometry(.16,.26,3.6,6),trunk);t.position.y=1.8;g.add(t);
+ for(let j=0;j<3;j++){const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.7-j*.18,1),leaf[(type+j)%4]);c.position.set((j-1)*.65,4.1+j*.47,(j%2-.5)*.7);g.add(c)}
+}
+function grove(cx,cz,rx,rz,count,seed){
+ for(let i=0;i<count;i++){
+  const a=i*2.39996+seed,r=Math.sqrt((i+.5)/count),x=cx+Math.cos(a)*rx*r,z=cz+Math.sin(a)*rz*r;
+  tree(x,z,.65+(i%5)*.14,i%4);
+ }
+}
+// Grande lago na borda norte, praias sinuosas e tres ilhas arborizadas.
+surface(155,-250,550,178,sand,-.52,.7);
+surface(155,-250,538,165,water,-.35,.7);
+for(const [x,z,rx,rz,seed] of [[-80,-260,48,24,1],[200,-286,65,27,2],[435,-235,42,22,3]]){
+ surface(x,z,rx+6,rz+5,sand,-.22,seed);surface(x,z,rx,rz,park,-.13,seed);
+ grove(x,z,rx*.7,rz*.65,24,seed);
+}
+// Florestas e corredores ecologicos contornam a area urbana.
+grove(-335,-80,90,190,100,3);grove(660,-30,100,270,130,5);
+grove(100,400,560,75,130,1);grove(-150,-95,110,28,42,4);
+grove(450,-85,100,30,45,8);
+// Orla publica com passeio e avenida de acesso.
+path([[-335,-75],[-220,-81],[-100,-72],[30,-85],[150,-74],[285,-83],[415,-73],[575,-85]],11,road);
+path([[-335,-61],[-220,-67],[-100,-58],[30,-71],[150,-60],[285,-69],[415,-59],[575,-71]],3,walk,.15);
+for(let i=0;i<58;i++){const x=-320+i*15.2;tree(x,-48+Math.sin(i*.31)*5,.75,i%4)}
+// Plano viario: cinco bairros com ruas locais, vias coletoras e parques entre setores.
+// Cada bairro possui 10 linhas x 5 quadras, com 4 lotes por quadra.
+// Planta v6.4: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
+// A ordem dos 250 quarteiroes e dos 1000 IDs permanece identica (5 setores de 50).
+const blocks=[];
+const districts=Array.from({length:5},(_,i)=>({x:-270+i*165,z:10,angle:0}));
+const stepX=31,stepZ=29;
+function blockPoint(di,row,col){return [-270+di*165+(col-2)*stepX,10+row*stepZ]}
+for(let di=0;di<5;di++)for(let row=0;row<10;row++)for(let col=0;col<5;col++){
+ const [x,z]=blockPoint(di,row,col);blocks.push({x,z,di,row,col});
+ box(27,.11,25,x,.02,z,park);
+ for(const side of [-1,1]){box(27,.055,.12,x,.17,z+side*12.45,white);box(.12,.055,25,x+side*13.45,.17,z,white)}
+ box(.09,.05,25,x,.17,z,white);box(27,.05,.09,x,.17,z,white);
+ if((row+col)%3===0){tree(x-14,z-13,.63,(row+col)%4);tree(x+14,z+13,.66,(row+di)%4)}
+}
+// Ruas locais: todas as intersecoes conectadas, sem trechos mortos.
+for(let di=0;di<5;di++){
+ const left=blockPoint(di,0,0)[0],right=blockPoint(di,0,4)[0];
+ for(let col=0;col<4;col++){
+  const x=left+col*stepX+stepX/2;
+  path([[x,-6],[x,287]],4.6,road,.085);
+ }
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  path([[left-16,z],[right+16,z]],4.6,road,.085);
+ }
+}
+// Avenidas estruturantes: duas longitudinais e quatro conectores entre bairros.
+const minX=blockPoint(0,0,0)[0]-17,maxX=blockPoint(4,0,4)[0]+17;
+for(const z of [-7,286])path([[minX,z],[maxX,z]],9.5,road,.09);
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ path([[x,-10],[x,290]],9,road,.09);
+ // Ruas coletoras atravessam o corredor entre bairros e conectam as malhas locais.
+ const right=blockPoint(di,0,4)[0],left=blockPoint(di+1,0,0)[0];
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  path([[right+13,z],[left-13,z]],4.6,road,.086);
+ }
+ for(let j=0;j<8;j++)tree(x+14,10+j*36,.66,j%4);
+}
+// Sistema perimetral: fecha as extremidades da malha e liga todos os eixos.
+for(const x of [minX,maxX])path([[x,-7],[x,286]],8,road,.09);
+// A orla acompanha o lago; conectores reservados ligam-na a avenida norte,
+// sem atravessar nenhum terreno particular (os lotes comecam em z=-2.5).
+const shoreConnectors=[
+ [[-335,-75],[-349,-54],[-349,-27],[minX,-7]],
+ [[-100,-72],[-95,-50],[-95,-25],[-95,-7]],
+ [[150,-74],[155,-49],[155,-25],[155,-7]],
+ [[415,-73],[415,-49],[415,-25],[415,-7]],
+ [[575,-85],[590,-55],[590,-28],[maxX,-7]]
+];
+for(const pts of shoreConnectors)path(pts,6.8,road,.092);
+// Orla e ruas estruturantes devem ter ligacao ate as duas extremidades.
+path([[-349,-54],[-375,-44],[-375,-20],[minX,-7]],6,road,.095);
+// Faixa paisagistica publica ao longo da avenida da orla, sem ocupar lotes.
+for(let i=0;i<42;i++){const x=-320+i*21;tree(x,-33+Math.sin(i*.33)*3,.65,i%4)}
+// Calcadas junto as avenidas, mantendo a faixa de rolamento livre.
+for(const z of [-15,294])path([[minX,z],[maxX,z]],2.3,walk,.12);
+// Eixo central ocupa o corredor publico entre as linhas 4 e 5.
+path([[minX,140.5],[maxX,140.5]],4.6,road,.085);
+// Praças nos corredores publicos entre setores, fora dos lotes.
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ for(const z of [65,215]){
+  for(let j=0;j<7;j++)tree(x+Math.cos(j*2.4)*11,z+Math.sin(j*2.4)*10,.68,j%4);
+ }
+}
+// Centro comercial publico reservado em area externa aos terrenos negociaveis.
+const commercial=new THREE.Group();commercial.position.set(-415,0,-20);scene.add(commercial);
+for(let i=0;i<5;i++){
+ const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
+ box(9,h,9,x,h/2,z,stone,commercial);box(9.6,.5,9.6,x,h+.3,z,roof,commercial);
+ for(let f=2;f<h;f+=3)for(const side of [-1,1])box(7,.85,.12,x,f,z+side*4.55,glass,commercial);
+}
+const lots=[],raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected=-1;
+for(let bi=0;bi<250;bi++){
+ const {x,z}=blocks[bi];
+ for(let k=0;k<4;k++){
+  const id=bi*4+k,xx=x+(k%2?6.72:-6.72),zz=z+(k>=2?6.22:-6.22);
+  const plot=box(13.2,.045,12.15,xx,.165,zz,mat(0x78a569));
+  plot.userData.id=id;lots[id]={plot,x:xx,z:zz,building:null};
+ }
+}
+function house(id,kind){
+ const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);if(id>=100)group.scale.x=.65;scene.add(group);
+ const facade=mat(state.lots[id].color||'#e3e1d4'),trim=mat('#f4eee2'),concrete=mat('#b7b6ae'),glass=mat('#397c9b'),frames=mat('#243b4c'),wood=mat('#875c3e'),plants=mat('#3d8755'),metal=mat('#485766');
+ const add=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,group);
+ const window=(x,y,z,w=1.2,h=1.45)=>{add(w+.22,h+.22,.12,x,y,z,trim);add(w,h,.16,x,y,z+.1,frames);add(w-.13,h-.13,.17,x,y,z+.2,glass);add(.07,h,.2,x,y,z+.3,trim);add(w,.06,.2,x,y,z+.3,trim);add(w+.38,.13,.4,x,y-h/2-.13,z+.2,concrete)};
+ if(kind==='casa'){
+  // Casa contemporanea com telhado em dois planos, garagem, varanda e jardim.
+  add(6.3,.25,6.4,0,.12,0,concrete);
+  add(5.8,3.4,5.2,0,1.85,-.25,facade);
+  add(2.5,2.5,.3,-1.55,1.4,2.5,frames);
+  add(2.22,2.2,.33,-1.55,1.4,2.7,wood);
+  for(let i=0;i<4;i++)add(.06,2.15,.35,-2.35+i*.48,1.4,2.88,metal);
+  add(2.1,.24,2.3,1.55,2.95,3.02,concrete);
+  add(.18,2.8,.18,2.5,1.45,3.9,trim);
+  add(2.1,.12,2.1,1.5,.23,3.25,trim);
+  window(1.3,1.75,2.47,1.45,1.55);
+  // Telhado de duas aguas com beiral e cumeeira visiveis.
+  const roofMat=mat('#873f33');
+  for(const side of [-1,1]){const slab=add(3.7,.27,6.1,side*1.57,4.14,-.2,roofMat);slab.rotation.z=side*.31}
+  add(.22,.23,6.2,0,4.75,-.2,roofMat);
+  add(1.1,.95,.85,-1.8,4.55,-1.25,concrete);
+  add(.8,.12,.9,-1.8,5.08,-1.25,metal);
+  for(const px of [-2.55,2.55]){add(.8,.75,.8,px,.4,-2.45,plants);add(.93,.22,.93,px,.12,-2.45,concrete)}
+ }else{
+  // Predio residencial com fachada modulada, sacadas e cobertura.
+  add(6.5,.28,6.5,0,.15,0,concrete);
+  add(5.4,14.2,5.3,0,7.25,-.2,facade);
+  add(1.05,14.35,.3,-2.25,7.25,2.52,trim);add(1.05,14.35,.3,2.25,7.25,2.52,trim);
+  add(5.7,.45,5.7,0,14.6,-.2,concrete);
+  add(2.1,.2,2.1,0,15.1,-.3,metal);
+  add(1.8,.65,1.7,0,15.5,-.3,concrete);
+  add(2.1,2.6,.25,0,1.45,2.56,frames);add(1.65,2.2,.29,0,1.35,2.75,glass);
+  for(let floor=1;floor<=4;floor++){
+   const y=1.2+floor*2.55;
+   add(5.7,.22,1.2,0,y-.96,3.05,concrete);
+   for(const side of [-1,1]){
+    window(side*1.32,y,2.52,1.45,1.55);
+    add(.09,1.05,.09,side*2.63,y-.35,3.65,metal);
+   }
+   add(5.5,.08,.08,0,y-.32,3.66,metal);
+   add(5.5,.09,.09,0,y+.14,3.66,metal);
+   for(const xx of [-2.65,0,2.65])add(.08,.62,.08,xx,y-.12,3.66,metal);
+  }
+  for(const side of [-1,1]){for(let floor=1;floor<=4;floor++){const y=1.2+floor*2.55;add(.18,1.4,1.55,side*2.75,y,-.6,frames);add(.13,1.25,1.3,side*2.87,y,-.6,glass)}}
+  add(2,.18,1.4,0,.3,3.15,trim);
+ }
+ return group;
+}
+function renderState(){document.getElementById('balance').textContent=fmt(state.balance)+' IU$';for(let i=0;i<1000;i++){const l=state.lots[i],p=lots[i];p.plot.material.color.setHex(l.owner==='npc'?0x9a9b75:l.owner==='me'?(l.price?0xb7ad71:0x6b9b89):0x79a467);p.plot.scale.y=selected===i?2:1;if(p.building&&p.building.userData.kind!==l.building){scene.remove(p.building);p.building=null}if(l.building&&!p.building){p.building=house(i,l.building);p.building.userData.kind=l.building}}actions.replaceChildren();if(selected<0){document.getElementById('title').textContent='🏠 Mercado imobiliário';document.getElementById('desc').textContent='Toque em um terreno para negociar. Modo local: multiplayer ainda não ativado.';return}const l=state.lots[selected],name='#'+String(selected+1).padStart(3,'0');document.getElementById('title').textContent='📍 Terreno '+name;document.getElementById('desc').textContent=area(selected).toLocaleString('pt-BR')+' m² · '+lotShape(selected)+' · '+rarityNames[rarityIndex(selected)]+' · '+(l.owner==='free'?'Disponível · '+fmt(cost(selected))+' IU$':l.owner==='npc'?'Outro proprietário':'Seu terreno'+(l.building?' · '+l.building:'')+(l.price?' · À venda por '+fmt(l.price):''));function btn(t,fn,alt=false){let b=document.createElement('button');b.textContent=t;if(alt)b.className='alt';b.onclick=fn;actions.append(b)}if(l.owner==='free')btn('Comprar',()=>{if(state.balance<cost(selected))return status.textContent='Saldo insuficiente';state.balance-=cost(selected);l.owner='me';save();renderState()});if(l.owner==='me'){
+ if(!l.building){for(const [type,price] of [['casa',7000],['predio',18000]])btn('Construir '+type+' · '+fmt(price),()=>{
+ if(state.balance<price){status.textContent='Saldo insuficiente';return}
+ actions.replaceChildren();
+ const heading=document.createElement('div');heading.textContent='🎨 Escolha a cor antes de construir. Depois não poderá alterar.';heading.style.width='100%';actions.append(heading);
+ let chosen=colors.includes(l.color)?l.color:colors[0];
+ const palette=document.createElement('div');palette.id='palette';palette.style.width='100%';
+ function drawColors(){palette.replaceChildren();colors.forEach(color=>{const sw=document.createElement('button');sw.className='swatch'+(chosen===color?' active':'');sw.style.backgroundColor=color;sw.title='Escolher '+color;sw.setAttribute('aria-label','Cor '+color);sw.onclick=()=>{chosen=color;drawColors()};palette.append(sw)})}
+ drawColors();actions.append(palette);
+ btn('Confirmar construção · '+fmt(price),()=>{if(l.building||l.owner!=='me')return;if(state.balance<price){status.textContent='Saldo insuficiente';return}state.balance-=price;l.building=type;l.color=chosen;save();status.textContent='Construção concluída. Cor definitiva.';renderState()});
+ btn('Cancelar',()=>renderState(),true);
+ })}
+ if(!l.price){const inp=document.createElement('input');inp.type='number';inp.value=String(cost(selected)*2);actions.append(inp);btn('Anunciar',()=>{let v=Number(inp.value);if(!Number.isSafeInteger(v)||v<1000||v>1e7)return; l.price=v;save();renderState()},true)}else{btn('Simular venda (apenas neste aparelho)',()=>{state.balance+=l.price;l.owner='npc';l.price=0;save();renderState()},true);btn('Retirar anúncio',()=>{l.price=0;save();renderState()})}}}
+let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
+const canvas=renderer.domElement;
+const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
+canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.preventDefault();const old=touches.get(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1&&!wasGesture){if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>9)down.moved=true; // Um dedo: deslizar cidade, sem alterar a câmera.
+ const dx=e.clientX-old.x,dy=e.clientY-old.y,scale=distance*.002;target.x-=dx*Math.cos(yaw)*scale+dy*Math.sin(yaw)*scale;target.z+=dx*Math.sin(yaw)*scale-dy*Math.cos(yaw)*scale;
+ }else if(touches.size===2){const now=measure();if(gesture){
+ // Dois dedos: arrastar gira a camera, pinca controla zoom. Nao desloca o alvo.
+ const dx=now.mx-gesture.mx,dy=now.my-gesture.my;
+ distance*=gesture.span/now.span;
+ yaw+=dx*.006;
+ pitch-=dy*.004;
+ // Torcao de dois dedos tambem gira a camera no mesmo sentido.
+ let twist=now.angle-gesture.angle;
+ twist=Math.atan2(Math.sin(twist),Math.cos(twist));
+ yaw+=twist*.95;
+ }gesture=now;
+ }else{const pts=[...touches.values()];const prev=old;const dx=e.clientX-prev.x,dy=e.clientY-prev.y;const f=distance*.0018;target.x-=dx*Math.cos(yaw)*f;target.z+=dy*f;gesture=null}updateCam()});
+canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(lots.map(l=>l.plot))[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
+document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(65,0,95);updateCam()};
+renderState();loading.remove();function animate(){requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
+</script></body></html>
