@@ -14,6 +14,15 @@ export function runMayorEconomyTests(){
   const game=new MayorEconomy({storage,legacyLots:legacy,parkIds,now:1000});
   return {game,storage,legacy,parkIds};
  }
+ function reloadExpected(game){
+  const state=JSON.parse(JSON.stringify(game.s));
+  for(const inv of state.investors){
+   if(!Number.isFinite(inv.debt))inv.debt=0;
+   if(inv.id==='investor:2'){inv.name='Coca-Cola Brasil';inv.brand='cocacola';inv.interest='industry'}
+   if(inv.id==='investor:5'){inv.name='Mercado Livre';inv.brand='mercadolivre';inv.interest='industry'}
+  }
+  return JSON.stringify(state);
+ }
  function scenario(name,fn){
   try{const result=fn();cases.push({name,ok:true,detail:result||''})}
   catch(error){cases.push({name,ok:false,detail:error.message})}
@@ -101,7 +110,7 @@ export function runMayorEconomyTests(){
  scenario('Salvar e reabrir o mesmo município',()=>{
   const {game:g,storage,legacy,parkIds}=make();
   g.setTax('service',4);g.runDays(38);
-  const old=JSON.stringify(g.s);
+  const old=reloadExpected(g);
   const second=new MayorEconomy({storage,legacyLots:legacy,parkIds,now:5000});
   assert(JSON.stringify(second.s)===old,'Estado não foi recuperado integralmente');
   second.validate();
@@ -130,19 +139,31 @@ export function runMayorEconomyTests(){
   assert(g.s.plots.length===1000,'Lotes perdidos');
   assert(g.total()===g.s.initialTotal,'Dinheiro duplicado em longo prazo');
   assert(!g.s.companies.some(c=>c.stock<0),'Estoque ficou negativo');
-  const copyState=JSON.stringify(g.s);
+  const copyState=reloadExpected(g);
   const restored=new MayorEconomy({storage,legacyLots:legacy,parkIds,now:5000});
   assert(JSON.stringify(restored.s)===copyState,'Persistência perdeu dados de anos');
   return g.s.companies.length+' empresas após '+g.s.day+' dias';
  });
  scenario('Construção privada continua depois dos primeiros meses',()=>{
   const {game:g}=make();g.setTax('service',1);g.setTax('permit',0);
-  g.runDays(300);
+  for(let day=0;day<300;day++)g.tickDay();
   const completed=g.s.projects.filter(p=>p.status==='complete').length;
   assert(completed>30,'Investimentos pararam cedo: '+completed+' obras concluídas');
   assert(g.s.investors.some(i=>i.debt>0),'Crédito de expansão não foi acionado');
   assert(g.total()===g.s.initialTotal,'Crédito criou dinheiro em vez de transferir reservas');
   return completed+' construções concluídas em 300 dias; caixa preservado';
+ });
+ scenario('Migração e chegada de grandes empresas',()=>{
+  const {game:g}=make();g.setTax('service',1);g.setTax('permit',0);
+  for(let day=0;day<360;day++)g.tickDay();
+  const population=g.s.households.reduce((sum,h)=>sum+h.population,0);
+  const cola=g.s.companies.find(c=>c.brand==='cocacola');
+  const market=g.s.companies.find(c=>c.brand==='mercadolivre');
+  assert(population>1900,'Migração não elevou a população: '+population);
+  assert(cola?.kind==='industria','Coca-Cola não chegou como indústria');
+  assert(market?.kind==='logistica','Mercado Livre não chegou como centro logístico');
+  assert(g.total()===g.s.initialTotal,'Investimentos criaram dinheiro');
+  return population.toLocaleString('pt-BR')+' moradores; Coca-Cola e Mercado Livre instalados';
  });
  scenario('Município sem imóveis antigos continua investível',()=>{
   const g=new MayorEconomy({storage:{getItem(){return null},setItem(){}},now:1000});

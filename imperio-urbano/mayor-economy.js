@@ -27,7 +27,7 @@ export const PUBLIC_WORKS={
  parque:{name:'Melhoria dos parques',cost:32000,days:5,category:'parks',benefit:6},
  seguranca:{name:'Base da guarda municipal',cost:48000,days:7,category:'safety',benefit:6}
 };
-const INVESTOR_NAMES=['Alvorada Capital','Horizonte Empreendimentos','Construtora Vista Azul','Grupo Pontal','Aurora Comércio','Atlas Logística','Costa Investimentos','Nova Geração'];
+const INVESTOR_NAMES=['Alvorada Capital','Horizonte Empreendimentos','Coca-Cola Brasil','Grupo Pontal','Aurora Comércio','Mercado Livre','Costa Investimentos','Nova Geração'];
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const money=n=>Math.max(0,Math.round(n));
 const copy=v=>JSON.parse(JSON.stringify(v));
@@ -40,7 +40,11 @@ export class MayorEconomy{
   try{const raw=this.storage?.getItem(MUNICIPAL_SAVE_KEY);if(raw)data=JSON.parse(raw)}catch{}
   if(data?.version===1&&data.accounts&&Array.isArray(data.plots)&&data.plots.length===1000){
    this.state=data;this.reconcileLegacy();this.ensurePublicSites();
-   for(const inv of this.state.investors)if(!Number.isFinite(inv.debt))inv.debt=0;
+   for(const inv of this.state.investors){
+    if(!Number.isFinite(inv.debt))inv.debt=0;
+    if(inv.id==='investor:2'){inv.name='Coca-Cola Brasil';inv.brand='cocacola';inv.interest='industry'}
+    if(inv.id==='investor:5'){inv.name='Mercado Livre';inv.brand='mercadolivre';inv.interest='industry'}
+   }
    this.validate();return;
   }
   this.state=this.fresh(now);
@@ -73,7 +77,8 @@ export class MayorEconomy{
    const id='investor:'+i;s.accounts[id]=0;
    this.move('regional',id,255000+(i%4)*65000,'Capital privado de investidores regionais');
    s.investors.push({id,name:INVESTOR_NAMES[i],profile:['conservador','moderado','arrojado'][i%3],
-    interest:['residential','retail','industry','tourism'][i%4],history:[],assets:[],failed:0,debt:0});
+    interest:['residential','retail','industry','tourism'][i%4],brand:i===2?'cocacola':i===5?'mercadolivre':null,
+    history:[],assets:[],failed:0,debt:0});
   }
   // Construções já existentes aparecem no mapa, mas não são apropriadas pelo prefeito.
   let oldSeed=0;
@@ -194,6 +199,10 @@ export class MayorEconomy{
  }
  listOpportunities(inv){
   const s=this.s,climate=this.economicClimate();
+  if(inv.brand){
+   const alreadyArrived=s.companies.some(c=>c.brand===inv.brand)||s.projects.some(p=>p.brand===inv.brand);
+   if(alreadyArrived||s.day<120||climate.population<1600||climate.satisfaction<48)return [];
+  }
   const activeByType={},nearbyByType={};
   for(const c of s.companies.filter(c=>c.active)){
    const key=this.district(c.plot)+':'+c.kind;nearbyByType[key]=(nearbyByType[key]||0)+1;
@@ -210,7 +219,14 @@ export class MayorEconomy{
   for(const {i} of free){
    // Amostra determinística limitada para respeitar Android; cada bairro é avaliado.
    if((i*37+s.day*11+inv.id.length)%7!==0)continue;
-   const zone=this.zoneFor(i),options=this.modelOptions(zone);
+   const zone=this.zoneFor(i);let options=this.modelOptions(zone);
+   if(inv.brand==='cocacola'){
+    if(zone!=='industrial')continue;
+    options=['industria'];
+   }else if(inv.brand==='mercadolivre'){
+    if(zone!=='industrial')continue;
+    options=['logistica'];
+   }
    for(const kind of options){
     const model=CITY_MODELS[kind];
     const district=this.district(i),distance=this.district(i);
@@ -257,7 +273,7 @@ export class MayorEconomy{
   const resistance=inv.profile==='conservador'?.19:inv.profile==='moderado'?.09:-.02;
   const threshold=.61+resistance;
   if(offer.score+this.random()*.25<threshold){inv.failed++;return false}
-  const permit={id:'permit:'+this.s.seq++,plot:offer.plot,investor:inv.id,kind:offer.kind,
+  const permit={id:'permit:'+this.s.seq++,plot:offer.plot,investor:inv.id,kind:offer.kind,brand:inv.brand||null,
    cost:offer.required,land:offer.land,license:offer.license,build:offer.build,reserve:offer.reserve,
    status:'pending',score:offer.score,day:this.s.day};
   this.s.permits.unshift(permit);
@@ -287,7 +303,7 @@ export class MayorEconomy{
   permit.status='approved';
   plot.holder=permit.investor;plot.project=permit.id;
   const days=CITY_MODELS[permit.kind].days;
-  this.s.projects.push({id:'project:'+this.s.seq++,plot:permit.plot,kind:permit.kind,owner:permit.investor,
+  this.s.projects.push({id:'project:'+this.s.seq++,plot:permit.plot,kind:permit.kind,owner:permit.investor,brand:permit.brand||null,
    days,elapsed:0,status:'preparation',cost:permit.build,paid:0,created:this.s.day,permit:permit.id,reserve:permit.reserve});
   this.s.metrics.privateInvestment+=permit.cost;
   const investor=this.s.investors.find(i=>i.id===permit.investor);
@@ -316,7 +332,7 @@ export class MayorEconomy{
     this.s.accounts[id]=0;
     const capital=money(Math.min(p.reserve,this.account(p.owner)));
     if(capital>0)this.move(p.owner,id,capital,'Capital de giro na inauguração');
-    this.s.companies.push({id,plot:p.plot,kind:p.kind,investor:p.owner,sector:model.type,
+    this.s.companies.push({id,plot:p.plot,kind:p.kind,investor:p.owner,brand:p.brand||null,sector:model.type,
       workers:model.jobs,capacity:model.capacity,age:0,revenue:0,expenses:0,profit:0,stock:0,active:true,
       initialLegacy:false});
     const investor=this.s.investors.find(i=>i.id===p.owner);
@@ -523,13 +539,19 @@ export class MayorEconomy{
   for(const h of s.households)h.satisfaction=s.metrics.satisfaction;
  }
  monthEnd(){
-  const s=this.s;const quality=this.economicClimate().satisfaction;
+  const s=this.s,climate=this.economicClimate();const quality=climate.satisfaction;
   const employment=s.metrics.unemployment;
-  const change=clamp(Math.round((quality-55)*.16-(employment-15)*.09),-16,14);
+  // Migração líquida considera atratividade, empregos e espaço para novas famílias.
+  // A cidade já parte com bairros existentes; novos empreendimentos ampliam a capacidade.
+  const housingHeadroom=Math.max(0,2200+climate.capacity*3-climate.population);
+  const change=clamp(Math.round(3+(quality-50)*.70+(45-employment)*.14+
+   Math.min(12,housingHeadroom/500)),-12,24);
   for(const h of s.households){
    const delta=money(Math.abs(change)*(h.district===2?1:.6));
    h.population=Math.max(60,h.population+(change>=0?delta:-delta));
   }
+  if(s.month%3===0&&change>=7)this.news('Nova Jundiaí atrai '+
+   Math.round(change*4.6)+' moradores neste mês, com vagas e novos bairros.','migration');
   const result=s.monthlyTotals.revenue-s.monthlyTotals.expenses;
   s.monthly.push({month:s.month,year:s.year,revenue:s.monthlyTotals.revenue,
    expenses:s.monthlyTotals.expenses,product:s.monthlyTotals.product,
