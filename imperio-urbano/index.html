@@ -112,12 +112,69 @@ const nightParkColor=new THREE.Color(0x678865),dayParkColor=new THREE.Color(0x82
 const sun=new THREE.DirectionalLight(0xffefce,2.0);sun.position.set(-170,280,130);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;
 sun.shadow.camera.top=550;sun.shadow.camera.bottom=-550;sun.shadow.bias=-.0003;scene.add(sun);
+// Texturas procedurais leves, geradas no navegador (sem downloads ou imagens externas).
+// Repetem microdetalhes de grama, asfalto, areia e ondas mantendo os materiais low-poly.
+function makeUrbanTexture(kind){
+ const canvas=document.createElement('canvas'),size=128;canvas.width=size;canvas.height=size;
+ const ctx=canvas.getContext('2d',{willReadFrequently:false});
+ const data=ctx.createImageData(size,size);
+ let seed={grass:5191,asphalt:2789,sand:8557,water:9272}[kind]||1234;
+ const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+ for(let i=0;i<size*size;i++){
+  const n=rnd(),j=i*4;let base;
+  if(kind==='grass')base=231+Math.floor(n*24);
+  else if(kind==='asphalt')base=225+Math.floor(n*22);
+  else if(kind==='sand')base=231+Math.floor(n*24);
+  else base=210+Math.floor(n*45);
+  data.data[j]=base;
+  data.data[j+1]=base;
+  data.data[j+2]=kind==='water'?Math.min(255,base+7):base;
+  data.data[j+3]=255;
+ }
+ ctx.putImageData(data,0,0);
+ if(kind==='grass'){
+  for(let i=0;i<160;i++){
+   ctx.strokeStyle='rgba(45,86,40,'+(.05+rnd()*.13)+')';
+   ctx.lineWidth=.45;const x=rnd()*size,y=rnd()*size;
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+.8+rnd()*2,y-1-rnd()*3);ctx.stroke();
+  }
+ }
+ if(kind==='water'){
+  for(let i=0;i<85;i++){
+   const x=rnd()*size,y=rnd()*size;
+   ctx.strokeStyle='rgba(245,255,255,'+(.07+rnd()*.25)+')';
+   ctx.lineWidth=.4+rnd()*.8;ctx.beginPath();ctx.moveTo(x,y);
+   ctx.quadraticCurveTo(x+4,y-1-rnd()*2,x+10+rnd()*16,y);ctx.stroke();
+  }
+ }
+ if(kind==='asphalt'){
+  for(let i=0;i<80;i++){
+   ctx.fillStyle='rgba(43,57,62,'+(.04+rnd()*.10)+')';
+   ctx.fillRect(rnd()*size,rnd()*size,.5+rnd()*.7,.5+rnd()*.7);
+  }
+ }
+ const texture=new THREE.CanvasTexture(canvas);
+ texture.wrapS=THREE.RepeatWrapping;texture.wrapT=THREE.RepeatWrapping;
+ texture.colorSpace=THREE.SRGBColorSpace;
+ texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+ const repeats={grass:[4,4],sand:[4,4],asphalt:[3,3],water:[14,2]};
+ texture.repeat.set(...repeats[kind]);
+ return texture;
+}
+const grassTexture=makeUrbanTexture('grass');
+const roadTexture=makeUrbanTexture('asphalt');
+const sandTexture=makeUrbanTexture('sand');
+const waterTexture=makeUrbanTexture('water');
 const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.94});
 const turf=mat(0x729b63),forest=mat(0x3d6b40),park=mat(0x82a66d),sand=mat(0xd9c79d),
 road=mat(0x555e64),walk=mat(0xbebdb0),white=mat(0xe9eadf),mark=mat(0xe9dfc2);
-const water=new THREE.MeshStandardMaterial({color:0x1680a2,roughness:.34,metalness:.03,side:THREE.DoubleSide});
+const water=new THREE.MeshStandardMaterial({color:0x268cba,roughness:.28,metalness:.11,side:THREE.DoubleSide,map:waterTexture});
 const trunk=mat(0x755439),leaf=[mat(0x315c3b),mat(0x40774b),mat(0x59884f),mat(0x326e54)];
 const roof=mat(0x8d5044),glass=mat(0x6c9caa),stone=mat(0xcac7b7);
+// Texturas compartilhadas; preservam as cores para raridade, proprietarios e calor.
+for(const grassMaterial of [turf,forest,park]){grassMaterial.map=grassTexture;grassMaterial.roughness=.98}
+sand.map=sandTexture;walk.map=sandTexture;
+road.map=roadTexture;road.roughness=.91;
 function box(w,h,d,x,y,z,m,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=h>1.5;parent.add(o);return o}
 box(1320,.6,1040,175,-1,15,turf);
 function surface(cx,cz,rx,rz,material,y,seed=0){
@@ -155,10 +212,10 @@ function waterCap(x){return Math.min(THREE.MathUtils.clamp((x+450)/65,0,1),THREE
 function bankNear(x){const f=waterCap(x);return lakeNear(x)*f-198*(1-f)}
 function bankFar(x){const f=waterCap(x);return lakeFar(x)*f-198*(1-f)}
 function lakeRibbon(z1,z2,m,y){
- const v=[],ind=[],n=160;
- for(let i=0;i<=n;i++){const x=-450+1035*i/n;v.push(x,y,z1(x),x,y,z2(x));
+ const v=[],uv=[],ind=[],n=160;
+ for(let i=0;i<=n;i++){const x=-450+1035*i/n;v.push(x,y,z1(x),x,y,z2(x));uv.push(i/n,0,i/n,1);
   if(i<n){const p=i*2;ind.push(p,p+1,p+2,p+1,p+3,p+2)}}
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(ind);g.computeVertexNormals();
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(ind);g.computeVertexNormals();
  const obj=new THREE.Mesh(g,m);obj.receiveShadow=true;scene.add(obj);
 }
 const waterMat=water.clone(),beachMat=sand.clone();waterMat.side=THREE.DoubleSide;beachMat.side=THREE.DoubleSide;
@@ -253,6 +310,7 @@ for(let bi=0;bi<250;bi++){
  for(let k=0;k<4;k++){
   const id=bi*4+k,xx=x+(k%2?6.72:-6.72),zz=z+(k>=2?6.22:-6.22);
   const plot=box(13.2,.045,12.15,xx,.165,zz,mat(0x78a569));
+  plot.material.map=grassTexture;plot.material.roughness=.98;
   plot.userData.id=id;lots[id]={plot,x:xx,z:zz,building:null};
  }
 }
@@ -1047,8 +1105,9 @@ function updateCityTime(force=false){
  streetBulbMat.color.setHex(night>.3?0xffd69a:0xc8ced0);
  streetPoolMat.opacity=.75*night;
  reflectionMat.opacity=.37*night;
- waterMat.color.setHex(0x174d75);
- waterMat.color.lerp(new THREE.Color(0x1680a2),daylight);
+ waterMat.color.setHex(0x205576);
+ waterMat.color.lerp(new THREE.Color(0x288fb6),daylight);
+ waterTexture.offset.x=(elapsed/60000)*.018;
 }
 nightButton.onclick=()=>{
  previewNight=!previewNight;
