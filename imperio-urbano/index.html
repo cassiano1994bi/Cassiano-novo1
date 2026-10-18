@@ -95,7 +95,14 @@ function buildingRestriction(i,id){
  const model=buildingDefinition(id);
  if(!model)return 'Modelo indisponível.';
  if(rarityIndex(i)<model.min)return 'Exige terreno '+rarityNames[model.min]+' ou superior.';
- if(model.zones&&!model.zones.includes(zone(i).grade))return 'Disponível apenas nas zonas '+model.zones.join('/')+'.';
+ if(model.zones&&!model.zones.includes(zone(i).grade)){
+  const grade=zone(i).grade,rarity=rarityIndex(i);
+  const premiumUpgrade=rarity>=2&&['house_premium','predio_premium','torre_nobre'].includes(model.id);
+  const epicCoastalUpgrade=rarity>=3&&grade==='C'&&['house_luxo','torre_luxo'].includes(model.id);
+  // Um terreno lendário nunca fica sem acesso aos projetos mais exclusivos.
+  if(!(rarity===4||premiumUpgrade||epicCoastalUpgrade))
+   return 'Disponível na zona '+model.zones.join('/')+'; libera em outras regiões com raridade maior.';
+ }
  return '';
 }
 const buildingLabel=id=>buildingDefinition(id)?.name||'Construção existente';
