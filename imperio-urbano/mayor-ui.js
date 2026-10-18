@@ -22,7 +22,7 @@ export function mountMayorUI(engine,ctx){
  const byId=id=>document.getElementById(id);
  const drawer=byId('mayorDrawer'),body=byId('mayorBody'),tabs=byId('mayorTabs'),lotBox=byId('mayorLotInfo');
  const toolbar=byId('mayorHeadline');
- let active='overview',isOpen=false,lastSignature='',chosenLot=null,lastDay=-1;
+ let active='overview',isOpen=false,lastSignature='',chosenLot=null,lastDay=-1,mapLayer='none';
  function msg(text){const id=byId('mayorMessage');if(id){id.textContent=text;id.hidden=false}else ctx.notice?.(text)}
  function row(label,value){return '<div class="mayorRow"><span>'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>'}
  function metric(label,value){return '<div class="mayorStat"><small>'+esc(label)+'</small><b>'+esc(value)+'</b></div>'}
@@ -108,7 +108,17 @@ export function mountMayorUI(engine,ctx){
   const active=s.companies.filter(c=>c.active);
   const jobs=active.reduce((n,c)=>n+c.workers,0);
   const wages=s.ledger.filter(t=>t.day>=Math.max(0,s.day-6)&&t.reason.includes('Salários')).reduce((a,t)=>a+t.amount,0);
-  return '<div class="mayorStats">'+
+  return '<label class="mayorZone">🗺️ Mapa temático <select data-map="1">'+
+   '<option value="none">Normal</option>'+
+   '<option value="zone">Zoneamento</option>'+
+   '<option value="owner">Propriedade</option>'+
+   '<option value="construction">Construções</option>'+
+   '<option value="valuation">Valor dos terrenos</option>'+
+   '<option value="density">Densidade</option>'+
+   '<option value="jobs">Empregos</option>'+
+   '<option value="demand">Demanda comercial</option>'+
+   '<option value="service">Qualidade dos serviços</option></select></label>'+
+   '<div class="mayorStats">'+
    metric('Tesouro',fmt(data.treasury)+' IU$')+
    metric('População',fmt(data.population))+
    metric('Empresas',fmt(data.companies))+
@@ -185,7 +195,9 @@ export function mountMayorUI(engine,ctx){
  };
  body.onchange=e=>{
   const el=e.target;
-  if(el.dataset.zone!==undefined){
+  if(el.dataset.map!==undefined){
+   mapLayer=el.value;ctx.paintMap?.(mapLayer);ctx.notice?.('Mapa: '+el.value);
+  }else if(el.dataset.zone!==undefined){
    engine.setZone(Number(el.dataset.zone),el.value);
    ctx.paintMap?.();ctx.notice?.('Novo zoneamento registrado.');drawPanel();
   }else if(el.dataset.tax!==undefined){
