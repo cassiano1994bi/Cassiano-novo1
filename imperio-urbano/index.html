@@ -666,9 +666,14 @@ document.getElementById('myLots').onclick=()=>{
  const owned=[];
  for(let i=0;i<state.lots.length;i++)if(state.lots[i].owner==='me')owned.push(i);
  if(!owned.length){status.textContent='Você ainda não possui terrenos. Selecione um terreno disponível para comprar.';return}
- myLotCursor=(myLotCursor+1)%owned.length;
- selected=owned[myLotCursor];if(!lotMatches(selected)){plotFilter='all';filterInput.value='all';updateMapHighlights()}target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
- status.textContent='Seu terreno #'+String(selected+1).padStart(3,'0')+' · '+(state.lots[selected].building?'Já construído':'Disponível para construir');
+ const vacant=owned.filter(i=>!state.lots[i].building);
+ const visit=vacant.length?vacant:owned;
+ myLotCursor=(myLotCursor+1)%visit.length;
+ selected=visit[myLotCursor];
+ if(!lotMatches(selected)){plotFilter='all';filterInput.value='all';updateMapHighlights()}
+ target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
+ status.textContent='Seu terreno #'+String(selected+1).padStart(3,'0')+' · '+
+  (vacant.length?'Disponível para construir · '+vacant.length+' terreno(s) vazios no total.':'Você não possui terrenos vazios; confira suas construções.');
  renderState();
 };
 renderState();if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';loading.remove();function animate(t){requestAnimationFrame(animate);legendaryGlow.emissiveIntensity=.65+.36*Math.sin(t*.0025);renderer.render(scene,camera)}animate(0);
