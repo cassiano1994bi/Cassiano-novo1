@@ -17,6 +17,40 @@ export const CITY_MODELS={
  industria:{name:'Fábrica',type:'industry',model:'predio_compacto',cost:185000,days:18,capacity:0,jobs:42},
  logistica:{name:'Centro logístico',type:'industry',model:'predio_urbano',cost:157000,days:16,capacity:0,jobs:30}
 };
+const addModelSet=(items,type,defaults)=>{
+ for(const [key,name,model,cost,days,capacity,jobs] of items)
+  CITY_MODELS[key]={name,type,model:model||defaults.model,cost:cost||defaults.cost,days:days||defaults.days,capacity:capacity||0,jobs:jobs??defaults.jobs};
+};
+addModelSet([
+ ['casa_sobrado','Sobrado urbano','house_padrao',64000,8,10],['casa_geminada','Casas geminadas','house_popular',72000,8,14],
+ ['casa_jardim','Casa com jardim','house_padrao',68000,8,8],['casa_colonial','Casa colonial','house_luxo',89000,10,7],
+ ['casa_modernista','Casa modernista','house_premium',108000,11,8],['casa_sustentavel','Casa sustentável','house_padrao',96000,10,9],
+ ['casa_varanda','Casa com varanda','house_luxo',99000,10,8],['casa_compacta','Casa compacta','house_popular',42000,6,5],
+ ['sobrado_garagem','Sobrado com garagem','house_padrao',82000,9,10],['vila_residencial','Vila residencial','predio_compacto',148000,13,36],
+ ['condominio_jardins','Condomínio dos Jardins','predio_premium',290000,23,96],['edificio_familiar','Edifício familiar','predio_urbano',208000,18,72],
+ ['torre_familiar','Torre familiar','torre_nobre',410000,28,144],['residencial_parque','Residencial Parque','predio_premium',315000,24,108],
+ ['residencial_premium','Residencial Premium','torre_nobre',520000,32,180],['torre_costeira','Torre Costeira','torre_luxo',680000,36,216]
+],'residential',{model:'house_padrao',cost:75000,days:9,jobs:0});
+addModelSet([
+ ['cafeteria','Cafeteria','house_padrao',59000,7,0,12],['pizzaria','Pizzaria','house_luxo',79000,9,0,18],
+ ['loja_roupas','Loja de roupas','house_premium',91000,10,0,16],['conveniencia','Loja de conveniência','house_popular',52000,6,0,9],
+ ['petshop','Pet shop','house_padrao',67000,8,0,11],['materiais_construcao','Materiais de construção','predio_compacto',145000,14,0,26],
+ ['eletronicos','Loja de eletrônicos','house_premium',102000,11,0,18],['livraria','Livraria','house_padrao',63000,8,0,10],
+ ['banco','Agência bancária','predio_compacto',168000,15,0,30],['academia','Academia','predio_urbano',155000,14,0,28],
+ ['cinema','Cinema','predio_urbano',245000,20,0,34],['shopping','Shopping center','predio_premium',610000,34,0,110],
+ ['posto_combustivel','Posto de combustível','house_padrao',135000,12,0,20],['oficina_auto','Oficina automotiva','predio_compacto',124000,12,0,22]
+],'retail',{model:'house_padrao',cost:85000,days:9,jobs:14});
+addModelSet([
+ ['fabrica_alimentos','Fábrica de alimentos','predio_compacto',220000,20,0,48],['fabrica_textil','Fábrica têxtil','predio_urbano',205000,19,0,44],
+ ['fabrica_moveis','Fábrica de móveis','predio_compacto',198000,18,0,38],['fabrica_eletronicos','Fábrica de eletrônicos','predio_premium',360000,26,0,62],
+ ['reciclagem','Centro de reciclagem','predio_compacto',175000,17,0,32],['transportadora','Transportadora','predio_urbano',190000,18,0,36],
+ ['centro_distribuicao','Centro de distribuição','predio_urbano',275000,22,0,58],['parque_tecnologico','Parque tecnológico','predio_premium',490000,30,0,86]
+],'industry',{model:'predio_compacto',cost:210000,days:20,jobs:42});
+export const DAILY_CONSTRUCTION_TARGET=25;
+export const CITY_MODEL_COUNT=Object.keys(CITY_MODELS).length;
+const RESIDENTIAL_MODELS=Object.keys(CITY_MODELS).filter(k=>CITY_MODELS[k].type==='residential');
+const RETAIL_MODELS=Object.keys(CITY_MODELS).filter(k=>CITY_MODELS[k].type==='retail');
+const INDUSTRY_MODELS=Object.keys(CITY_MODELS).filter(k=>CITY_MODELS[k].type==='industry');
 export const PUBLIC_WORKS={
  escola:{name:'Ampliação da rede escolar',cost:76000,days:9,category:'education',benefit:8},
  hospital:{name:'Unidade de saúde',cost:110000,days:13,category:'health',benefit:10},
@@ -40,6 +74,8 @@ export class MayorEconomy{
   try{const raw=this.storage?.getItem(MUNICIPAL_SAVE_KEY);if(raw)data=JSON.parse(raw)}catch{}
   if(data?.version===1&&data.accounts&&Array.isArray(data.plots)&&data.plots.length===1000){
    this.state=data;this.reconcileLegacy();this.ensurePublicSites();
+   if(!this.state.policy)this.state.policy={autoPermits:true};
+   if(!['balanced','residential','retail','industry'].includes(this.state.policy.constructionFocus))this.state.policy.constructionFocus='balanced';
    if(!Number.isFinite(this.state.migrationRemainder))this.state.migrationRemainder=0;
    if(!Number.isFinite(this.state.departureRemainder))this.state.departureRemainder=0;
    if(!Number.isFinite(this.state.monthlyMigration))this.state.monthlyMigration=0;
@@ -57,7 +93,7 @@ export class MayorEconomy{
   const s={
    version:1,day:0,month:1,year:1,seed:391733,seq:1,speed:10,paused:false,accumMs:0,
    lastWall:now,accounts:{regional:40000000,treasury:0,builders:0},initialTotal:40000000,
-   rates:{property:1.4,service:3.0,permit:1.0},policy:{autoPermits:true},
+   rates:{property:1.4,service:3.0,permit:1.0},policy:{autoPermits:true,constructionFocus:'balanced'},
    allocations:{health:56,education:54,safety:52,roads:55,water:55,transport:48,parks:59},
    zones:['residential','residential','mixed','industrial','tourism'],
    investors:[],households:[],companies:[],projects:[],works:[],permits:[],
@@ -176,6 +212,41 @@ export class MayorEconomy{
   }
   this.persist();
  }
+ setConstructionFocus(focus){
+  if(!['balanced','residential','retail','industry'].includes(focus))return false;
+  this.s.policy.constructionFocus=focus;
+  this.news('Plano de construção atualizado: '+({balanced:'equilibrado',residential:'moradia',retail:'comércio',industry:'empregos e indústria'}[focus])+'.','policy');
+  this.persist();return true;
+ }
+ cityAdvisor(){
+  const climate=this.economicClimate(),s=this.s;
+  const active=s.companies.filter(c=>c.active),retail=active.filter(c=>c.sector==='retail').length;
+  const industry=active.filter(c=>c.sector==='industry').length,homes=active.filter(c=>c.sector==='residential').length;
+  const jobs=active.reduce((n,c)=>n+c.workers,0),unfinished=s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').length;
+  const pressure=climate.population?climate.capacity/climate.population:0;
+  let suggestion;
+  if(pressure<1.6&&s.policy.constructionFocus!=='residential')suggestion={id:'focus-residential',focus:'residential',title:'Priorizar moradias',detail:'A capacidade residencial está em '+(pressure*100).toFixed(0)+'% da população. Direcionar mais obras para casas e prédios residenciais.'};
+  else if(s.metrics.unemployment>22&&s.policy.constructionFocus!=='industry')suggestion={id:'focus-industry',focus:'industry',title:'Priorizar empregos',detail:'O desemprego está em '+s.metrics.unemployment.toFixed(1)+'%. Direcionar mais obras para empresas e indústrias.'};
+  else if(retail<Math.max(2,Math.ceil(climate.population/650))&&s.policy.constructionFocus!=='retail')suggestion={id:'focus-retail',focus:'retail',title:'Ampliar comércio local',detail:'Há poucos comércios para atender '+climate.population.toLocaleString('pt-BR')+' moradores. Priorizar lojas, mercados e serviços.'};
+  else {
+   const weak=Object.entries(s.allocations).sort((a,b)=>a[1]-b[1])[0];
+   const works=s.works.some(w=>w.category===weak[0]&&w.status!=='complete');
+   const workByCategory={health:'hospital',education:'escola',safety:'iluminacao',roads:'avenida',water:'saneamento',transport:'transporte',parks:'parque'};
+   const kind=workByCategory[weak[0]];
+   if(kind&&!works&&this.account('treasury')>=PUBLIC_WORKS[kind].cost)suggestion={id:'work-'+kind,work:kind,title:'Melhorar '+({health:'saúde',education:'educação',safety:'segurança',roads:'vias',water:'saneamento',transport:'transporte',parks:'parques'}[weak[0]]),detail:PUBLIC_WORKS[kind].name+' é o serviço mais fraco ('+Math.round(weak[1])+'/100). A obra custa '+PUBLIC_WORKS[kind].cost.toLocaleString('pt-BR')+' IU$.'};
+   else if(s.policy.constructionFocus!=='balanced')suggestion={id:'focus-balanced',focus:'balanced',title:'Retomar crescimento equilibrado',detail:'Moradia, comércio e empregos estão mais próximos do equilíbrio. Distribuir as próximas obras entre os três setores.'};
+   else suggestion={id:'hold',title:'Manter o plano atual',detail:'A cidade não mostra uma carência urgente. Continue acompanhando o caixa, os serviços e as obras em andamento.'};
+  }
+  return {population:climate.population,capacity:climate.capacity,housingCoverage:pressure,employment:jobs,unemployment:s.metrics.unemployment,
+   retail,industry,homes,treasury:this.account('treasury'),constructionCount:unfinished,focus:s.policy.constructionFocus||'balanced',suggestion};
+ }
+ applyAdvisorSuggestion(id){
+  const proposal=this.cityAdvisor().suggestion;
+  if(!proposal||proposal.id!==id)return {ok:false,reason:'A necessidade da cidade mudou; confira a recomendação atualizada.'};
+  if(proposal.focus)return {ok:this.setConstructionFocus(proposal.focus),reason:'Plano de construção aplicado.'};
+  if(proposal.work)return this.startWork(proposal.work);
+  return {ok:false,reason:'O plano atual já atende às necessidades da cidade.'};
+ }
  setSpeed(value){
   if(![1,5,10,30,60].includes(value))return false;
   this.s.speed=value;this.persist();return true;
@@ -193,15 +264,16 @@ export class MayorEconomy{
  }
  modelOptions(zone,housingShortage=false){
   switch(zone){
-   case 'residential':return ['popular','medio','luxo','apartamentos'];
-   case 'commercial':return ['mercado','padaria','farmacia','restaurante','lojas','apartamentos'];
-   case 'industrial':return ['industria','logistica'];
-   case 'tourism':return housingShortage?['medio','apartamentos']:['hotel','restaurante','luxo','apartamentos','mercado'];
-   case 'mixed':return housingShortage?['popular','medio','apartamentos','mercado']:['medio','apartamentos','mercado','padaria','farmacia','restaurante','lojas'];
+   case 'residential':return RESIDENTIAL_MODELS;
+   case 'commercial':return [...RETAIL_MODELS,'apartamentos'];
+   case 'industrial':return INDUSTRY_MODELS;
+   case 'tourism':return housingShortage?[...RESIDENTIAL_MODELS]:['hotel','restaurante','luxo','apartamentos','mercado','cafeteria','pizzaria'];
+   case 'mixed':return housingShortage?[...RESIDENTIAL_MODELS,'mercado','padaria','farmacia','restaurante','cafeteria','conveniencia']:
+    [...RESIDENTIAL_MODELS,'apartamentos',...RETAIL_MODELS];
    default:return [];
   }
  }
- listOpportunities(inv){
+ listOpportunities(inv,desiredType=null){
   const s=this.s,climate=this.economicClimate();
   if(inv.brand){
    const alreadyArrived=s.companies.some(c=>c.brand===inv.brand)||s.projects.some(p=>p.brand===inv.brand);
@@ -263,26 +335,27 @@ export class MayorEconomy{
    }
   }
   scored.sort((a,b)=>b.score-a.score);
-  return scored.slice(0,7);
+  const preferred=desiredType?scored.filter(x=>CITY_MODELS[x.kind].type===desiredType):scored;
+  return (preferred.length?preferred:scored).slice(0,7);
  }
  landCost(plot){
   const row=Math.floor((plot%200)/20);
   const premium=row===0?1.7:row<=2?1.34:row<=5?1.1:1;
   return money((7800+(plot%13)*280)*premium);
  }
- tryInvestment(inv){
+ tryInvestment(inv,desiredType=null,priorityConstruction=false){
   // Crédito rotativo, vindo do fundo regional e limitado por investidor.
   // O empréstimo é contabilizado como transferência; não cria dinheiro.
   if(this.account(inv.id)<300000&&this.account('regional')>4000000&&(inv.debt||0)<7000000){
    const credit=Math.min(450000,7000000-(inv.debt||0),this.account('regional')-4000000);
    if(credit>0&&this.move('regional',inv.id,credit,'Crédito de expansão para '+inv.name))inv.debt=(inv.debt||0)+credit;
   }
-  const opportunities=this.listOpportunities(inv);
+  const opportunities=this.listOpportunities(inv,desiredType);
   const offer=opportunities[0];
-  if(!offer||offer.score<.42){inv.failed++;return false}
+  if(!offer||(!priorityConstruction&&offer.score<.42)){inv.failed++;return false}
   const resistance=inv.profile==='conservador'?.10:inv.profile==='moderado'?.04:-.03;
   const threshold=.48+resistance;
-  if(offer.score+this.random()*.30<threshold){inv.failed++;return false}
+  if(!priorityConstruction&&offer.score+this.random()*.30<threshold){inv.failed++;return false}
   const permit={id:'permit:'+this.s.seq++,plot:offer.plot,investor:inv.id,kind:offer.kind,brand:inv.brand||null,
    cost:offer.required,land:offer.land,license:offer.license,build:offer.build,reserve:offer.reserve,
    status:'pending',score:offer.score,day:this.s.day};
@@ -296,6 +369,38 @@ export class MayorEconomy{
   this.news(inv.name+' solicita licença para '+CITY_MODELS[offer.kind].name+' no lote #'+(offer.plot+1)+'.','permit');
   if(this.s.policy.autoPermits)this.decidePermit(permit.id,true);
   return true;
+ }
+ fillConstructionPipeline(){
+  const s=this.s;
+  if(!s.policy.autoPermits){
+   let proposed=0;
+   for(const investor of [...s.investors].sort((a,b)=>this.random()-.5))if(this.tryInvestment(investor))proposed++;
+   return 0;
+  }
+  const free=s.plots.filter(p=>p.holder==='free'&&!p.project).length;
+  const target=Math.min(DAILY_CONSTRUCTION_TARGET,free+s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').length);
+  const active=()=>s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').length;
+  const climate=this.economicClimate();let started=0;
+  for(let round=0;round<12&&active()<target;round++){
+   const housingShortage=climate.capacity<climate.population*1.60;
+   const focus=s.policy.constructionFocus||'balanced';
+   const shares=focus==='residential'?{residential:.84,retail:.11,industry:.05}:
+    focus==='retail'?{residential:.22,retail:.68,industry:.10}:
+    focus==='industry'?{residential:.28,retail:.20,industry:.52}:
+    housingShortage?{residential:.72,retail:.20,industry:.08}:{residential:.42,retail:.38,industry:.20};
+   const counts={residential:0,retail:0,industry:0};
+   for(const project of s.projects){if(project.status==='complete'||project.status==='cancelled')continue;const type=CITY_MODELS[project.kind]?.type;if(counts[type]!==undefined)counts[type]++;}
+   const denominator=Math.max(1,active());
+   const desiredType=Object.keys(shares).sort((a,b)=>counts[a]/denominator/shares[a]-counts[b]/denominator/shares[b])[0];
+   const order=[...s.investors].sort((a,b)=>this.random()-.5);let roundStarted=0;
+   for(const investor of order){
+    if(active()>=target)break;
+    const before=active();this.tryInvestment(investor,desiredType,true);
+    const delta=active()-before;if(delta>0){started+=delta;roundStarted+=delta;}
+   }
+   if(!roundStarted)break;
+  }
+  return started;
  }
  decidePermit(id,approve){
   const permit=this.s.permits.find(p=>p.id===id);
@@ -577,8 +682,7 @@ export class MayorEconomy{
   this.progressWorks();
   this.operateCompanies();
   this.migrateResidents();
-  const order=[...s.investors].sort((a,b)=>this.random()-.5);
-  for(const inv of order)this.tryInvestment(inv);
+  this.fillConstructionPipeline();
   if(s.day%30===0)this.monthEnd();
   this.updateChallenge();
   this.validate();
@@ -673,8 +777,9 @@ export class MayorEconomy{
    unemployment:s.metrics.unemployment,satisfaction:s.metrics.satisfaction,
    attractiveness:clamp(climate.satisfaction-s.rates.service*1.2,0,100),
    monthlyRevenue:s.monthlyTotals.revenue,monthlyExpense:s.monthlyTotals.expenses,
-   monthlyProduct:s.monthlyTotals.product,privateInvestments:s.projects.filter(p=>p.status!=='complete').length,
-   constructions:s.projects.filter(p=>p.status!=='complete'),
+   monthlyProduct:s.monthlyTotals.product,privateInvestments:s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').length,
+   constructions:s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled'),
+   constructionTarget:Math.min(DAILY_CONSTRUCTION_TARGET,s.plots.filter(p=>p.holder==='free'&&!p.project).length+s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').length),
    works:s.works.filter(w=>w.status!=='complete'),
    companiesList:companies,
    permits:s.permits.filter(p=>p.status==='pending'),

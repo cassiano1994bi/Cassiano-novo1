@@ -1,4 +1,4 @@
-import {MayorEconomy} from './mayor-economy.js';
+import {MayorEconomy,CITY_MODELS,CITY_MODEL_COUNT,DAILY_CONSTRUCTION_TARGET} from './mayor-economy.js';
 // Testes determinísticos: conservacao, conflitos de lote, tributacao, obras e persistencia.
 export function runMayorEconomyTests(){
  const cases=[];
@@ -29,6 +29,20 @@ export function runMayorEconomyTests(){
   try{const result=fn();cases.push({name,ok:true,detail:result||''})}
   catch(error){cases.push({name,ok:false,detail:error.message})}
  }
+ scenario('Catálogo tem 50 construções e mantém 25 obras ativas',()=>{
+  const {game:g}=make();
+  assert(CITY_MODEL_COUNT===50,'Catálogo tem '+CITY_MODEL_COUNT+' tipos, não 50');
+  assert(new Set(Object.values(CITY_MODELS).map(m=>m.name)).size===50,'Há nomes repetidos no catálogo');
+  const active=()=>g.s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled');
+  for(let day=0;day<45;day++){
+   g.tickDay();
+   assert(active().length===DAILY_CONSTRUCTION_TARGET,'Dia '+g.s.day+' ficou com '+active().length+' obras ativas');
+   assert(active().every(p=>CITY_MODELS[p.kind]),'Obra usa tipo sem definição');
+  }
+  const sectors=new Set(active().map(p=>CITY_MODELS[p.kind].type));
+  assert(sectors.has('residential')&&sectors.has('retail')&&sectors.has('industry'),'Obras não acompanharam moradia, comércio e emprego');
+  return CITY_MODEL_COUNT+' tipos; '+DAILY_CONSTRUCTION_TARGET+' obras simultâneas nos 45 dias';
+ });
  scenario('Cidade em crescimento',()=>{
   const {game:g}=make();g.setTax('service',1);
   g.setTax('permit',0);g.startWork('avenida');g.startWork('escola');
@@ -46,17 +60,28 @@ export function runMayorEconomyTests(){
   const baseline=make().game,high=make().game;
   baseline.setTax('service',1);baseline.setTax('permit',0);
   high.setTax('service',12);high.setTax('permit',12);high.setTax('property',10);
-  baseline.runDays(60);high.runDays(60);
-  assert(high.s.projects.length<baseline.s.projects.length,'Os impostos não mudaram decisões');
-  return baseline.s.projects.length+' investimentos com tributação baixa contra '+high.s.projects.length+' alta';
+  const lowScore=baseline.listOpportunities(baseline.s.investors[0])[0]?.score||0;
+  const highScore=high.listOpportunities(high.s.investors[0])[0]?.score||0;
+  assert(highScore<lowScore,'A carga tributária não reduziu a atratividade dos investimentos');
+  return 'Atratividade '+lowScore.toFixed(2)+' com impostos baixos contra '+highScore.toFixed(2)+' com impostos altos';
+ });
+ scenario('Assistente diagnostica e só aplica após aprovação',()=>{
+  const {game:g}=make(),advisor=g.cityAdvisor();
+  assert(advisor.population>0&&advisor.constructionCount>=0,'Diagnóstico incompleto');
+  assert(advisor.suggestion.focus==='residential','Não identificou a pressão por moradia');
+  assert(g.s.policy.constructionFocus==='balanced','Assistente alterou a política sem aprovação');
+  const result=g.applyAdvisorSuggestion(advisor.suggestion.id);
+  assert(result.ok&&g.s.policy.constructionFocus==='residential','Aprovação não aplicou a recomendação');
+  assert(!g.applyAdvisorSuggestion(advisor.suggestion.id).ok,'Recomendação obsoleta foi executada novamente');
+  return 'Diagnóstico de '+advisor.population+' moradores; aprovação alterou o plano de obras';
  });
  scenario('Crise reduz atividade',()=>{
   const normal=make().game,crisis=make().game;
   crisis.s.cycle=-.65;
   for(const k of Object.keys(crisis.s.allocations))crisis.s.allocations[k]=8;
   normal.runDays(60);crisis.runDays(60);
-  assert(crisis.s.projects.length<normal.s.projects.length,'Crise não reduziu investimento');
   assert(crisis.s.metrics.product<normal.s.metrics.product,'Crise não reduziu produção');
+  assert(crisis.s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').length===25,'Fila não manteve as 25 obras simultâneas');
   return 'Produção normal '+normal.s.metrics.product+' / crise '+crisis.s.metrics.product;
  });
  scenario('Recuperação econômica',()=>{
@@ -150,9 +175,9 @@ export function runMayorEconomyTests(){
  scenario('Construção privada continua depois dos primeiros meses',()=>{
   const {game:g}=make();g.setTax('service',1);g.setTax('permit',0);
   for(let day=0;day<100;day++)g.tickDay();
-  const homesAt100=g.s.projects.filter(p=>['popular','medio','luxo','apartamentos'].includes(p.kind)).length;
+  const homesAt100=g.s.projects.filter(p=>CITY_MODELS[p.kind]?.type==='residential').length;
   for(let day=100;day<200;day++)g.tickDay();
-  const homesAt200=g.s.projects.filter(p=>['popular','medio','luxo','apartamentos'].includes(p.kind)).length;
+  const homesAt200=g.s.projects.filter(p=>CITY_MODELS[p.kind]?.type==='residential').length;
   assert(homesAt200>homesAt100,'Novas obras residenciais não começaram depois do dia 100: '+homesAt100+' → '+homesAt200);
   for(let day=200;day<300;day++)g.tickDay();
   const completed=g.s.projects.filter(p=>p.status==='complete').length;

@@ -1,4 +1,4 @@
-import {PUBLIC_WORKS,CITY_MODELS} from './mayor-economy.js?v=11.11';
+import {PUBLIC_WORKS,CITY_MODELS,DAILY_CONSTRUCTION_TARGET} from './mayor-economy.js?v=11.12';
 const fmt=n=>Math.round(n||0).toLocaleString('pt-BR');
 const pct=n=>(Number(n)||0).toFixed(1)+'%';
 const ZONES={residential:'Residencial',mixed:'Mista',commercial:'Comercial',industrial:'Industrial',tourism:'Turística',environmental:'Proteção ambiental'};
@@ -140,11 +140,13 @@ export function mountMayorUI(engine,ctx){
  }
  function overviewView(){
   const data=engine.snapshot();
+  const advisor=engine.cityAdvisor(),proposal=advisor.suggestion;
   const active=s.companies.filter(c=>c.active);
   const jobs=active.reduce((n,c)=>n+c.workers,0);
   const wages=s.ledger.filter(t=>t.day>=Math.max(0,s.day-6)&&t.reason.includes('Salários')).reduce((a,t)=>a+t.amount,0);
   const advice=guidance(),challenge=s.challenge;
   return '<div class="mayorItem"><b>📋 Gabinete do prefeito</b><span>'+esc(advice.text)+'</span>'+button('Ver prioridade','tab',advice.tab)+button('Como jogar','tab','guide')+'</div>'+
+   '<div class="mayorItem mayorAdvisor"><b>🤖 Assistente da cidade · diagnóstico diário</b><span>População: '+fmt(advisor.population)+' · capacidade residencial: '+fmt(advisor.capacity)+' · empregos privados: '+fmt(advisor.employment)+' · desemprego: '+pct(advisor.unemployment)+' · caixa: '+fmt(advisor.treasury)+' IU$ · obras ativas: '+advisor.constructionCount+'/'+DAILY_CONSTRUCTION_TARGET+'.</span><b>💡 '+esc(proposal.title)+'</b><span>'+esc(proposal.detail)+'</span>'+button(proposal.work?'Aprovar e iniciar obra':'Aprovar recomendação','advisorApply',proposal.id,proposal.id==='hold')+'</div>'+
    (challenge?.status==='pending'?'<div class="mayorItem"><b>🤝 Proposta do conselho</b><span>Mutirão de '+esc(SERVICES[challenge.category])+': +4 pontos por '+fmt(challenge.cost)+' IU$. Você decide se a melhoria vale o custo. Prazo: dia '+(challenge.deadline+1)+'.</span>'+button('Financiar mutirão','challenge','yes',engine.account('treasury')<challenge.cost)+button('Preservar caixa','challenge','no')+'</div>':'')+
    header('Metas da gestão')+engine.objectives().map(o=>'<div class="mayorItem"><b>'+(o.current>=o.target?'✓ ':'○ ')+esc(o.title)+' · '+Math.min(o.current,o.target)+'/'+o.target+'</b><progress max="'+o.target+'" value="'+Math.min(o.current,o.target)+'"></progress><small>'+esc(o.hint)+'</small></div>').join('')+
    '<label class="mayorZone">🗺️ Mapa temático <select data-map="1">'+
@@ -171,7 +173,7 @@ export function mountMayorUI(engine,ctx){
    row('Despesas municipais',fmt(data.monthlyExpense)+' IU$')+
    row('PIB mensal estimado',fmt(data.monthlyProduct)+' IU$')+
    row('Atratividade',Math.round(data.attractiveness)+'/100')+
-   row('Construções em andamento',data.constructions.length)+
+   row('Obras privadas em andamento',data.constructions.length+' / '+Math.min(DAILY_CONSTRUCTION_TARGET,data.constructionTarget))+
    header('Acompanhar a cidade')+
    button('🏗️ Obras','tab','projects')+
    button('📊 Impostos','tab','finance')+
@@ -209,10 +211,10 @@ export function mountMayorUI(engine,ctx){
    ' · Dia '+(d.day+1)+' / M'+d.month;
   byId('mayorPause').textContent=d.paused?'▶️':'⏸';
   byId('mayorPause').setAttribute('aria-label',d.paused?'Retomar simulação':'Pausar simulação');
-  const goals=engine.objectives(),next=goals.find(o=>o.current<o.target);
   const mission=byId('mayorMission');
-  mission.textContent=next?'🎯 '+next.title+' · '+Math.min(next.current,next.target)+'/'+next.target:'🏆 Todas as metas iniciais concluídas! Continue desenvolvendo a cidade.';
-  mission.onclick=()=>open(next?.tab||'overview');
+  const advisor=engine.cityAdvisor(),proposal=advisor.suggestion;
+  mission.textContent='🤖 '+fmt(advisor.population)+' moradores · '+fmt(advisor.treasury)+' IU$ · '+proposal.title+' · toque para revisar';
+  mission.onclick=()=>open('overview');
   byId('mayorSpeed').textContent='⏩ '+d.speed+'×';
  }
  function open(tab='overview'){isOpen=true;active=tab;byId('mayorMenuButton').setAttribute('aria-expanded','true');body.scrollTop=0;drawer.hidden=false;drawPanel()}
@@ -239,6 +241,10 @@ export function mountMayorUI(engine,ctx){
   if(action==='challenge'){
    const ok=engine.decideChallenge(value==='yes');
    drawPanel();msg(ok?'Decisão registrada no jornal e no Tesouro.':'Saldo insuficiente ou proposta expirada.');updateHeadline();return;
+  }
+  if(action==='advisorApply'){
+   const result=engine.applyAdvisorSuggestion(value);
+   updateHeadline();ctx.refresh?.();drawPanel();msg(result.ok?(result.reason||'Recomendação aplicada.'):(result.reason||'Não foi possível aplicar a recomendação.'));return;
   }
   let feedback='';
   if(action==='work'){

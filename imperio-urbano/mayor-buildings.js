@@ -2,7 +2,9 @@
  * A frente aponta para +Z; o mapa aplica a orientação do lote.
  * Sem texturas externas nem imagens estáticas.
  */
+import {CITY_MODELS} from './mayor-economy.js?v=11.12';
 const commercialLights=new Set();let commercialNight=0,lastCommercialNight=-1;
+const brandTextures=new Map();
 export function setCommercialNight(level){
  commercialNight=Math.max(0,Math.min(1,level));
  if(Math.abs(commercialNight-lastCommercialNight)<.012)return;
@@ -22,7 +24,7 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   color:c,roughness:n==='glass'?.24:.85,metalness:n==='steel'?.38:0,
   emissive:n==='light'?0xb66a1b:0x000000,emissiveIntensity:n==='light'?0.65:0
  });
- const storefront=['mercado','padaria','farmacia','restaurante','lojas','hotel','industria','logistica','escola','hospital','seguranca'].includes(kind)||!!brandKey;
+ const storefront=['mercado','padaria','farmacia','restaurante','lojas','hotel','industria','logistica','escola','hospital','seguranca'].includes(kind)||!!brandKey||!!CITY_MODELS[kind]&&CITY_MODELS[kind].type!=='residential';
  if(storefront){
   materials.storeGlass=new THREE.MeshStandardMaterial({color:0x9acbd0,roughness:.22,metalness:.04,emissive:0xffc96e,emissiveIntensity:.48*commercialNight,side:THREE.DoubleSide});
   materials.storeGlass.userData.lightType='window';commercialLights.add(materials.storeGlass);
@@ -53,10 +55,14 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   cocacola:{name:'Coca-Cola',tag:'investe em Nova Jundiaí',bg:'#c91f36',mark:'#fffaf0',glyph:'C'},
   mercadolivre:{name:'MERCADO LIVRE',tag:'um mundo de possibilidades',bg:'#f4d328',mark:'#2865a8',glyph:'ML'}
  };
- const brandTextures=new Map();
  function brandMaterial(kind){
   if(brandTextures.has(kind))return brandTextures.get(kind);
-  const brand=brands[kind];if(!brand)return materials.white;
+  const model=CITY_MODELS[kind];
+  const brand=brands[kind]|| (model?{
+   name:model.name.toLocaleUpperCase('pt-BR'),tag:model.type==='industry'?'produção e empregos locais':model.type==='tourism'?'lazer e hospedagem':'comércio local',
+   bg:['#285d58','#315979','#75553c','#526343','#67506e'][Math.abs(kind.split('').reduce((n,c)=>n+c.charCodeAt(0),0))%5],mark:'#f1c568',glyph:model.name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()
+  }:null);
+  if(!brand)return materials.white;
   const canvas=document.createElement('canvas');canvas.width=768;canvas.height=144;
   const c=canvas.getContext('2d');
   c.fillStyle=brand.bg;c.fillRect(0,0,768,144);
@@ -149,7 +155,25 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   for(const xx of [-3,0,3]){box('dark',2.6,2.6,.18,xx,1.47,4.84);
    box('steel',2.25,.12,.2,xx,2.85,4.92)}
   signage('blue',brandKey==='mercadolivre'?'mercadolivre':'logistica');box('blue',9.1,.55,.3,0,3.53,4.9);break;
- default:return null;
+ default:{
+  const model=CITY_MODELS[kind];if(!model)return null;
+  const hash=kind.split('').reduce((n,c)=>Math.imul(n^c.charCodeAt(0),16777619)>>>0,2166136261);
+  const width=model.type==='industry'?10.6:8.2+(hash%18)/10;
+  const depth=model.type==='industry'?9.6:7.2+(hash%13)/10;
+  const height=model.type==='tourism'?12.8:model.type==='industry'?5.1:3.9+(hash%16)/10;
+  const wall=model.type==='industry'?'steel':(hash%3===0?'brick':hash%3===1?'white':'concrete');
+  facade(width,depth,height,wall);
+  if(model.type==='industry'){
+   for(const xx of [-3.2,0,3.2]){box('dark',2.1,2.7,.2,xx,1.58,depth/2+.18);box('storeGlass',1.65,.62,.23,xx,2.45,depth/2+.29)}
+   for(const xx of [-3.7,3.7])box('steel',.65,4.7,.65,xx,height+2.7,-depth*.25);
+  }else{
+   const columns=width>9?4:3;
+   glazing(Math.min(2.3,height*.48),columns,depth/2+.08);entry();canopy(model.type==='tourism'?'gold':'awning');
+   for(const xx of [-width*.34,width*.34])box('leaf',.52,.72,.52,xx,.53,depth/2+.35);
+  }
+  signage(model.type==='industry'?'dark':model.type==='tourism'?'blue':'green',brandKey||kind);
+  break;
+ }
  }
  if(storefront){
   const dimensions={escola:[10,8.5,5.6],hospital:[9.5,8.7,8],seguranca:[8.5,8,5.4],mercado:[9.1,7.7,4.35],padaria:[8,7.2,4],farmacia:[8.5,7.5,4.2],restaurante:[8.4,7.9,4.1],lojas:[9,7.5,7.5],hotel:[9.1,8.5,15.6],industria:[9.6,9.3,5.3],logistica:[9.6,9.5,4.1]};
