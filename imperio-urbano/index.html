@@ -359,88 +359,282 @@ heatButton.onclick=()=>{
 };
 updateMapHighlights();
 
+// Arquitetura v8.2: materiais reutilizados e geometria instanciada para celulares.
+// Cada um dos nove modelos tem volumetria, cobertura e detalhes próprios.
+const buildingUnitBox=new THREE.BoxGeometry(1,1,1);
+const buildingShrubGeometry=new THREE.IcosahedronGeometry(1,1);
+const buildingMaterialCache=new Map();
+function buildingMat(color,rough=.8,metal=.02,glow=0){
+ const key=color+'_'+rough+'_'+metal+'_'+glow;
+ if(!buildingMaterialCache.has(key))buildingMaterialCache.set(key,
+  new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,
+   emissive:glow?new THREE.Color(color).multiplyScalar(glow):0x000000}));
+ return buildingMaterialCache.get(key);
+}
 function house(id,kind){
  const model=buildingDefinition(kind)||BUILD_BY_ID.house_padrao;
- const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.35,z);scene.add(group);
- const main=mat(state.lots[id].color||'#e3e1d4'),wall=mat('#e4dfd2'),trim=mat('#f5f2e9');
- const stone=mat('#b9b1a5'),glass=mat('#5392b2'),dark=mat('#284359'),rail=mat('#405b6c');
- const wood=mat('#946548'),green=mat('#3e8457'),tile=mat('#945649'),roof=mat('#555e6a'),gold=mat('#d9bb7f');
- const a=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,group);
- const pane=(x,y,z,w=1.15,h=1.35)=>{a(w+.18,h+.18,.1,x,y,z,trim);a(w,h,.12,x,y,z+.08,glass);a(.08,h,.15,x,y,z+.17,dark)};
- const planters=(z=3.8)=>{for(const x of [-4.3,4.3]){a(.85,.5,.8,x,.27,z,stone);a(.68,.7,.65,x,.76,z,green)}};
+ const {x,z}=lots[id],group=new THREE.Group();
+ group.position.set(x,.28,z);
+ scene.add(group);
+ const facade=buildingMat(state.lots[id].color||'#e3e1d4',.81);
+ const stucco=buildingMat('#ede7db'),whiteMat=buildingMat('#f6f2e8');
+ const sandStone=buildingMat('#c3b7a5'),stoneDark=buildingMat('#888c89');
+ const charcoal=buildingMat('#3c4851',.59),bronze=buildingMat('#ab885b',.44,.34);
+ const slate=buildingMat('#555f68'),terracotta=buildingMat('#a65d45'),tileDark=buildingMat('#5c4b46');
+ const wood=buildingMat('#966342'),woodLight=buildingMat('#c4905c'),brick=buildingMat('#a9715b');
+ const glass=buildingMat('#75b8ce',.17,.40),glassBlue=buildingMat('#4e8ba9',.21,.34);
+ const glassDark=buildingMat('#244b62',.19,.40),poolWater=buildingMat('#27b7d4',.16,.35);
+ const hedge=buildingMat('#3c7650'),lawn=buildingMat('#79a568'),grass=buildingMat('#4e915b');
+ const paving=buildingMat('#d0c7ba'),cream=buildingMat('#d8cec0'),gold=buildingMat('#c8ab74',.40,.30);
+ const warm=buildingMat('#f6dfae',.35,.12,.15);
+ const batch=new Map(),shrubs=[];
+ function add(w,h,d,x,y,z,material,rz=0,ry=0){
+  if(!batch.has(material))batch.set(material,[]);
+  batch.get(material).push([w,h,d,x,y,z,rz,ry]);
+ }
+ function planted(x,z,size=.48){shrubs.push([x,.4*size,z,size])}
+ function planting(){
+  for(const sx of [-4.85,4.85]){
+   for(const zz of [-3.7,-2.25,-.8,1.0,2.8])planted(sx,zz,.40);
+  }
+ }
+ function frontWindow(px,py,pz,w=1.28,h=1.30){
+  add(w+.20,h+.20,.13,px,py,pz,charcoal);
+  add(w,h,.16,px,py,pz+.10,glass);
+  add(.075,h,.20,px,py,pz+.21,whiteMat);
+  add(w,.07,.20,px,py,pz+.21,whiteMat);
+  add(w+.35,.15,.36,px,py-h/2-.12,pz+.20,sandStone);
+ }
+ function sideWindow(px,py,pz,w=1.12,h=1.3){
+  add(.14,h+.17,w+.18,px,py,pz,charcoal);
+  add(.18,h,w,px+.08,py,pz,glass);
+  add(.2,h,.07,px+.20,py,pz,whiteMat);
+ }
+ function entry(px,pz,height=2.22){
+  add(1.60,height,.14,px,height/2+.18,pz,charcoal);
+  add(1.36,height-.23,.18,px,height/2+.18,pz+.12,wood);
+  add(.07,.15,.20,px+.46,1.20,pz+.25,gold);
+  add(.46,.15,.18,px,height+0.23,pz+.17,warm);
+  add(1.9,.12,1.08,px,.12,pz+.75,paving);
+ }
+ function flatRoof(w,d,height,x=0,z=0,material=slate){
+  add(w+.38,.24,d+.38,x,height,z,material);
+  // Pequenos parapeitos em duas laterais para dar profundidade.
+  add(.20,.34,d+.35,x-w/2,height+.2,z,material);
+  add(.20,.34,d+.35,x+w/2,height+.2,z,material);
+ }
+ function gableRoof(w,d,eave,material=terracotta,rise=1.10,x=0,z=0){
+  const slope=Math.atan2(rise,w/2),length=Math.hypot(w/2,rise)+.42;
+  add(length,.23,d+.5,x-w/4,eave+rise/2,z,material,slope);
+  add(length,.23,d+.5,x+w/4,eave+rise/2,z,material,-slope);
+  add(.18,.18,d+.6,x,eave+rise+.05,z,tileDark);
+  // Linhas de beiral, telhas e arremates.
+  for(const side of [-1,1])add(.12,.21,d+.53,x+side*w/2,eave-.05,z,wood);
+ }
+ function glassRailing(w,x,y,z){
+  add(w,.88,.10,x,y,z,glass);
+  add(w,.10,.13,x,y+.46,z,charcoal);
+  for(const dx of [-w/2,0,w/2])add(.08,.95,.10,x+dx,y,z,charcoal);
+ }
+ function pool(cx,cz,w=2.75,d=3.05){
+  add(w+.42,.12,d+.42,cx,.09,cz,whiteMat);
+  add(w,.13,d,cx,.16,cz,poolWater);
+  add(w-.22,.03,d-.22,cx,.235,cz,glassBlue);
+  add(w+.5,.22,.18,cx,.18,cz-d/2,cream);
+  add(w+.5,.22,.18,cx,.18,cz+d/2,cream);
+ }
+ function pergola(x,z,w=3.1,d=2.0,top=3.4){
+  for(const px of [x-w/2,x+w/2])for(const pz of [z-d/2,z+d/2])
+   add(.13,top-.1,.13,px,top/2,pz,woodLight);
+  for(let k=0;k<7;k++)add(.13,.13,d+.25,x-w/2+k*w/6,top,z,woodLight);
+ }
+ function lawnAndPath(){
+  add(11.3,.06,10.6,0,.00,0,lawn);
+  add(1.55,.095,3.0,-.7,.07,4.0,paving);
+  // Jardim organizado ao longo da fachada.
+  for(const px of [-3.9,3.9])for(const pz of [3.1,4.4])planted(px,pz,.52);
+ }
+ function carGate(x,z,w=2.25){
+  add(w,2.10,.11,x,1.15,z,charcoal);
+  add(w-.22,1.92,.14,x,1.17,z,cream);
+  for(let j=0;j<4;j++)add(w-.25,.055,.16,x,.49+j*.45,z+.10,stoneDark);
+  add(w+.25,.12,3.25,x,.105,z+1.55,paving);
+ }
+ // Lotes continuam livres na frente e nas laterais: largura max 12.2, prof. max 11.8.
+ lawnAndPath();
  if(model.type==='casa'){
-  a(10.6,.18,10.1,0,.02,0,stone);
   if(model.id==='house_popular'){
-   a(6.3,3.2,5.6,-.15,1.66,-.5,main);
-   a(2.9,.22,6.2,-1.75,3.47,-.5,tile);a(3.5,.22,6.2,1.45,3.47,-.5,tile);
-   a(1.4,2.1,.17,0,1.16,2.35,wood);
-   pane(-2,1.85,2.34);pane(2,1.85,2.34);
-   a(2.2,.12,1.3,0,.14,3.4,trim);
+   // Casa térrea colonial: cobertura inclinada, varanda, porta e esquadrias.
+   add(7.5,.16,7.2,-.1,.13,-.75,paving);
+   add(6.55,3.0,5.45,-.15,1.65,-1.22,facade);
+   add(.45,3.0,5.50,-3.25,1.65,-1.2,stucco);
+   gableRoof(6.65,5.5,3.10,terracotta,1.18,-.15,-1.22);
+   add(4.1,.19,1.56,-.45,2.90,2.42,terracotta);
+   for(const px of [-2.12,1.35])add(.18,2.54,.18,px,1.42,3.11,stucco);
+   entry(-.28,1.58,2.14);
+   frontWindow(-2.12,1.67,1.60,1.14,1.20);
+   frontWindow(2.03,1.67,1.60,1.14,1.20);
+   sideWindow(3.18,1.75,-1.1,.95,1.14);
   }else if(model.id==='house_padrao'){
-   a(7.4,3.7,6.5,0,1.9,-.35,main);
-   a(3.8,.25,7.25,-1.75,4,-.35,tile);a(3.8,.25,7.25,1.75,4,-.35,tile);
-   a(1.3,2.4,.15,-1.4,1.34,3,wood);pane(1.6,2.1,3,1.7,1.5);
-   a(2.8,.18,2.4,2.8,2.9,3.7,stone);a(.16,2.5,.16,4.05,1.38,4.6,trim);
-   a(2.5,.12,2.1,2.8,.16,3.7,trim);planters(-4.1);
+   // Casa familiar com dois volumes, garagem coberta e telhado em duas águas.
+   add(7.85,3.55,6.75,-.15,1.92,-.83,facade);
+   gableRoof(7.9,6.8,3.72,tileDark,.98,-.15,-.83);
+   add(2.85,2.7,2.65,2.63,1.48,2.12,stucco);
+   add(3.12,.18,3.13,2.63,2.94,2.12,terracotta);
+   carGate(2.64,3.51,2.30);
+   entry(-1.5,2.62,2.18);
+   frontWindow(-3.12,2.15,2.56,1.10,1.3);
+   frontWindow(.46,2.14,2.58,1.18,1.36);
+   sideWindow(3.7,2.0,-1.05,1.15,1.20);
+   add(1.85,.15,1.18,-1.5,.16,4.0,paving);
+   planted(-3.55,3.6,.67);planted(-3.0,3.6,.5);
   }else if(model.id==='house_premium'){
-   a(8.7,3.35,7,0,1.75,-.65,main);
-   a(6.2,3.35,5.1,-.8,5.05,-1.25,wall);
-   a(9.3,.29,7.8,0,3.5,-.6,stone);
-   a(6.8,.28,5.6,-.8,6.91,-1.25,roof);
-   for(const xx of [-2.75,-.85,1.05]){pane(xx,4.95,1.37);pane(xx,2.15,2.91,1.22,1.35)}
-   a(6.8,.17,1.9,-.8,3.59,3.17,trim);a(6.8,.15,.15,-.8,4.1,4.1,glass);
-   for(const xx of [-4,-1,2.4])a(.08,.65,.1,xx,3.87,4.1,rail);
-   a(1.45,2.3,.2,3.1,1.37,2.95,wood);planters(-4.5);
+   // Dois pavimentos: volumes deslocados, painéis de madeira e varanda em vidro.
+   add(8.0,3.45,6.5,-.2,1.9,-1.02,stucco);
+   add(6.65,3.15,5.42,.55,5.22,-1.55,facade);
+   flatRoof(8.0,6.5,3.73,-.2,-1.02,slate);
+   flatRoof(6.75,5.48,6.88,.55,-1.55,slate);
+   for(const xx of [-2.65,-1.12,.44,2.0])frontWindow(xx,5.0,1.23,1.08,1.65);
+   add(6.60,.15,1.65,.52,3.77,2.27,paving);
+   glassRailing(6.45,.52,4.32,3.07);
+   add(3.0,2.8,.22,2.03,1.82,2.29,glassDark);
+   for(let j=0;j<7;j++)add(.12,2.65,.18,-3.70+j*.30,1.72,2.45,woodLight);
+   entry(-1.2,2.24);
+   frontWindow(-2.5,1.93,2.3,1.33,1.45);
+   pergola(3.75,3.58,1.9,1.65,3.04);
+   planted(-3.0,3.8,.65);planted(-2.5,4.2,.50);
   }else{
-   a(9,3.5,7.7,0,1.85,-.5,stone);
-   a(7.8,3.5,6.5,-.35,5.35,-1.1,main);
-   a(9.6,.24,8.3,0,3.61,-.5,roof);a(8.35,.3,7,-.35,7.2,-1.1,roof);
-   a(3.4,2.95,.25,-2.1,1.55,3.5,glass);a(1.55,2.6,.25,2.5,1.46,3.55,wood);
-   for(const xx of [-2.55,-.65,1.25,3.15])pane(xx,5.38,2.2,1.25,1.9);
-   a(8.6,.17,1.6,-.15,3.74,3.9,trim);a(8.6,.12,.14,-.15,4.4,4.68,glass);
-   a(1.8,.16,3.35,4.35,.22,-2.5,glass);a(2,.22,3.5,4.35,.09,-2.5,trim);
-   a(1.65,.25,1.1,-4.2,7.48,-1.8,gold);
+   // Mansão: bloco envidraçado, pedra natural, piscina e pérgola.
+   add(8.0,3.48,6.35,-.1,1.92,-1.56,stucco);
+   add(5.95,3.35,5.15,-1.45,5.33,-1.90,facade);
+   flatRoof(8.1,6.45,3.78,-.1,-1.56,stoneDark);
+   flatRoof(6.1,5.22,7.13,-1.45,-1.90,slate);
+   add(3.45,3.0,.19,1.93,1.83,1.65,glassDark);
+   for(let i=0;i<4;i++)add(.09,2.9,.24,.6+i*.85,1.85,1.76,bronze);
+   for(const xx of [-3.35,-1.72,-.15])frontWindow(xx,5.25,.76,1.17,1.95);
+   add(5.85,.14,1.5,-1.3,3.87,1.48,paving);
+   glassRailing(5.65,-1.32,4.42,2.22);
+   add(1.7,2.4,.15,-2.85,1.39,1.72,wood);
+   pool(3.55,3.45,2.4,3.05);
+   pergola(-2.48,3.85,3.6,1.5,3.25);
+   planted(-4.45,2.6,.59);planted(-4.45,3.85,.56);
+   for(const zz of [2.55,3.5,4.4])add(.18,.31,.64,4.96,.27,zz,woodLight);
   }
+  planting();
  }else{
+  // Predios com materiais, sacadas, esquadrias e silhuetas progressivamente distintos.
   const specs={
-   predio_compacto:[6.8,6.7,3],
-   predio_urbano:[7.2,7,5],
-   predio_premium:[7.8,7.5,6],
-   torre_nobre:[8.3,7.7,8],
-   torre_luxo:[8.7,8,10]
+   predio_compacto:[6.85,6.8,3],
+   predio_urbano:[7.5,7.15,5],
+   predio_premium:[7.75,7.4,6],
+   torre_nobre:[8.1,7.7,8],
+   torre_luxo:[8.55,7.9,10]
   };
-  const [w,d,floors]=specs[model.id]||specs.predio_urbano;
-  const height=floors*2.6;
-  const accent=model.id==='predio_compacto'?stone:model.id==='predio_urbano'?tile:model.id==='predio_premium'?glass:model.id==='torre_nobre'?gold:dark;
-  a(w+1,.2,d+1,0,.05,0,stone);a(w,height,d,0,height/2+.2,-.3,main);
-  a(w+.4,.35,d+.4,0,height+.32,-.3,accent);
-  a(1.65,2.2,.14,0,1.25,d/2-.23,dark);a(1.35,1.95,.16,0,1.24,d/2-.12,glass);
+  const [w,d,floors]=specs[model.id]||specs.predio_compacto;
+  const h=2.65*floors;
+  const compact=model.id==='predio_compacto',urban=model.id==='predio_urbano';
+  const premium=model.id==='predio_premium',noble=model.id==='torre_nobre',luxury=model.id==='torre_luxo';
+  const accent=compact?terracotta:urban?brick:premium?woodLight:noble?bronze:gold;
+  const face=compact?facade:urban?stucco:premium?stucco:noble?cream:stucco;
+  add(w+.95,.17,d+.75,0,.15,-.48,paving);
+  // Torre superior recuada no edifício lendário cria uma silhueta reconhecível.
+  if(luxury){
+   add(w,7*2.65,d,0,7*2.65/2+.25,-.65,face);
+   add(w-1.24,3*2.65,d-1.07,.42,7*2.65+3*2.65/2+.24,-1.05,glassDark);
+  }else add(w,h,d,0,h/2+.24,-.65,face);
+  flatRoof(luxury?w-.9:w,d-(luxury?.3:0),h+.38,luxury?.25:0,-.65,premium?slate:stoneDark);
+  // Faixas verticais e lajes internas impedem aparência de um cubo liso.
+  for(const px of [-w/2+.26,w/2-.26]){
+   add(.30,h+.12,.30,px,h/2+.25,d/2-.65,accent);
+   add(.17,h+.1,.28,px,h/2+.25,-d/2-.65,stoneDark);
+  }
+  entry(-.18,d/2-.48,2.25);
+  add(w+.5,.17,1.35,0,2.53,d/2-.04,paving);
   for(let floor=0;floor<floors;floor++){
-   const y=floor*2.6+1.53;
-   for(const xx of [-w*.29,0,w*.29])pane(xx,y,d/2-.22,1.1,1.35);
-   if(model.id!=='predio_compacto'&&floor>0&&floor%2===0){
-    a(w+.55,.19,.8,0,floor*2.6+.38,d/2+.2,trim);
-    a(w+.5,.10,.10,0,floor*2.6+1.12,d/2+.62,rail);
-    for(const xx of [-w/2,0,w/2])a(.09,.75,.11,xx,floor*2.6+.72,d/2+.62,rail);
+   const y=floor*2.65+1.56;
+   const upper=luxury&&floor>=7;
+   const width=upper?w-1.24:w;
+   const center=upper?.42:0;
+   const zz=upper?(d-1.07)/2-1.05:d/2-.65;
+   const count=compact?2:3;
+   for(let k=0;k<count;k++){
+    const xx=center+(k-(count-1)/2)*width*.28;
+    frontWindow(xx,y,zz+.045,compact?1.22:1.38,1.45);
    }
-   if(['predio_premium','torre_nobre','torre_luxo'].includes(model.id)){
-    for(const xx of [-w/2+.05,w/2-.05])a(.21,2.2,.17,xx,y,d/2,accent);
+   if(floor>0){
+    if(compact){
+     for(const px of [-1.85,1.85]){
+      add(2.0,.16,.76,px,y-.98,zz+.55,paving);
+      glassRailing(1.78,px,y-.40,zz+.96);
+     }
+    }else{
+     const everyFloor=premium||noble||luxury;
+     if(everyFloor||floor%2===0){
+      add(width+.44,.16,.95,center,y-.98,zz+.54,cream);
+      glassRailing(width+.29,center,y-.39,zz+1.01);
+      if(premium||noble||luxury)for(const px of [center-width*.34,center+width*.34])planted(px,zz+.82,.42);
+     }
+    }
+   }
+   // Laterais possuem janelas reais e não paredes vazias.
+   if(floor>0&&floor%2===0){
+    const sideX=center+width/2-.04;
+    sideWindow(sideX,y,-1.2,1.16,1.35);
+   }
+   if(urban){
+    for(const px of [-2.65,2.65])add(.20,2.45,.14,px,y,zz,brick);
+   }
+   if(noble||luxury){
+    for(const px of [center-width*.30,center+width*.30]){
+     add(.16,2.44,.16,px,y,zz,accent);
+    }
    }
   }
-  if(model.id==='predio_urbano')a(w+.7,.65,.6,0,1.07,d/2+.38,tile);
-  if(model.id==='predio_premium'){a(2,.45,2.2,0,height+.70,-.3,trim);a(2.6,.13,2.3,0,height+1,-.3,glass)}
-  if(['torre_nobre','torre_luxo'].includes(model.id)){
-   a(1.25,height,.22,-w*.35,height/2+.2,d/2,accent);
-   a(1.25,height,.22,w*.35,height/2+.2,d/2,accent);
-   a(4.8,.28,3.8,0,height+.69,-.3,dark);
-   a(3.9,1.2,3,0,height+1.42,-.3,glass);
+  if(compact){
+   gableRoof(w+.14,d+.05,h+.42,terracotta,.48,0,-.65);
+  }else if(urban){
+   // Pavimento comercial com marquise, vitrines e fachada em tijolo.
+   add(w+.5,.28,1.15,0,2.83,d/2+.08,tileDark);
+   for(const px of [-2.42,2.4])add(1.6,1.8,.13,px,1.15,d/2-.48,glassDark);
+   for(const px of [-w*.27,w*.27])add(.7,h,.15,px,h/2+.26,d/2-.45,brick);
+  }else if(premium){
+   add(3.5,.68,2.4,0,h+.83,-1.25,glass);
+   add(4.1,.18,2.8,0,h+1.21,-1.25,slate);
+   for(const px of [-w*.42,w*.42])add(.45,h,.23,px,h/2+.24,d/2-.5,woodLight);
+  }else if(noble){
+   for(const px of [-w*.4,w*.4])add(.48,h+.6,.35,px,h/2+.45,d/2-.42,bronze);
+   add(4.4,1.1,3.1,0,h+.91,-.75,glass);
+   add(5.0,.19,3.65,0,h+1.53,-.75,gold);
+  }else{
+   // Coroa dourada, pele de vidro e cobertura panorâmica.
+   for(const px of [-w*.38,w*.38])add(.35,7*2.65,.3,px,7*2.65/2+.3,d/2-.43,bronze);
+   add(4.1,1.5,3.2,.42,h+1.28,-1.1,glassDark);
+   add(5.5,.24,4.4,.42,h+2.11,-1.1,gold);
+   for(let k=0;k<6;k++)add(.14,.13,4.0,-2.1+k*.98,h+2.47,-1.1,bronze);
   }
-  if(model.id==='torre_luxo'){
-   a(w+.95,.22,d+.9,0,height+.42,-.3,gold);
-   for(const xx of [-3.4,3.4])a(.4,1.3,.42,xx,height+1.3,2.8,gold);
-   a(2.3,.26,2.2,0,height+2.35,-.3,roof);
+  for(const px of [-4.5,4.5])for(const zz of [-3.2,1.2,3.2])planted(px,zz,.40);
+ }
+ // Acessos, vegetação e detalhes são agrupados por material, para poucas draw calls.
+ const tmp=new THREE.Object3D();
+ for(const [material,parts] of batch.entries()){
+  const inst=new THREE.InstancedMesh(buildingUnitBox,material,parts.length);
+  for(let n=0;n<parts.length;n++){
+   const [w,h,d,xx,yy,zz,rz,ry]=parts[n];
+   tmp.position.set(xx,yy,zz);tmp.rotation.set(0,ry,rz);tmp.scale.set(w,h,d);tmp.updateMatrix();
+   inst.setMatrixAt(n,tmp.matrix);
   }
-  planters(-4.1);
+  inst.instanceMatrix.needsUpdate=true;
+  inst.castShadow=material===facade||material===stucco||material===cream||material===slate||material===terracotta;
+  inst.receiveShadow=true;group.add(inst);
+ }
+ if(shrubs.length){
+  const inst=new THREE.InstancedMesh(buildingShrubGeometry,hedge,shrubs.length);
+  for(let n=0;n<shrubs.length;n++){
+   const [xx,yy,zz,sz]=shrubs[n];
+   tmp.position.set(xx,yy,zz);tmp.rotation.set(0,0,0);tmp.scale.set(sz,sz*.7,sz);tmp.updateMatrix();
+   inst.setMatrixAt(n,tmp.matrix);
+  }
+  inst.instanceMatrix.needsUpdate=true;inst.receiveShadow=true;group.add(inst);
  }
  group.userData.kind=model.id;
  return group;
