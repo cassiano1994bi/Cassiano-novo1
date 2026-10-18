@@ -240,6 +240,77 @@ for(const x of [-316.5,-187.5,-22.5,142.5,307.5,472.5]){
  path([[x,-34],[x,-14]],2.3,walk,.18);
  for(let k=-3;k<=3;k++)box(1.3,.035,.32,x,.16,-7+k*1.12,white);
 }
+// Paisagismo costeiro: palmeiras, grades de protecao e piso marcado na orla.
+// Todos os objetos sao instanciados para funcionar tambem em celulares.
+const palmTrees=[];
+for(let i=0;i<27;i++){
+ const x=-330+i*29.6;
+ const z=Math.min(-40.6,lakeNear(x)+18.4);
+ palmTrees.push({x,z,h:5.2+(i%4)*.45});
+}
+const palmStemMat=mat(0x946c48);
+const palmLeafMat=mat(0x376f4e);
+const palmLeafMat2=mat(0x4e9459);
+const palmStemGeometry=new THREE.CylinderGeometry(.13,.27,1,6);
+const palmFrondGeometry=new THREE.ConeGeometry(.62,3.8,4);
+const stems=new THREE.InstancedMesh(palmStemGeometry,palmStemMat,palmTrees.length);
+const fronds1=new THREE.InstancedMesh(palmFrondGeometry,palmLeafMat,palmTrees.length*4);
+const fronds2=new THREE.InstancedMesh(palmFrondGeometry,palmLeafMat2,palmTrees.length*4);
+const palmD=new THREE.Object3D();
+let n1=0,n2=0;
+for(let i=0;i<palmTrees.length;i++){
+ const p=palmTrees[i];
+ palmD.position.set(p.x,p.h/2,p.z);palmD.scale.set(1,p.h,1);
+ palmD.rotation.set(0,0,.04*Math.sin(i*2));palmD.updateMatrix();
+ stems.setMatrixAt(i,palmD.matrix);
+ for(let j=0;j<8;j++){
+  const angle=(j/8)*Math.PI*2+i*.22;
+  palmD.position.set(p.x,p.h+.15,p.z);
+  palmD.scale.set(1,.85+(j%3)*.07,1);
+  palmD.rotation.set(0,angle,1.03+(j%3)*.06);
+  palmD.updateMatrix();
+  (j%2===0?fronds1:fronds2).setMatrixAt(j%2===0?n1++:n2++,palmD.matrix);
+ }
+}
+for(const mesh of [stems,fronds1,fronds2]){mesh.instanceMatrix.needsUpdate=true;mesh.frustumCulled=false;mesh.receiveShadow=true;scene.add(mesh)}
+const promenadeTileMat=mat(0xa9a99f);
+const promenadeRailMat=mat(0xb8b5aa);
+const promenadeMetalMat=mat(0x485b62);
+const tileCount=94;
+const tileMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.095,.04,3.75),promenadeTileMat,tileCount);
+const railMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.095,.095),promenadeMetalMat,tileCount*2);
+const postMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.12,1.15,.13),promenadeRailMat,tileCount);
+const tmpProm=new THREE.Object3D();
+for(let i=0;i<tileCount;i++){
+ const x=-354+i*8.97;
+ tmpProm.position.set(x,.215,-34);
+ tmpProm.rotation.set(0,0,0);
+ tmpProm.scale.set(1,1,1);tmpProm.updateMatrix();tileMesh.setMatrixAt(i,tmpProm.matrix);
+ tmpProm.position.set(x,.79,-38.9);
+ tmpProm.scale.set(9,1,1);tmpProm.updateMatrix();railMesh.setMatrixAt(i*2,tmpProm.matrix);
+ tmpProm.position.set(x,.35,-38.9);
+ tmpProm.updateMatrix();railMesh.setMatrixAt(i*2+1,tmpProm.matrix);
+ tmpProm.position.set(x,.63,-38.9);tmpProm.scale.set(1,1,1);
+ tmpProm.updateMatrix();postMesh.setMatrixAt(i,tmpProm.matrix);
+}
+for(const mesh of [tileMesh,railMesh,postMesh]){
+ mesh.instanceMatrix.needsUpdate=true;mesh.frustumCulled=false;scene.add(mesh);
+}
+// Duas passarelas publicas sobre o lago, sem ocupar terrenos dos jogadores.
+const woodDeck=mat(0x967554),woodFence=mat(0x584b3d);
+for(const x of [-228,242]){
+ const start=lakeNear(x)+1;
+ const end=lakeNear(x)-30;
+ const middle=(start+end)/2;
+ box(5.4,.24,start-end,x,.16,middle,woodDeck);
+ for(let zz=end;zz<=start;zz+=3.2){
+  box(5.4,.055,.08,x,.31,zz,woodFence);
+  for(const side of [-2.55,2.55])box(.11,.95,.11,x+side,.73,zz,woodFence);
+ }
+ for(const side of [-2.55,2.55]){
+  box(.12,.10,start-end,x+side,1.13,middle,woodFence);
+ }
+}
 // Plano viario: cinco bairros com ruas locais, vias coletoras e parques entre setores.
 // Cada bairro possui 10 linhas x 5 quadras, com 4 lotes por quadra.
 // Planta v7.1: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
