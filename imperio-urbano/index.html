@@ -368,6 +368,41 @@ for(let di=0;di<4;di++){
 // Centro civico acessivel em area publica fora dos lotes.
 path([[minX,47],[-373,47]],5.5,road,.09);
 box(35,.10,29,-389,.005,65,walk);
+// Sinalizacao horizontal das avenidas: faixas pintadas no asfalto, sem objetos soltos.
+const roadStripeMaterial=new THREE.MeshBasicMaterial({color:0xe8d8a9,toneMapped:true});
+const roadWhiteMaterial=new THREE.MeshBasicMaterial({color:0xe6e4da,toneMapped:true});
+const stripeCoords=[];
+for(const z of [-7,286]){
+ for(let x=minX+6;x<=maxX-5;x+=15.7)stripeCoords.push({x,z,axis:'x'});
+}
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ for(let z=6;z<=279;z+=16)stripeCoords.push({x,z,axis:'z'});
+}
+const stripeGeometry=new THREE.BoxGeometry(1,.022,1);
+const stripeMesh=new THREE.InstancedMesh(stripeGeometry,roadStripeMaterial,stripeCoords.length);
+const stripeDummy=new THREE.Object3D();
+for(let i=0;i<stripeCoords.length;i++){
+ const p=stripeCoords[i];
+ stripeDummy.position.set(p.x,.17,p.z);
+ stripeDummy.rotation.set(0,0,0);
+ stripeDummy.scale.set(p.axis==='x'?6.3:.15,1,p.axis==='z'?6.3:.15);
+ stripeDummy.updateMatrix();stripeMesh.setMatrixAt(i,stripeDummy.matrix);
+}
+stripeMesh.instanceMatrix.needsUpdate=true;
+stripeMesh.frustumCulled=false;scene.add(stripeMesh);
+// Travessias onde os passeios do bairro encontram a orla e a avenida.
+const crossingPositions=[];
+for(const x of [-332,-198,-68,65,202,334,462]){
+ for(let k=-3;k<=3;k++)crossingPositions.push({x,z:-7+k*.9});
+}
+const crossMesh=new THREE.InstancedMesh(stripeGeometry,roadWhiteMaterial,crossingPositions.length);
+for(let i=0;i<crossingPositions.length;i++){
+ const p=crossingPositions[i];
+ stripeDummy.position.set(p.x,.187,p.z);stripeDummy.scale.set(1.75,1,.31);
+ stripeDummy.updateMatrix();crossMesh.setMatrixAt(i,stripeDummy.matrix);
+}
+crossMesh.instanceMatrix.needsUpdate=true;crossMesh.frustumCulled=false;scene.add(crossMesh);
 const commercial=new THREE.Group();commercial.position.set(-405,0,61);scene.add(commercial);
 for(let i=0;i<5;i++){
  const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
@@ -401,6 +436,11 @@ for(let di=0;di<4;di++){
  const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2+6.2;
  for(let z=20;z<279;z+=37)addLampPosition(x,z);
 }
+ // Postes nas esquinas de quarteiroes, sem invadir os terrenos nem as casas.
+ for(let di=0;di<5;di++)for(let row=0;row<10;row+=2)for(let col=0;col<5;col+=2){
+  const [x,z]=blockPoint(di,row,col);
+  addLampPosition(x-14.3,z+13.0);
+ }
 const streetPoleMat=mat(0x465460);
 const streetBulbMat=new THREE.MeshStandardMaterial({
  color:0xd3d5ce,emissive:0xffb45d,emissiveIntensity:0,roughness:.33
