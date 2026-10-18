@@ -334,13 +334,27 @@ const streetPoleMat=mat(0x465460);
 const streetBulbMat=new THREE.MeshStandardMaterial({
  color:0xd3d5ce,emissive:0xffb45d,emissiveIntensity:0,roughness:.33
 });
+// Luz em gradiente, sem os discos opacos que apareciam na versão antiga.
+function makeRadialGlowTexture(){
+ const cv=document.createElement('canvas');cv.width=cv.height=128;
+ const context=cv.getContext('2d');
+ const gradient=context.createRadialGradient(64,64,0,64,64,64);
+ gradient.addColorStop(0,'rgba(255,221,147,0.68)');
+ gradient.addColorStop(.17,'rgba(255,194,105,0.40)');
+ gradient.addColorStop(.45,'rgba(255,156,64,0.15)');
+ gradient.addColorStop(1,'rgba(255,155,65,0)');
+ context.fillStyle=gradient;context.fillRect(0,0,128,128);
+ const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;
+ return t;
+}
+const warmGlowTexture=makeRadialGlowTexture();
 const streetPoolMat=new THREE.MeshBasicMaterial({
- color:0xffbf62,transparent:true,opacity:0,depthWrite:false,depthTest:true,side:THREE.DoubleSide
+ map:warmGlowTexture,color:0xffe1b6,transparent:true,opacity:0,depthWrite:false,depthTest:true,side:THREE.DoubleSide,blending:THREE.AdditiveBlending
 });
 const poleHeight=4.65;
 const poleInstances=new THREE.InstancedMesh(new THREE.CylinderGeometry(.075,.10,poleHeight,5),streetPoleMat,lampPositions.length);
 const bulbInstances=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.31,0),streetBulbMat,lampPositions.length);
-const glowInstances=new THREE.InstancedMesh(new THREE.CircleGeometry(4.25,14),streetPoolMat,lampPositions.length);
+const glowInstances=new THREE.InstancedMesh(new THREE.CircleGeometry(5.8,24),streetPoolMat,lampPositions.length);
 const streetTemp=new THREE.Object3D();
 for(let j=0;j<lampPositions.length;j++){
  const {x,z}=lampPositions[j];
@@ -447,6 +461,47 @@ for(const grade of ['A','B','C']){
  const material=new THREE.MeshStandardMaterial({color:markerPalette[grade],emissive:markerPalette[grade],emissiveIntensity:.28,roughness:.36,metalness:.15});
  const mesh=new THREE.InstancedMesh(gemGeometry,material,zoneBuckets[grade].length);
  mesh.count=0;mesh.frustumCulled=false;scene.add(mesh);zoneGems[grade]=mesh;
+}
+// Cada construção tem um pequeno halo quente em sua própria entrada.
+const buildingGlowMat=new THREE.MeshBasicMaterial({
+ map:warmGlowTexture,color:0xffe1af,transparent:true,opacity:0,
+ blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
+});
+const buildingGlow=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),buildingGlowMat,1000);
+buildingGlow.count=0;buildingGlow.frustumCulled=false;scene.add(buildingGlow);
+const buildingLightObjects=Array.from({length:4},()=>{
+ const l=new THREE.PointLight(0xffbf80,0,25,2.0);
+ l.castShadow=false;scene.add(l);return l;
+});
+const glowDummy=new THREE.Object3D();
+function syncBuildingGlows(){
+ let n=0;
+ for(let i=0;i<state.lots.length;i++){
+  if(!state.lots[i].building)continue;
+  const pt=lots[i],dir=i%4<2?-1:1;
+  glowDummy.position.set(pt.x,.28,pt.z+dir*3.8);
+  glowDummy.rotation.set(-Math.PI/2,0,0);glowDummy.scale.set(8.5,6.3,1);
+  glowDummy.updateMatrix();buildingGlow.setMatrixAt(n++,glowDummy.matrix);
+ }
+ buildingGlow.count=n;buildingGlow.instanceMatrix.needsUpdate=true;
+}
+function updateNearbyBuildingLights(level){
+ if(level<.08||distance>290){
+  buildingLightObjects.forEach(l=>{l.intensity=0});return;
+ }
+ const near=[];
+ for(let i=0;i<state.lots.length;i++){
+  if(!state.lots[i].building)continue;
+  const p=lots[i],d=Math.hypot(target.x-p.x,target.z-p.z);
+  if(d<160)near.push({p,d});
+ }
+ near.sort((a,b)=>a.d-b.d);
+ buildingLightObjects.forEach((l,i)=>{
+  const hit=near[i];
+  if(!hit){l.intensity=0;return}
+  l.position.set(hit.p.x,4.2,hit.p.z);
+  l.intensity=2.5*level;
+ });
 }
 const legendaryGlow=new THREE.MeshStandardMaterial({color:0xffcf56,emissive:0xffad19,emissiveIntensity:.9,roughness:.26,metalness:.15});
 const legendaryGems=new THREE.InstancedMesh(gemGeometry,legendaryGlow,rarityBuckets[4].length);
@@ -957,6 +1012,7 @@ function renderState(){
   if(p.building&&p.building.userData.kind!==normalizeBuilding(l.building)){scene.remove(p.building);p.building=null}
   if(l.building&&!p.building){p.building=house(i,l.building);p.building.userData.kind=normalizeBuilding(l.building)}
  }
+ syncBuildingGlows();
  actions.replaceChildren();
  const panelTitle=document.getElementById('title'),desc=document.getElementById('desc');
  if(selected<0){
@@ -1103,7 +1159,8 @@ function updateCityTime(force=false){
  trafficHeadlights.emissiveIntensity=2.7*night;
  trafficTailLights.emissiveIntensity=1.9*night;
  streetBulbMat.color.setHex(night>.3?0xffd69a:0xc8ced0);
- streetPoolMat.opacity=.75*night;
+ streetPoolMat.opacity=.97*night;
+ buildingGlowMat.opacity=.87*night;
  reflectionMat.opacity=.37*night;
  waterMat.color.setHex(0x205576);
  waterMat.color.lerp(new THREE.Color(0x288fb6),daylight);
@@ -1116,6 +1173,7 @@ nightButton.onclick=()=>{
  nightButton.setAttribute('aria-pressed',String(previewNight));
  updateCityTime(true);
  updateNearbyStreetLights(1-lastVisualLevel);
+ updateNearbyBuildingLights(1-lastVisualLevel);
 };
 renderState();
 if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';
@@ -1130,6 +1188,7 @@ function animate(t){
   lastClockUpdate=t;
   updateCityTime();
   updateNearbyStreetLights(1-lastVisualLevel);
+  updateNearbyBuildingLights(1-lastVisualLevel);
  }
  renderer.render(scene,camera);
 }
