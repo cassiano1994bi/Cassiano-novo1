@@ -447,45 +447,75 @@ function house(id,kind){
 }
 // Construir precisa de confirmacao claramente visivel no celular.
 // A janela fica sobre a cena 3D, nao escondida abaixo do painel.
-function beginConstruction(id,type,price){
- const property=state.lots[id];
- if(property.owner!=='me'||property.building){status.textContent='Selecione um terreno seu, ainda sem construcao.';return}
- if(state.balance<price){status.textContent='Saldo insuficiente. Faltam '+fmt(price-state.balance)+' IU$ para construir '+type+'.';return}
- const modal=document.createElement('div');modal.className='build-overlay';modal.setAttribute('role','dialog');
- modal.setAttribute('aria-label','Confirmar construcao');
- const dialog=document.createElement('div');dialog.className='build-dialog';modal.append(dialog);
- const title=document.createElement('h3');title.textContent='🏗️ Construir '+(type==='casa'?'casa':'prédio')+' no terreno #'+String(id+1).padStart(3,'0');
- const help=document.createElement('p');help.textContent='1. Escolha a cor. 2. Toque no botão verde para concluir a obra.';
- const priceNote=document.createElement('p');priceNote.textContent='Custo: '+fmt(price)+' IU$ · Seu saldo: '+fmt(state.balance)+' IU$';
+
+function beginConstruction(id,type){
+ const prop=state.lots[id];
+ if(prop.owner!=='me'||prop.building){status.textContent='Selecione um terreno seu e vazio.';return}
+ const models=BUILD_MODELS.filter(m=>m.type===type);
+ const overlay=document.createElement('div');overlay.className='build-overlay';overlay.setAttribute('role','dialog');
+ overlay.setAttribute('aria-modal','true');
+ const dialog=document.createElement('div');dialog.className='build-dialog';overlay.append(dialog);
+ const title=document.createElement('h3');title.textContent=(type==='casa'?'🏠 Casas':'🏢 Prédios')+' · Terreno #'+String(id+1).padStart(3,'0');
+ const intro=document.createElement('p');intro.textContent=rarityNames[rarityIndex(id)]+' · Zona '+zone(id).grade+' · Escolha um modelo.';
+ const choices=document.createElement('div');choices.className='build-models';
+ const note=document.createElement('p');note.className='build-status';
+ const colorsLabel=document.createElement('p');colorsLabel.textContent='🎨 Escolha a cor';
  const palette=document.createElement('div');palette.className='build-palette';
  const bottom=document.createElement('div');bottom.className='build-bottom';
- let chosen=colors.includes(property.color)?property.color:colors[0];
- function repaint(){
+ const cancel=document.createElement('button');cancel.type='button';cancel.className='cancel';cancel.textContent='Cancelar';cancel.onclick=()=>overlay.remove();
+ const confirm=document.createElement('button');confirm.type='button';
+ let color=colors.includes(prop.color)?prop.color:colors[0];
+ let selectedModel=models.find(m=>!buildingRestriction(id,m.id)&&state.balance>=buildingPrice(id,m.id))?.id||
+  models.find(m=>!buildingRestriction(id,m.id))?.id||null;
+ function paintColors(){
   palette.replaceChildren();
-  colors.forEach(color=>{
-   const sw=document.createElement('button');sw.type='button';sw.className='swatch'+(chosen===color?' active':'');sw.style.backgroundColor=color;
-   sw.title='Escolher cor '+color;sw.setAttribute('aria-label','Cor '+color);
-   sw.onclick=()=>{chosen=color;repaint()};palette.append(sw);
-  });
+  colors.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='swatch'+(color===c?' active':'');
+   b.style.backgroundColor=c;b.setAttribute('aria-label','Cor '+c);b.onclick=()=>{color=c;paintColors()};palette.append(b)});
  }
- repaint();
- const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='Cancelar';
- cancel.onclick=()=>modal.remove();
- const confirm=document.createElement('button');confirm.textContent='✓ Confirmar obra · '+fmt(price)+' IU$';
+ function paintChoices(){
+  choices.replaceChildren();
+  models.forEach(m=>{
+   const reason=buildingRestriction(id,m.id),price=buildingPrice(id,m.id);
+   const b=document.createElement('button');b.type='button';b.disabled=!!reason;
+   b.className='build-model'+(reason?' locked':'')+(m.id===selectedModel?' chosen':'');
+   const name=document.createElement('strong');name.textContent=(reason?'🔒 ':'')+m.name;
+   const detail=document.createElement('small');detail.textContent=m.desc;
+   const priceLabel=document.createElement('small');priceLabel.className='model-price';
+   priceLabel.textContent=fmt(price)+' IU$'+(reason?' · '+reason:'');
+   b.append(name,detail,priceLabel);
+   if(!reason)b.onclick=()=>{selectedModel=m.id;paintChoices()};
+   choices.append(b);
+  });
+  const selected=BUILD_BY_ID[selectedModel],price=selected?buildingPrice(id,selected.id):0;
+  const why=selected?buildingRestriction(id,selected.id):'Sem modelos disponíveis';
+  confirm.disabled=!selected||!!why||state.balance<price;
+  confirm.textContent=confirm.disabled?'Construção indisponível':'✓ Construir '+selected.name+' · '+fmt(price)+' IU$';
+  note.textContent=why||((state.balance<price)?'Saldo insuficiente: faltam '+fmt(price-state.balance)+' IU$.':
+   'Custo ajustado à raridade '+rarityNames[rarityIndex(id)]+' · Saldo: '+fmt(state.balance)+' IU$');
+ }
  confirm.onclick=()=>{
-  // Bloqueia duplo clique e valida novamente o patrimonio no momento da compra.
-  confirm.disabled=true;
-  const current=state.lots[id];
-  if(current.owner!=='me'||current.building||state.balance<price){
-   status.textContent='Construção não autorizada: confira terreno e saldo.';
-   modal.remove();renderState();return;
+  if(confirm.disabled)return;
+  const m=BUILD_BY_ID[selectedModel],current=state.lots[id],price=buildingPrice(id,m?.id);
+  const reason=buildingRestriction(id,m?.id);
+  if(!m||m.type!==type||reason||current.owner!=='me'||current.building||state.balance<price){
+   status.textContent=reason||'Não foi possível construir. Confira seu saldo e terreno.';paintChoices();return;
   }
-  state.balance-=price;current.building=type;current.color=chosen;
-  save();modal.remove();selected=id;
-  renderState();status.textContent='✅ Obra construída no terreno #'+String(id+1).padStart(3,'0')+'. Saldo atualizado.';
-  target.set(lots[id].x,0,lots[id].z);distance=95;updateCam();
+  confirm.disabled=true;
+  const previous={balance:state.balance,building:current.building,color:current.color,meta:current.buildingMeta};
+  state.balance-=price;current.building=m.id;current.color=color;
+  current.buildingMeta={model:m.id,category:m.type,costPaid:price,rarityAtBuild:rarityNames[rarityIndex(id)],
+   zoneAtBuild:zone(id).grade,builtAt:new Date().toISOString()};
+  if(!save()){
+   state.balance=previous.balance;current.building=previous.building;current.color=previous.color;
+   current.buildingMeta=previous.meta;confirm.disabled=false;status.textContent='Falha ao salvar. Saldo preservado.';return;
+  }
+  overlay.remove();selected=id;renderState();
+  status.textContent='✅ '+m.name+' construída no terreno #'+String(id+1).padStart(3,'0')+' por '+fmt(price)+' IU$.';
+  target.set(lots[id].x,0,lots[id].z);distance=105;updateCam();
  };
- bottom.append(cancel,confirm);dialog.append(title,help,priceNote,palette,bottom);stage.append(modal);
+ bottom.append(cancel,confirm);
+ dialog.append(title,intro,choices,note,colorsLabel,palette,bottom);
+ stage.append(overlay);paintColors();paintChoices();
 }
 function renderState(){
  document.getElementById('balance').textContent=fmt(state.balance)+' IU$';
