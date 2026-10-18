@@ -1232,7 +1232,7 @@ if(!Number.isFinite(cityClockEpoch)||cityClockEpoch<=0||cityClockEpoch>Date.now(
  cityClockEpoch=Date.now();
  try{localStorage.setItem(CLOCK_STORAGE_KEY,String(cityClockEpoch))}catch{}
 }
-let previewNight=false,lastVisualLevel=-1,lastLampPosition=0;
+let previewMode=null,lastNaturalLevel=1,lastVisualLevel=-1;
 const clockLabel=document.getElementById('clockReadout');
 const nightButton=document.getElementById('nightModeButton');
 const clamp01=x=>Math.min(1,Math.max(0,x));
@@ -1248,10 +1248,14 @@ function updateCityTime(force=false){
  const mm=totalMinutes%60;
  const clockString=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
  const naturalLevel=smoothTime(5.2,7.3,hour)*(1-smoothTime(17.4,19.6,hour));
+ lastNaturalLevel=naturalLevel;
  waterTexture.offset.x=(elapsed/60000)*.018;
- const daylight=previewNight?0:naturalLevel;
+ const daylight=previewMode==='night'?0:previewMode==='day'?1:naturalLevel;
  const night=1-daylight;
- clockLabel.textContent=(previewNight?'🌙 Prévia':'🕒 Dia '+dayNum)+' · '+clockString;
+ clockLabel.textContent=(previewMode==='night'?'🌙 Noite de teste':previewMode==='day'?'☀️ Dia de teste':'🕒 Dia '+dayNum)+' · '+clockString;
+ nightButton.textContent=previewMode===null?(naturalLevel>.5?'🌙 Ver noite':'☀️ Ver dia'):'⏱️ Automático';
+ nightButton.classList.toggle('active',previewMode!==null);
+ nightButton.setAttribute('aria-pressed',String(previewMode!==null));
  if(!force&&Math.abs(daylight-lastVisualLevel)<.008)return;
  lastVisualLevel=daylight;
  scene.background.lerpColors(nightFogColor,dayFogColor,daylight);
@@ -1289,10 +1293,8 @@ function updateCityTime(force=false){
  waterMat.color.lerp(new THREE.Color(0x288fb6),daylight);
  }
 nightButton.onclick=()=>{
- previewNight=!previewNight;
- nightButton.textContent=previewNight?'☀️ Voltar ao automático':'🌙 Ver noite';
- nightButton.classList.toggle('active',previewNight);
- nightButton.setAttribute('aria-pressed',String(previewNight));
+ // Se já é noite no relógio, permite ver o dia sem interromper o ciclo de 5 minutos.
+ previewMode=previewMode===null?(lastNaturalLevel>.5?'night':'day'):null;
  updateCityTime(true);
  updateNearbyStreetLights(1-lastVisualLevel);
  updateNearbyBuildingLights(1-lastVisualLevel);
