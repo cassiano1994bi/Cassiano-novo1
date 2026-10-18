@@ -554,13 +554,10 @@ function renderState(){
  }
  if(l.owner==='me'){
   if(!l.building){
-   for(const [type,price] of [['casa',7000],['predio',18000]]){
-    const affordable=state.balance>=price;
-    btn((type==='casa'?'🏠 Casa':'🏢 Prédio')+(affordable?' · '+fmt(price)+' IU$':' · faltam '+fmt(price-state.balance)+' IU$'),
-     ()=>beginConstruction(selected,type,price),false,!affordable);
-   }
+   btn('🏠 Casas · 4 modelos',()=>beginConstruction(selected,'casa'));
+   btn('🏢 Prédios · 5 modelos',()=>beginConstruction(selected,'predio'));
    const tip=document.createElement('div');tip.style.cssText='width:100%;color:#bfcee0;font-size:12px;margin-top:4px';
-   tip.textContent='A construção será confirmada numa janela com as cores e o botão de finalizar.';actions.append(tip);
+   tip.textContent='🔒 Construções especiais exigem raridade e localização apropriadas. Os preços variam pela raridade.';actions.append(tip);
   }else{
    const info=document.createElement('div');info.style.cssText='color:#a6f6c9;font-size:13px;width:100%';
    info.textContent='✓ Construção existente: '+l.building+'.';actions.append(info);
