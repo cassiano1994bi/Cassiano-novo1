@@ -1,4 +1,4 @@
-import {PUBLIC_WORKS,CITY_MODELS} from './mayor-economy.js?v=10.2';
+import {PUBLIC_WORKS,CITY_MODELS} from './mayor-economy.js?v=10.3';
 const fmt=n=>Math.round(n||0).toLocaleString('pt-BR');
 const pct=n=>(Number(n)||0).toFixed(1)+'%';
 const ZONES={residential:'Residencial',mixed:'Mista',commercial:'Comercial',industrial:'Industrial',tourism:'Turística',environmental:'Proteção ambiental'};
@@ -37,8 +37,10 @@ export function mountMayorUI(engine,ctx){
   const projects=s.works.filter(w=>w.status!=='complete');
   return header('Obras públicas aprovadas')+
    (projects.length?projects.map(w=>'<div class="mayorItem"><b>'+esc(PUBLIC_WORKS[w.kind].name)+'</b>'+
-    '<small>'+esc(PHASES[w.status]||w.status)+' · '+w.elapsed+'/'+w.days+' dias · contrato '+fmt(w.cost)+' IU$</small><progress max="'+w.days+'" value="'+w.elapsed+'" aria-label="Progresso da obra"></progress></div>').join(''):
+    '<small>'+(Number.isInteger(w.plot)?'Lote #'+(w.plot+1)+' · ':'Serviço em rede · ')+esc(PHASES[w.status]||w.status)+' · '+w.elapsed+'/'+w.days+' dias · contrato '+fmt(w.cost)+' IU$</small><progress max="'+w.days+'" value="'+w.elapsed+'" aria-label="Progresso da obra"></progress>'+(Number.isInteger(w.plot)?button('Ver no mapa','focus',w.plot):'')+'</div>').join(''):
     '<p class="mayorEmpty">Não há obras públicas em execução.</p>')+
+   header('Equipamentos públicos entregues')+
+   (s.works.filter((w,i,a)=>w.status==='complete'&&Number.isInteger(w.plot)&&a.findIndex(x=>x.status==='complete'&&x.plot===w.plot)===i).map(w=>'<div class="mayorItem"><b>'+esc(PUBLIC_WORKS[w.kind].name)+'</b><small>Lote #'+(w.plot+1)+'</small>'+button('Ver no mapa','focus',w.plot)+'</div>').join('')||'<p>As entregas de escolas, saúde e guarda aparecerão aqui.</p>')+
    header('Investir em serviços da cidade')+
    '<p>Cada projeto é pago pelo Tesouro e financiado antes de começar. Contratos geram salários e compras de materiais.</p>'+
    Object.entries(PUBLIC_WORKS).map(([id,w])=>'<div class="mayorItem"><b>'+esc(w.name)+'</b><small>'+
@@ -232,6 +234,7 @@ export function mountMayorUI(engine,ctx){
   const b=e.target.closest('button[data-action]');if(!b)return;
   const {action,value}=b.dataset;
   if(action==='tab'){active=value;drawPanel();return}
+  if(action==='focus'){ctx.focusLot?.(Number(value));close();return}
   if(action==='camera'){ctx.camera?.(value);return}
   if(action==='challenge'){
    const ok=engine.decideChallenge(value==='yes');
@@ -264,6 +267,8 @@ export function mountMayorUI(engine,ctx){
   chosenLot=plot;
   if(plot===null||plot<0){lotBox.hidden=true;return}
   const lot=s.plots[plot],zone=engine.zoneFor(plot);
+  const publicWork=s.works.find(w=>w.plot===plot&&w.status!=='complete');
+  const facility=s.plots[plot]?.facility;
   const work=s.projects.find(p=>p.plot===plot&&p.status!=='complete'&&p.status!=='cancelled');
   const company=s.companies.find(c=>c.plot===plot);
   const holder=s.investors.find(i=>i.id===lot.holder);
@@ -271,7 +276,8 @@ export function mountMayorUI(engine,ctx){
    lot.holder==='legacy'?'Imóvel anterior preservado':
    lot.holder==='free'?'Lote disponível para investidores':
    'Propriedade de '+(holder?.name||lot.holder);
-  const detail=work?' · Construção: '+CITY_MODELS[work.kind].name+' · '+(PHASES[work.status]||work.status)+' · '+Math.round(work.elapsed/work.days*100)+'%':
+  const publicLabel=facility?({escola:'Escola municipal',hospital:'Unidade de saúde',seguranca:'Base da guarda municipal'}[facility]):'';
+  const detail=publicWork?' · '+publicLabel+' em construção · '+Math.round(publicWork.elapsed/publicWork.days*100)+'%':facility?' · '+publicLabel+' em funcionamento':work?' · Construção: '+CITY_MODELS[work.kind].name+' · '+(PHASES[work.status]||work.status)+' · '+Math.round(work.elapsed/work.days*100)+'%':
    company?' · '+CITY_MODELS[company.kind].name+(company.active?' em operação':' fechada')+' · receita '+fmt(company.revenue)+' IU$'+(company.sector==='retail'?' · estoque '+fmt(company.stock||0)+' IU$':''):
    lot.model?' · Construção existente':'';
   lotBox.hidden=false;

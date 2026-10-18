@@ -38,6 +38,22 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false){
  function equipment(){for(const xx of [-2.6,-.7,1.2]){box('gray',1.1,.7,1.2,xx,5.25,-1.7);
    box('dark',.8,.15,.9,xx,5.68,-1.7)}}
  switch(kind){
+ case 'escola':
+  facade(10,8.5,5.6,'white');glazing(2.1,3,4.36);entry();canopy('blue');
+  box('blue',10.3,.6,.25,0,4.5,4.4);
+  box('gold',.16,7,.16,-4.7,3.5,4.9);box('green',1.4,.85,.08,-4,6.4,4.9);
+  for(const xx of [-3,0,3])box('glass',1.4,1.1,.15,xx,4,4.38);
+  break;
+ case 'hospital':
+  facade(9.5,8.7,8,'white');windows(2,9.5);entry();canopy('red');
+  box('red',.5,2,.25,0,6.8,4.52);box('red',1.8,.5,.27,0,6.8,4.55);
+  box('white',2.3,.8,1.15,3,.65,4.9);box('red',.3,.18,.7,3,1.15,4.9);
+  break;
+ case 'seguranca':
+  facade(8.5,8,5.4,'white');glazing(2,3,4.1);entry();canopy('blue');
+  box('blue',8.8,.65,.23,0,4.5,4.17);box('steel',.14,3,.14,3,7,-2);
+  box('blue',2,.6,1,3,.65,4.8);box('red',.5,.16,.5,3,1.05,4.8);
+  break;
  case 'mercado':
   facade(9.1,7.7,4.35,'white');glazing(1.6,3,3.96);entry();signage('green');canopy();
   for(const xx of [-4.3,4.3])box('leaf',.65,.86,.65,xx,.54,4.15);

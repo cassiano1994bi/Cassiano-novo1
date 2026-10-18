@@ -39,7 +39,7 @@ export class MayorEconomy{
   let data=null;
   try{const raw=this.storage?.getItem(MUNICIPAL_SAVE_KEY);if(raw)data=JSON.parse(raw)}catch{}
   if(data?.version===1&&data.accounts&&Array.isArray(data.plots)&&data.plots.length===1000){
-   this.state=data;this.reconcileLegacy();this.validate();return;
+   this.state=data;this.reconcileLegacy();this.ensurePublicSites();this.validate();return;
   }
   this.state=this.fresh(now);
   this.persist();
@@ -192,7 +192,15 @@ export class MayorEconomy{
  }
  listOpportunities(inv){
   const s=this.s,climate=this.economicClimate();
-  const activeByType={};
+  const activeByType={},nearbyByType={};
+  for(const c of s.companies.filter(c=>c.active)){
+   const key=this.district(c.plot)+':'+c.kind;nearbyByType[key]=(nearbyByType[key]||0)+1;
+  }
+  for(const p of s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled')){
+   const key=this.district(p.plot)+':'+p.kind;nearbyByType[key]=(nearbyByType[key]||0)+1;
+  }
+  const committed=s.permits.filter(p=>p.investor===inv.id&&p.status==='pending').reduce((n,p)=>n+p.cost,0);
+  const capital=Math.max(0,this.account(inv.id)-committed);
   for(const c of s.companies.filter(x=>x.active))activeByType[c.kind]=(activeByType[c.kind]||0)+1;
   for(const p of s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled'))activeByType[p.kind]=(activeByType[p.kind]||0)+1;
   const free=s.plots.map((l,i)=>({l,i})).filter(({l})=>l.holder==='free'&&!l.project);
@@ -204,8 +212,7 @@ export class MayorEconomy{
    for(const kind of options){
     const model=CITY_MODELS[kind];
     const district=this.district(i),distance=this.district(i);
-    const committed=s.permits.filter(p=>p.investor===inv.id&&p.status==='pending').reduce((n,p)=>n+p.cost,0);
-    const capital=Math.max(0,this.account(inv.id)-committed),land=this.landCost(i),license=money(model.cost*s.rates.permit/100);
+    const land=this.landCost(i),license=money(model.cost*s.rates.permit/100);
     const reserve=money(model.cost*.20),required=land+license+model.cost+reserve;
     if(capital<required)continue;
     const density=climate.population/5;
@@ -218,7 +225,8 @@ export class MayorEconomy{
     const industrialBonus=model.type==='industry'?.26:0;
     const investorPreference=model.type===inv.interest?.20:0;
     const taxPenalty=s.rates.service*.035+s.rates.property*.013;
-    const rivalry=competition*.075;
+    const nearby=nearbyByType[district+':'+kind]||0;
+    const rivalry=nearby*.075+competition*.012;
     const costPenalty=required/capital*.11;
     const score=services*.24+attractiveness*.33+tourismBonus+housingBonus+retailBonus+
       industrialBonus+investorPreference-taxPenalty-rivalry-costPenalty+s.cycle*.38+
@@ -310,14 +318,36 @@ export class MayorEconomy{
    }
   }
  }
+ publicSite(kind){
+  if(!['escola','hospital','seguranca'].includes(kind))return null;
+  const existing=this.s.works.find(w=>w.kind===kind&&Number.isInteger(w.plot));
+  if(existing)return existing.plot;
+  // Usar apenas terreno municipal disponível; parques e imóveis anteriores são intocáveis.
+  const candidates=this.s.plots.map((p,i)=>({p,i})).filter(({p,i})=>p.holder==='free'&&!p.project&&!p.model&&!this.parkIds.has(i)&&this.zoneFor(i)!=='environmental');
+  candidates.sort((a,b)=>this.landCost(a.i)-this.landCost(b.i)||a.i-b.i);
+  return candidates[0]?.i??null;
+ }
+ ensurePublicSites(){
+  for(const w of this.s.works){
+   if(!['escola','hospital','seguranca'].includes(w.kind))continue;
+   if(!Number.isInteger(w.plot))w.plot=this.publicSite(w.kind);
+   if(Number.isInteger(w.plot)){
+    const p=this.s.plots[w.plot];p.holder='public';p.facility=w.kind;
+    if(w.status==='complete')p.model='municipal_'+w.kind;
+   }
+  }
+ }
  startWork(kind){
   const def=PUBLIC_WORKS[kind],s=this.s;
   if(!def)return {ok:false,reason:'Projeto público inválido'};
   if(s.works.some(w=>w.category===def.category&&w.status!=='complete'))return {ok:false,reason:'Já há obra desse serviço em andamento'};
   if(this.account('treasury')<def.cost)return {ok:false,reason:'Tesouro sem recursos para financiar esta obra'};
+  const site=this.publicSite(kind);
+  if(['escola','hospital','seguranca'].includes(kind)&&site===null)return {ok:false,reason:'Nenhum terreno municipal livre fora dos parques. Libere uma zona adequada.'};
   if(!this.move('treasury','builders',def.cost,'Contrato de obra pública: '+def.name))return {ok:false,reason:'Pagamento não autorizado'};
   const work={id:'work:'+s.seq++,kind,category:def.category,cost:def.cost,days:def.days,
    elapsed:0,paid:0,status:'preparation'};
+  if(Number.isInteger(site)){work.plot=site;s.plots[site].holder='public';s.plots[site].facility=kind;}
   s.works.push(work);
   this.news('Prefeitura licita e financia '+def.name+' ('+def.cost+' IU$).','public');
   this.persist();return {ok:true,work};
@@ -336,6 +366,7 @@ export class MayorEconomy{
    w.status=w.elapsed/w.days<.3?'foundation':w.elapsed<w.days?'structure':'complete';
    if(w.status==='complete'){
     const cfg=PUBLIC_WORKS[w.kind];
+    if(Number.isInteger(w.plot))this.s.plots[w.plot].model='municipal_'+w.kind;
     this.s.allocations[cfg.category]=clamp(this.s.allocations[cfg.category]+cfg.benefit,0,100);
     this.news('Prefeitura entrega '+cfg.name+'. Qualidade de '+cfg.category+' aumentou.','public');
    }

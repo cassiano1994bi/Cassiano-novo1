@@ -181,5 +181,29 @@ export function runMayorEconomyTests(){
   assert(pending.length>90,'Cenário não preencheu fila');
   for(const p of g.s.plots)if(p.project)assert(g.s.permits.some(x=>x.id===p.project),'Lote bloqueado sem licença');
  });
+ scenario('Equipamentos públicos ocupam lote próprio e preservam parques',()=>{
+  const {game:g,parkIds}=make();
+  const works=['escola','hospital','seguranca'].map(k=>g.startWork(k));
+  assert(works.every(x=>x.ok),'Obras públicas não iniciaram');
+  const plots=works.map(x=>x.work.plot);
+  assert(new Set(plots).size===3,'Equipamentos sobrepostos');
+  assert(plots.every(i=>!parkIds.includes(i)&&g.s.plots[i].holder==='public'),'Parque foi usado para equipamento');
+  g.runDays(15);
+  assert(plots.every(i=>g.s.plots[i].model?.startsWith('municipal_')),'Entrega não registrou prédio');
+  const upgrade=g.startWork('escola');assert(upgrade.work.plot===plots[0],'Ampliação trocou de terreno');
+  g.validate();
+ });
+ scenario('Obras antigas recebem localização sem cobrança adicional',()=>{
+  const {game:g,storage,legacy,parkIds}=make();g.startWork('escola');g.runDays(12);
+  const old=g.s.works[0].plot;delete g.s.works[0].plot;g.s.plots[old]={holder:'free',project:null,model:null,zone:null};g.persist();
+  const cash=g.account('treasury');const restored=new MayorEconomy({storage,legacyLots:legacy,parkIds});
+  assert(Number.isInteger(restored.s.works[0].plot),'Obra anterior ficou sem lote');
+  assert(restored.account('treasury')===cash,'Migração cobrou novamente');restored.validate();
+ });
+ scenario('Rede de saneamento não ocupa praça nem cria prédio fictício',()=>{
+  const {game:g}=make();const w=g.startWork('saneamento');
+  assert(w.ok&&!Number.isInteger(w.work.plot),'Obra de rede ganhou lote indevido');g.runDays(12);
+  assert(w.work.status==='complete','Rede não foi concluída');g.validate();
+ });
  return {passed:cases.filter(c=>c.ok).length,total:cases.length,cases};
 }

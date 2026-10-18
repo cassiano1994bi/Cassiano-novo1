@@ -1,6 +1,6 @@
 /* Modo de compatibilidade: a mesma economia, sem exigir WebGL. */
-import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=10.2';
-import {mountMayorUI} from './mayor-ui.js?v=10.2';
+import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=10.3';
+import {mountMayorUI} from './mayor-ui.js?v=10.3';
 export function startCityMap2D({stage,legacyLots,parkIds}){
  const engine=new MayorEconomy({storage:localStorage,legacyLots,parkIds});
  engine.restoreTime();
@@ -18,7 +18,7 @@ export function startCityMap2D({stage,legacyLots,parkIds}){
   g.fillStyle='#fff1b7';g.beginPath();g.arc(260,-218,12,0,Math.PI*2);g.fill();
   g.fillStyle='#345161';g.fillRect(-360,-176,720,340);
   const companies=new Map(engine.s.companies.map(c=>[c.plot,c]));
-  const projects=new Map(engine.s.projects.filter(p=>p.status!=='complete'&&p.status!=='cancelled').map(p=>[p.plot,p]));
+  const projects=new Map([...engine.s.projects,...engine.s.works.filter(w=>Number.isInteger(w.plot))].filter(p=>p.status!=='complete'&&p.status!=='cancelled').map(p=>[p.plot,p]));
   for(let i=0;i<1000;i++){
    const p=engine.s.plots[i],{x,y}=cell(i),company=companies.get(i),project=projects.get(i);
    g.fillStyle=p.holder==='public'?'#39815b':colors[engine.zoneFor(i)];g.fillRect(x,y,10,13);
