@@ -1,6 +1,6 @@
 /* Modo de compatibilidade: a mesma economia, sem exigir WebGL. */
-import {MayorEconomy,CITY_MODELS} from './mayor-economy.js';
-import {mountMayorUI} from './mayor-ui.js';
+import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=10.2';
+import {mountMayorUI} from './mayor-ui.js?v=10.2';
 export function startCityMap2D({stage,legacyLots,parkIds}){
  const engine=new MayorEconomy({storage:localStorage,legacyLots,parkIds});
  engine.restoreTime();

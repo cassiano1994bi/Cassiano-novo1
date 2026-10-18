@@ -213,9 +213,9 @@ header>div:first-child>small{display:none}
 })();
 </script><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
-import {MayorEconomy,CITY_MODELS} from './mayor-economy.js';
-import {mountMayorUI} from './mayor-ui.js';
-import {makeMunicipalBuilding} from './mayor-buildings.js';
+import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=10.2';
+import {mountMayorUI} from './mayor-ui.js?v=10.2';
+import {makeMunicipalBuilding} from './mayor-buildings.js?v=10.2';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 // A versao nova nao altera nenhum saldo existente e nao concede bonus retroativos.
@@ -357,7 +357,7 @@ const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
 let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'})}catch(error){
  console.warn('WebGL indisponível; ativando mapa municipal 2D.',error);
- const {startCityMap2D}=await import('./mayor-map2d.js');
+ const {startCityMap2D}=await import('./mayor-map2d.js?v=10.2');
  startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS)});
 }
 if(renderer){
@@ -2807,7 +2807,7 @@ function updateCityTime(force=false){
  const elapsed=mayorEconomy.s.day*CITY_DAY_MS+mayorEconomy.s.accumMs;
  const dayValue=elapsed/CITY_DAY_MS+8/24;
  const hour=(dayValue%1)*24;
- const dayNum=Math.floor(dayValue)+1;
+ const dayNum=mayorEconomy.s.day+1;
  // Arredondar no relógio evita mostrar 07:59 exatamente na virada do dia.
  const totalMinutes=Math.round((dayValue%1)*1440)%1440;
  const hh=Math.floor(totalMinutes/60);
