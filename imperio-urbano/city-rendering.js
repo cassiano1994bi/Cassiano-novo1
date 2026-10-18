@@ -73,20 +73,31 @@ export function createNaturalCity(THREE, scene, renderer) {
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),f=1+.1*Math.sin(x*19+y*13+z*21);p.setXYZ(i,x*f,y*f,z*f)}geo.computeVertexNormals();
   instances(geo,new THREE.MeshStandardMaterial({color:0xffffff,roughness:1}),crowns,true);
  }
- function streets(blocks){
-  const curb=[],paving=[],paint=[],drains=[];
+ function streets(blocks,stepX=31,stepZ=29){
+  const curb=[],paving=[],paint=[],drains=[],ramps=[],innerPaths=[];
   for(const b of blocks){
    for(const side of [-1,1]){
     curb.push({x:b.x,y:.22,z:b.z+side*12.48,sx:27,sy:.20,sz:.18},{x:b.x+side*13.48,y:.22,z:b.z,sx:.18,sy:.20,sz:25});
-    paving.push({x:b.x,y:.23,z:b.z+side*12.12,sx:26.7,sy:.12,sz:.55},{x:b.x+side*13.12,y:.23,z:b.z,sx:.55,sy:.12,sz:24.4});
+    paving.push({x:b.x,y:.23,z:b.z+side*11.9,sx:26.7,sy:.12,sz:1.16},{x:b.x+side*12.65,y:.23,z:b.z,sx:1.16,sy:.12,sz:24.4});
    }
+  // Caminhos internos ligam calçadas, esquinas e entradas sem cortar os lotes.
+  innerPaths.push({x:b.x,y:.23,z:b.z,sx:1.18,sy:.12,sz:23.2},{x:b.x,y:.23,z:b.z,sx:25.8,sy:.12,sz:1.18});
    if(b.col<4)for(const dz of [-7,0,7])paint.push({x:b.x+15.5,y:.158,z:b.z+dz,sx:.10,sy:.008,sz:2.8});
    if(b.row<9)for(const dx of [-8,0,8])paint.push({x:b.x+dx,y:.158,z:b.z+14.5,sx:2.8,sy:.008,sz:.10});
    for(let j=0;j<5;j++)drains.push({x:b.x+12.95+j*.08,y:.33,z:b.z+11.4,sx:.035,sy:.014,sz:.48});
+   if(b.col<4&&b.row<9){
+    const vx=b.x+stepX/2,hz=b.z+stepZ/2;
+    for(const a of [-1,1])for(const q of [-1,1]){
+     ramps.push({x:vx+a*2.02,y:.235,z:hz+q*5,sx:1.35,sy:.11,sz:1.35});
+     ramps.push({x:vx+q*5,y:.235,z:hz+a*2.02,sx:1.35,sy:.11,sz:1.35});
+    }
+   }
   }
   const geo=new THREE.BoxGeometry(1,1,1);
   instances(geo,surface(new THREE.MeshStandardMaterial({color:0xa9a69d}),'paving',.6),curb);
   instances(geo,surface(new THREE.MeshStandardMaterial({color:0xbcb7ab}),'paving',.65),paving);
+  instances(geo,surface(new THREE.MeshStandardMaterial({color:0xc2bcae}),'paving',.72),innerPaths);
+  instances(geo,new THREE.MeshStandardMaterial({color:0xd0cbbf,roughness:.96}),ramps);
   instances(geo,new THREE.MeshStandardMaterial({color:0xc9c4ad,roughness:1}),paint).castShadow=false;
   instances(geo,new THREE.MeshStandardMaterial({color:0x333633,roughness:.85}),drains).castShadow=false;
  }
