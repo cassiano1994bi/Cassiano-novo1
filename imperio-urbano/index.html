@@ -103,10 +103,10 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFi
 renderer.toneMappingExposure=1.24;renderer.outputColorSpace=THREE.SRGBColorSpace;stage.prepend(renderer.domElement);
 const hemisphereLight=new THREE.HemisphereLight(0xe7f5ff,0x577448,1.8);scene.add(hemisphereLight);
 const cityAmbientLight=new THREE.AmbientLight(0xabc5ed,.37);scene.add(cityAmbientLight);
-const moonSky=new THREE.Color(0x1c3450);
-const daySky=new THREE.Color(0xa5c9df);
+const moonSky=new THREE.Color(0xa6bfe1);
+const daySky=new THREE.Color(0xe7f5ff);
 const moonSunColor=new THREE.Color(0xb8d7ff),daySunColor=new THREE.Color(0xffefce);
-const nightGroundColor=new THREE.Color(0x526274),dayGroundColor=new THREE.Color(0x577448);
+const nightGroundColor=new THREE.Color(0x6e8194),dayGroundColor=new THREE.Color(0x577448);
 const nightRoadColor=new THREE.Color(0x65788a),dayRoadColor=new THREE.Color(0x555e64);
 const nightParkColor=new THREE.Color(0x678865),dayParkColor=new THREE.Color(0x82a66d);
 const sun=new THREE.DirectionalLight(0xffefce,2.0);sun.position.set(-170,280,130);sun.castShadow=true;
@@ -1262,11 +1262,11 @@ function updateCityTime(force=false){
  scene.fog.color.copy(scene.background);
  scene.fog.density=.00055+.00007*night;
  // Luz ambiente realista: a noite nunca apaga o solo e as fachadas.
- hemisphereLight.intensity=.87+1.18*daylight;
+ hemisphereLight.intensity=1.16+.89*daylight;
  hemisphereLight.color.copy(moonSky).lerp(daySky,daylight);
  hemisphereLight.groundColor.copy(nightGroundColor).lerp(dayGroundColor,daylight);
- cityAmbientLight.intensity=.47-.10*daylight;
- sun.intensity=.62+1.48*daylight;
+ cityAmbientLight.intensity=.59-.18*daylight;
+ sun.intensity=.66+1.44*daylight;
  sun.color.copy(moonSunColor).lerp(daySunColor,daylight);
  road.color.copy(nightRoadColor).lerp(dayRoadColor,daylight);
  park.color.copy(nightParkColor).lerp(dayParkColor,daylight);
