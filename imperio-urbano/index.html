@@ -1312,14 +1312,16 @@ function updateGraphicPackLabel(message=''){
   graphicsPackToggle.textContent='🎨 Pacote 3D: desligado';
   graphicsPackInfo.textContent='Gráfico original em uso. Toque para tentar os modelos 3D.';
  }else{
-  graphicsPackToggle.textContent='🎨 Pacote 3D: '+graphicsPackSuccess+' arquivos recebidos'+pending;
+  graphicsPackToggle.textContent='🎨 Pacote 3D: '+graphicsPackSuccess+' arquivo(s) recebido(s)'+pending;
   graphicsPackInfo.textContent=message||(
    graphicsPackAttached>0?
     graphicsPackAttached+' imóveis com modelo novo · '+graphicsPackSuccess+' arquivos 3D recebidos.'
     :graphicsPackPending>0?
     'Baixando modelos... '+graphicsPackSuccess+' arquivo(s) recebido(s).'
+    :graphicsPackSuccess>0?
+    graphicsPackSuccess+' modelo(s) recebidos. Aproxime a câmera dos imóveis; alguns podem estar sem construção.'
     :graphicsPackErrors>0?
-    'Modelos não aplicados. A conexão falhou; o gráfico original continua. Toque para tentar novamente.'
+    'Nenhum modelo recebido. Desligue e ligue novamente para tentar outro servidor.'
     :'Aguardando os modelos 3D. Seu patrimônio não é alterado.');
  }
  graphicsPackToggle.setAttribute('aria-pressed',String(graphicsPackEnabled));
