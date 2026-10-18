@@ -22,18 +22,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.m
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 // A versao nova nao altera nenhum saldo existente e nao concede bonus retroativos.
-// Remocao unica das construcoes antigas de teste, autorizada pelo criador do jogo.
-// Backup integral antes da migracao; terrenos, anuncios, proprietarios e saldo intactos.
-if(!state.testBuildingsRemovedV71){
- try{
-  const keyBackup=KEY+'_antes_remover_edificios_v71';
-  if(!localStorage.getItem(keyBackup))localStorage.setItem(keyBackup,JSON.stringify(state));
- }catch{}
- for(const lote of state.lots)if(lote&&lote.building)lote.building='';
- state.testBuildingsRemovedV71=true;
- try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
-}
-// Credito de teste solicitado pelo criador: SOMENTE ao acessar o link especial.
+// Nunca apagar construcoes persistidas ao atualizar a versao.\n// Credito de teste solicitado pelo criador: SOMENTE ao acessar o link especial.
 // O jogo ainda e local; nao existe conta remota nem autenticacao de jogadores.
 // Credito aditivo, uma unica vez por perfil salvo neste navegador.
 // Preserve todos os terrenos, construcoes, anuncios e saldo existente.
@@ -73,15 +62,15 @@ function zone(i){
 const cost=i=>Math.round(baseCost(i)*zone(i).factor/100)*100;
 
 const BUILD_MODELS=[
- {id:'house_popular',type:'casa',name:'Casa Popular',base:7000,min:0,zones:null,desc:'1 pavimento · telhado simples'},
- {id:'house_padrao',type:'casa',name:'Casa Padrão',base:10000,min:0,zones:null,desc:'Garagem · varanda familiar'},
- {id:'house_premium',type:'casa',name:'Casa Premium',base:16000,min:1,zones:['A','B','C'],desc:'2 pavimentos · terraço e vidro'},
- {id:'house_luxo',type:'casa',name:'Casa de Luxo',base:28000,min:2,zones:['A','B'],desc:'Residência nobre · piscina'},
- {id:'predio_compacto',type:'predio',name:'Residencial Compacto',base:18000,min:0,zones:null,desc:'3 pavimentos · entrada compacta'},
- {id:'predio_urbano',type:'predio',name:'Residencial Urbano',base:26000,min:1,zones:null,desc:'5 pavimentos · fachada urbana'},
- {id:'predio_premium',type:'predio',name:'Prédio Premium',base:38000,min:1,zones:['A','B','C'],desc:'6 pavimentos · varandas'},
- {id:'torre_nobre',type:'predio',name:'Torre Nobre',base:55000,min:2,zones:['A','B','C'],desc:'8 pavimentos · alto padrão'},
- {id:'torre_luxo',type:'predio',name:'Torre de Luxo',base:85000,min:2,zones:['A','B'],desc:'10 pavimentos · terraço panorâmico'}
+ {id:'house_popular',type:'casa',name:'Casa Popular',base:7000,min:0,desc:'1 pavimento · telhado colonial · jardim frontal'},
+ {id:'house_padrao',type:'casa',name:'Casa Padrão',base:10000,min:0,desc:'Garagem · varanda · fachada residencial'},
+ {id:'house_premium',type:'casa',name:'Casa Premium',base:16000,min:1,desc:'2 pavimentos · fachada envidraçada · varanda'},
+ {id:'house_luxo',type:'casa',name:'Casa de Luxo',base:28000,min:2,desc:'Mansão contemporânea · piscina · pergolado'},
+ {id:'predio_compacto',type:'predio',name:'Residencial Compacto',base:18000,min:0,desc:'3 pavimentos · entradas e sacadas'},
+ {id:'predio_urbano',type:'predio',name:'Residencial Urbano',base:26000,min:1,desc:'5 pavimentos · apartamentos e comércio'},
+ {id:'predio_premium',type:'predio',name:'Prédio Premium',base:38000,min:2,desc:'6 pavimentos · varandas amplas · terraço'},
+ {id:'torre_nobre',type:'predio',name:'Torre Nobre',base:55000,min:3,desc:'8 pavimentos · fachadas elegantes · jardins'},
+ {id:'torre_luxo',type:'predio',name:'Torre de Luxo',base:85000,min:4,desc:'10 pavimentos · fachada panorâmica · cobertura'}
 ];
 const BUILD_BY_ID=Object.fromEntries(BUILD_MODELS.map(m=>[m.id,m]));
 const BUILD_RARITY_PRICE=[1,1.08,1.18,1.30,1.50];
@@ -91,20 +80,16 @@ const buildingPrice=(i,id)=>{
  const model=buildingDefinition(id);
  return model?Math.round(model.base*BUILD_RARITY_PRICE[rarityIndex(i)]/100)*100:0;
 };
+// LIBERACAO POR RARIDADE: nao confundir raridade com Zona A/B/C/D.
+// Comum: 3 opcoes; Incomum: 5; Raro: 7; Epico: 8; Lendario: 9.
+// Localizacao influencia valor imobiliario, nunca bloqueia um Lendario.
 function buildingRestriction(i,id){
  const model=buildingDefinition(id);
  if(!model)return 'Modelo indisponível.';
  if(rarityIndex(i)<model.min)return 'Exige terreno '+rarityNames[model.min]+' ou superior.';
- if(model.zones&&!model.zones.includes(zone(i).grade)){
-  const grade=zone(i).grade,rarity=rarityIndex(i);
-  const premiumUpgrade=rarity>=2&&['house_premium','predio_premium','torre_nobre'].includes(model.id);
-  const epicCoastalUpgrade=rarity>=3&&grade==='C'&&['house_luxo','torre_luxo'].includes(model.id);
-  // Um terreno lendário nunca fica sem acesso aos projetos mais exclusivos.
-  if(!(rarity===4||premiumUpgrade||epicCoastalUpgrade))
-   return 'Disponível na zona '+model.zones.join('/')+'; libera em outras regiões com raridade maior.';
- }
  return '';
 }
+const buildingAvailability=i=>BUILD_MODELS.filter(m=>!buildingRestriction(i,m.id));
 const buildingLabel=id=>buildingDefinition(id)?.name||'Construção existente';
 
 const zoneDescription=i=>zone(i).grade+' — '+zone(i).name+' · '+Math.round(zone(i).factor*100)+'% do valor-base';
