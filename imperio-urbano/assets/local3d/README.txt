@@ -1,0 +1,1 @@
+Fallback visual: 13 modelos glTF 2.0 originais gerados para Império Urbano. Usados caso os arquivos externos Kenney CC0 não carreguem. São modelos 3D verdadeiros, não imagens. Todos os arquivos ficam na pasta imperio-urbano, sem alterar os demais projetos. Não contêm dados dos jogadores.
