@@ -27,7 +27,7 @@ export function createNaturalCity(THREE, scene, renderer) {
   }else{
    for(let i=0;i<16000;i++){const x=r()*512,y=r()*512;g.strokeStyle=i%3?'#24352228':'#e6db9b30';g.lineWidth=.5;g.beginPath();g.moveTo(x,y);g.lineTo(x+r()*2,y-1-r()*5);g.stroke()}
   }
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t;
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;
  }
  const maps={asphalt:texture('asphalt'),grass:texture('grass'),paving:texture('paving')};
  function surface(material,kind,scale=.25){
@@ -55,10 +55,10 @@ export function createNaturalCity(THREE, scene, renderer) {
   const r=rng(Math.floor((x+1000)*931+(z+1000)*719+type*199));
   const h=(4.8+r()*1.5)*size;
   trunks.push({x,y:h*.31,z,sx:.24*size,sy:h*.62,sz:.24*size});
-  for(let j=0;j<19;j++){
-   const a=r()*Math.PI*2,rad=Math.sqrt(r())*1.6*size;
+  for(let j=0;j<13;j++){
+   const a=r()*Math.PI*2,rad=Math.sqrt(r())*1.35*size;
    crowns.push({x:x+Math.cos(a)*rad,y:h*.70+(r()-.15)*2.15*size,z:z+Math.sin(a)*rad,
-    sx:(.65+r()*.7)*size,sy:(.65+r()*.85)*size,sz:(.65+r()*.7)*size,c:r()});
+    sx:(.78+r()*.62)*size,sy:(.72+r()*.72)*size,sz:(.78+r()*.62)*size,c:r()});
   }
  }
  function instances(geometry,material,items,colours=false){
@@ -69,7 +69,7 @@ export function createNaturalCity(THREE, scene, renderer) {
  }
  function finishTrees(){
   instances(new THREE.CylinderGeometry(.6,1,1,7),new THREE.MeshStandardMaterial({color:0x665447,roughness:1}),trunks);
-  const geo=new THREE.IcosahedronGeometry(1,2),p=geo.attributes.position;
+ const geo=new THREE.IcosahedronGeometry(1,1),p=geo.attributes.position;
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),f=1+.1*Math.sin(x*19+y*13+z*21);p.setXYZ(i,x*f,y*f,z*f)}geo.computeVertexNormals();
   instances(geo,new THREE.MeshStandardMaterial({color:0xffffff,roughness:1}),crowns,true);
  }
@@ -90,32 +90,40 @@ export function createNaturalCity(THREE, scene, renderer) {
   instances(geo,new THREE.MeshStandardMaterial({color:0xc9c4ad,roughness:1}),paint).castShadow=false;
   instances(geo,new THREE.MeshStandardMaterial({color:0x333633,roughness:.85}),drains).castShadow=false;
  }
- const skyUniforms={uTime:{value:0},uDay:{value:1},uDusk:{value:0}};
+ const skyUniforms={uTime:{value:0},uDay:{value:1},uDusk:{value:0},uSunDir:{value:new THREE.Vector3(0,1,0)},uMoonDir:{value:new THREE.Vector3(0,1,0)}};
  const sky=new THREE.Mesh(new THREE.SphereGeometry(2100,32,16),new THREE.ShaderMaterial({
   side:THREE.BackSide,depthWrite:false,fog:false,uniforms:skyUniforms,
   vertexShader:'varying vec3 dir; void main(){dir=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
   fragmentShader:`precision highp float;
-  varying vec3 dir;uniform float uTime,uDay,uDusk;
+  varying vec3 dir;uniform float uTime,uDay,uDusk;uniform vec3 uSunDir,uMoonDir;
   float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
-  float fbm(vec2 p){float n=0.,a=.5;for(int i=0;i<5;i++){n+=a*noise(p);p=p*2.03+11.7;a*=.5;}return n;}
+  float fbm(vec2 p){float n=0.,a=.5;for(int i=0;i<3;i++){n+=a*noise(p);p=p*2.03+11.7;a*=.5;}return n;}
   void main(){vec3 d=normalize(dir);float h=max(d.y,0.);
    vec3 day=mix(vec3(.72,.80,.83),vec3(.18,.43,.68),pow(h,.45));
    day=mix(day,vec3(.85,.46,.26),uDusk*pow(1.-h,4.)*.72);
    vec3 night=mix(vec3(.065,.09,.135),vec3(.009,.018,.045),pow(h,.4));
    vec3 col=mix(night,day,uDay);
    vec2 starUV=vec2(atan(d.z,d.x)*125.,asin(d.y)*180.);
-   float star=step(.9974,hash(floor(starUV)))*pow(max(0.,1.-length(fract(starUV)-.5)*2.),7.);
+   float star=0.;if(uDay<.7)star=step(.9945,hash(floor(starUV)))*pow(max(0.,1.-length(fract(starUV)-.5)*2.),7.);
    col+=vec3(.65,.73,.9)*star*(1.-uDay)*smoothstep(0.,.2,h);
    vec2 uv=d.xz/(max(.12,h)+.18)*2.8+vec2(uTime*.003,0.);
-   float n=fbm(uv);float cloud=smoothstep(.48,.69,n)*smoothstep(.015,.19,h);
+   float n=fbm(uv);float cloud=smoothstep(.43,.79,n)*smoothstep(.015,.19,h);
    float shade=fbm(uv+vec2(.15,.25));
    vec3 lit=mix(vec3(.51,.59,.65),vec3(.97,.96,.90),smoothstep(.40,.72,shade));
    lit=mix(lit,vec3(.95,.64,.40),uDusk*.42);
    lit=mix(vec3(.10,.13,.19),lit,uDay);
-   col=mix(col,lit,cloud*.90);gl_FragColor=vec4(col,1.);
+   col=mix(col,lit,cloud*.54);
+   float sunDot=dot(d,normalize(uSunDir));
+   float sunDisk=smoothstep(cos(.012),cos(.008),sunDot)*uDay;
+   col+=vec3(1.,.73,.42)*pow(max(sunDot,0.),80.)*uDay*.42;
+   col=mix(col,vec3(1.,.96,.83),sunDisk);
+   float moonDot=dot(d,normalize(uMoonDir));
+   float moonDisk=smoothstep(cos(.009),cos(.006),moonDot)*(1.-uDay);
+   col+=vec3(.62,.76,1.)*pow(max(moonDot,0.),110.)*(1.-uDay)*.25;
+   col=mix(col,vec3(.88,.91,1.),moonDisk);gl_FragColor=vec4(col,1.);
   }`
  }));sky.renderOrder=-100;sky.frustumCulled=false;scene.add(sky);
- function atmosphere(camera,seconds,day,hour){sky.position.copy(camera.position);skyUniforms.uTime.value=seconds;skyUniforms.uDay.value=day;skyUniforms.uDusk.value=Math.max(0,1-Math.abs(hour-18)/2.1,1-Math.abs(hour-6)/2.1);}
+ function atmosphere(camera,seconds,day,hour,sunPosition,moonPosition){sky.position.copy(camera.position);skyUniforms.uTime.value=seconds;skyUniforms.uDay.value=day;skyUniforms.uDusk.value=Math.max(0,1-Math.abs(hour-18)/2.1,1-Math.abs(hour-6)/2.1);if(sunPosition)skyUniforms.uSunDir.value.copy(sunPosition).sub(camera.position).normalize();if(moonPosition)skyUniforms.uMoonDir.value.copy(moonPosition).sub(camera.position).normalize();}
  return {surface,tree,finishTrees,streets,atmosphere};
 }
