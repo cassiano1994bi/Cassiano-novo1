@@ -939,5 +939,77 @@ document.getElementById('myLots').onclick=()=>{
   (vacant.length?'Disponível para construir · '+vacant.length+' terreno(s) vazios no total.':'Você não possui terrenos vazios; confira suas construções.');
  renderState();
 };
-renderState();if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';loading.remove();function animate(t){requestAnimationFrame(animate);legendaryGlow.emissiveIntensity=.65+.36*Math.sin(t*.0025);renderer.render(scene,camera)}animate(0);
+// Tempo acelerado: UM DIA VIRTUAL = 300.000 ms reais (cinco minutos).
+// Não interfere na economia, nos IDs, nas construcoes ou no saldo.
+const CITY_DAY_MS=300000;
+const CLOCK_STORAGE_KEY=KEY+'_city_clock_v83';
+let cityClockEpoch=0;
+try{cityClockEpoch=Number(localStorage.getItem(CLOCK_STORAGE_KEY))}catch{}
+if(!Number.isFinite(cityClockEpoch)||cityClockEpoch<=0||cityClockEpoch>Date.now()){
+ cityClockEpoch=Date.now();
+ try{localStorage.setItem(CLOCK_STORAGE_KEY,String(cityClockEpoch))}catch{}
+}
+let previewNight=false,lastVisualLevel=-1,lastLampPosition=0;
+const clockLabel=document.getElementById('clockReadout');
+const nightButton=document.getElementById('nightModeButton');
+const clamp01=x=>Math.min(1,Math.max(0,x));
+const smoothTime=(a,b,v)=>{const x=clamp01((v-a)/(b-a));return x*x*(3-2*x)};
+function updateCityTime(force=false){
+ const elapsed=Math.max(0,Date.now()-cityClockEpoch);
+ const dayValue=elapsed/CITY_DAY_MS+8/24;
+ const hour=(dayValue%1)*24;
+ const dayNum=Math.floor(dayValue)+1;
+ const hh=Math.floor(hour);
+ const mm=Math.floor((hour-hh)*60);
+ const clockString=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+ const naturalLevel=smoothTime(5.2,7.3,hour)*(1-smoothTime(17.4,19.6,hour));
+ const daylight=previewNight?0:naturalLevel;
+ const night=1-daylight;
+ clockLabel.textContent=(previewNight?'🌙 Prévia':'🕒 Dia '+dayNum)+' · '+clockString;
+ if(!force&&Math.abs(daylight-lastVisualLevel)<.008)return;
+ lastVisualLevel=daylight;
+ scene.background.lerpColors(nightFogColor,dayFogColor,daylight);
+ scene.fog.color.copy(scene.background);
+ scene.fog.density=.00065+.00015*night;
+ hemisphereLight.intensity=.18+1.62*daylight;
+ sun.intensity=.04+1.96*daylight;
+ const sunAngle=(hour-6)*Math.PI/12;
+ sun.position.set(-170*Math.cos(sunAngle),24+260*Math.max(0,Math.sin(sunAngle)),130*Math.sin(sunAngle));
+ if(sun.castShadow!==(daylight>.28))sun.castShadow=daylight>.28;
+ renderer.toneMappingExposure=.82+.42*daylight;
+ litWindowMaterial.color.copy(daylightWindowColor).lerp(nightWindowColor,night);
+ litWindowMaterial.emissive.setHex(0xffb35e);litWindowMaterial.emissiveIntensity=2.5*night;
+ unlitWindowMaterial.emissive.setHex(0x647d98);unlitWindowMaterial.emissiveIntensity=.16*night;
+ porchLampMaterial.emissive.setHex(0xffc16b);porchLampMaterial.emissiveIntensity=3.2*night;
+ streetBulbMat.emissiveIntensity=3.2*night;
+ streetBulbMat.color.setHex(night>.3?0xffd69a:0xc8ced0);
+ streetPoolMat.opacity=.19*night;
+ reflectionMat.opacity=.25*night;
+ waterMat.color.setHex(0x0b3864);
+ waterMat.color.lerp(new THREE.Color(0x1680a2),daylight);
+}
+nightButton.onclick=()=>{
+ previewNight=!previewNight;
+ nightButton.textContent=previewNight?'☀️ Voltar ao automático':'🌙 Ver noite';
+ nightButton.classList.toggle('active',previewNight);
+ nightButton.setAttribute('aria-pressed',String(previewNight));
+ updateCityTime(true);
+ updateNearbyStreetLights(1-lastVisualLevel);
+};
+renderState();
+if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';
+loading.remove();
+updateCityTime(true);
+let lastClockUpdate=-1000;
+function animate(t){
+ requestAnimationFrame(animate);
+ legendaryGlow.emissiveIntensity=.65+.36*Math.sin(t*.0025);
+ if(t-lastClockUpdate>700){
+  lastClockUpdate=t;
+  updateCityTime();
+  updateNearbyStreetLights(1-lastVisualLevel);
+ }
+ renderer.render(scene,camera);
+}
+animate(0);
 </script></body></html>
