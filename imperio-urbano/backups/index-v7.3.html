@@ -1,0 +1,396 @@
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v7.3</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v7.3</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><button id="myLots">🏠 Meus terrenos</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
+const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+// A versao nova nao altera nenhum saldo existente e nao concede bonus retroativos.
+// Remocao unica das construcoes antigas de teste, autorizada pelo criador do jogo.
+// Backup integral antes da migracao; terrenos, anuncios, proprietarios e saldo intactos.
+if(!state.testBuildingsRemovedV71){
+ try{
+  const keyBackup=KEY+'_antes_remover_edificios_v71';
+  if(!localStorage.getItem(keyBackup))localStorage.setItem(keyBackup,JSON.stringify(state));
+ }catch{}
+ for(const lote of state.lots)if(lote&&lote.building)lote.building='';
+ state.testBuildingsRemovedV71=true;
+ try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
+}
+// Credito de teste solicitado pelo criador: SOMENTE ao acessar o link especial.
+// O jogo ainda e local; nao existe conta remota nem autenticacao de jogadores.
+// Credito aditivo, uma unica vez por perfil salvo neste navegador.
+// Preserve todos os terrenos, construcoes, anuncios e saldo existente.
+let testCreditApplied=false;
+const requestTestCredit=new URLSearchParams(window.location.search).get('credito_teste');
+if(requestTestCredit==='1milhao'&&!state.creditoTeste1MV73){
+ try{
+  const snapshotKey=KEY+'_antes_credito_teste_1m_v73';
+  if(!localStorage.getItem(snapshotKey))localStorage.setItem(snapshotKey,JSON.stringify(state));
+ }catch{}
+ const previousBalance=Number(state.balance);
+ if(Number.isSafeInteger(previousBalance)&&previousBalance>=0&&previousBalance<=Number.MAX_SAFE_INTEGER-1000000){
+  state.balance=previousBalance+1000000;
+  state.creditoTeste1MV73=true;
+  try{localStorage.setItem(KEY,JSON.stringify(state));testCreditApplied=true}
+  catch(err){state.balance=previousBalance;state.creditoTeste1MV73=false;status.textContent='Não foi possível salvar o crédito de teste. Verifique o armazenamento do navegador.'}
+ }
+}
+// O saldo nunca e recalculado a partir do desenho do mapa. Backup de patrimonio antes das operacoes.
+try{if(!localStorage.getItem(KEY+'_snapshot_v63'))localStorage.setItem(KEY+'_snapshot_v63',JSON.stringify(state))}catch{}
+const colors=['#e3e1d4','#f4a261','#f28482','#8ecae6','#a8dadc','#b8a0d9','#f6d365','#91c788','#fafafa','#5e7083'];
+const save=()=>{try{const prior=localStorage.getItem(KEY);if(prior)localStorage.setItem(KEY+'_previous',prior);localStorage.setItem(KEY,JSON.stringify(state))}catch{}};const fmt=n=>Math.round(n).toLocaleString('pt-BR');const rarityNames=['Comum','Incomum','Raro','Épico','Lendário'];
+const rarityColors=['#a6b4a7','#6fb6ff','#9b83ff','#edaa55','#ffd85d'];
+const rarityIndex=i=>{const n=(i*37+11)%100;return n<2?4:n<10?3:n<25?2:n<50?1:0};
+const area=i=>{const r=rarityIndex(i),n=(i*17+7)%100;return r===4?1200+n*8:r===3?650+n*3:r===2?420+n*3:r===1?220+n*2:120+n};
+const lotShape=i=>['Quadrado','Retangular','Esquina'][(i*7+3)%3];
+const baseCost=i=>Math.round((3500+area(i)*19)*(1+rarityIndex(i)*.42)/100)*100;
+function zone(i){
+ // Cinco bairros contem 200 lotes cada, na ordem linha/coluna/quadra.
+ // A linha 0 e a mais proxima da praia em todos os bairros.
+ const row=Math.floor((i%200)/20);
+ if(row===0)return {grade:'A',name:'Frente para o lago',factor:1.8};
+ if(row<=2)return {grade:'B',name:'Bairro nobre',factor:1.5};
+ if(row<=5)return {grade:'C',name:'Residencial planejado',factor:1.2};
+ return {grade:'D',name:'Expansão urbana',factor:1};
+}
+const cost=i=>Math.round(baseCost(i)*zone(i).factor/100)*100;
+const zoneDescription=i=>zone(i).grade+' — '+zone(i).name+' · '+Math.round(zone(i).factor*100)+'% do valor-base';
+// Planta-mestra v6: cinco bairros de 200 lotes, parque central e orla paisagistica.
+// Todos os IDs continuam estaveis; a economia permanece no armazenamento existente.
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa5c9df);scene.fog=new THREE.FogExp2(0xa5c9df,.00065);
+const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.24;renderer.outputColorSpace=THREE.SRGBColorSpace;stage.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe7f5ff,0x577448,1.8));
+const sun=new THREE.DirectionalLight(0xffefce,2.0);sun.position.set(-170,280,130);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;
+sun.shadow.camera.top=550;sun.shadow.camera.bottom=-550;sun.shadow.bias=-.0003;scene.add(sun);
+const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.94});
+const turf=mat(0x729b63),forest=mat(0x3d6b40),park=mat(0x82a66d),sand=mat(0xd9c79d),
+road=mat(0x555e64),walk=mat(0xbebdb0),white=mat(0xe9eadf),mark=mat(0xe9dfc2);
+const water=new THREE.MeshStandardMaterial({color:0x1680a2,roughness:.34,metalness:.03,side:THREE.DoubleSide});
+const trunk=mat(0x755439),leaf=[mat(0x315c3b),mat(0x40774b),mat(0x59884f),mat(0x326e54)];
+const roof=mat(0x8d5044),glass=mat(0x6c9caa),stone=mat(0xcac7b7);
+function box(w,h,d,x,y,z,m,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=h>1.5;parent.add(o);return o}
+box(1320,.6,1040,175,-1,15,turf);
+function surface(cx,cz,rx,rz,material,y,seed=0){
+ const n=160,p=[0,0,0],ids=[];
+ for(let i=0;i<=n;i++){
+  const a=i/n*Math.PI*2;
+  const f=1+.065*Math.sin(3*a+seed)+.04*Math.sin(7*a+seed*2)+.018*Math.cos(13*a+seed);
+  p.push(Math.cos(a)*rx*f,0,Math.sin(a)*rz*f);
+ }
+ for(let i=1;i<=n;i++)ids.push(0,i,i+1);
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setIndex(ids);g.computeVertexNormals();
+ const mesh=new THREE.Mesh(g,material);mesh.position.set(cx,y,cz);mesh.receiveShadow=true;scene.add(mesh);return mesh;
+}
+function path(points,width,material,y=.12){
+ for(let i=1;i<points.length;i++){
+  const [x,z]=points[i-1],[xx,zz]=points[i],dx=xx-x,dz=zz-z;
+  const b=box(width,.12,Math.hypot(dx,dz)+.3,(x+xx)/2,y,(z+zz)/2,material);b.rotation.y=Math.atan2(dx,dz);
+ }
+}
+function tree(x,z,size=1,type=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);scene.add(g);
+ const t=new THREE.Mesh(new THREE.CylinderGeometry(.16,.26,3.6,6),trunk);t.position.y=1.8;g.add(t);
+ for(let j=0;j<3;j++){const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.7-j*.18,1),leaf[(type+j)%4]);c.position.set((j-1)*.65,4.1+j*.47,(j%2-.5)*.7);g.add(c)}
+}
+function grove(cx,cz,rx,rz,count,seed){
+ for(let i=0;i<count;i++){
+  const a=i*2.39996+seed,r=Math.sqrt((i+.5)/count),x=cx+Math.cos(a)*rx*r,z=cz+Math.sin(a)*rz*r;
+  tree(x,z,.65+(i%5)*.14,i%4);
+ }
+}
+// Orla v7.1: lago, areia, faixa verde e calcadao publico, sem avenida torta.
+const lakeNear=x=>-59+5*Math.sin(x*.012)+2.5*Math.sin(x*.033+.7);
+const lakeFar=x=>-345+15*Math.sin(x*.008);
+function waterCap(x){return Math.min(THREE.MathUtils.clamp((x+450)/65,0,1),THREE.MathUtils.clamp((585-x)/65,0,1))}
+function bankNear(x){const f=waterCap(x);return lakeNear(x)*f-198*(1-f)}
+function bankFar(x){const f=waterCap(x);return lakeFar(x)*f-198*(1-f)}
+function lakeRibbon(z1,z2,m,y){
+ const v=[],ind=[],n=160;
+ for(let i=0;i<=n;i++){const x=-450+1035*i/n;v.push(x,y,z1(x),x,y,z2(x));
+  if(i<n){const p=i*2;ind.push(p,p+1,p+2,p+1,p+3,p+2)}}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(ind);g.computeVertexNormals();
+ const obj=new THREE.Mesh(g,m);obj.receiveShadow=true;scene.add(obj);
+}
+const waterMat=water.clone(),beachMat=sand.clone();waterMat.side=THREE.DoubleSide;beachMat.side=THREE.DoubleSide;
+lakeRibbon(x=>bankNear(x)+12,x=>bankNear(x)-2,beachMat,-.14);
+lakeRibbon(x=>bankNear(x)-1,x=>bankFar(x)+1,waterMat,-.24);
+lakeRibbon(x=>bankFar(x)+1,x=>bankFar(x)-9,beachMat,-.14);
+for(const [x,z,rx,rz,n] of [[-160,-240,44,22,1],[125,-255,58,26,2],[387,-225,36,18,3]]){
+ surface(x,z,rx+5,rz+4,sand,-.12,n);surface(x,z,rx,rz,park,-.06,n);grove(x,z,rx*.68,rz*.6,17,n);
+}
+grove(-510,-75,50,135,65,3);grove(660,-30,80,230,100,5);grove(100,405,530,68,110,1);
+path([[-356,-34],[485,-34]],3.8,walk,.13);
+path([[-356,-37],[485,-37]],.18,white,.18);
+for(let i=0;i<46;i++){
+ const x=-340+i*18.1;tree(x,-20+(i%2)*.9,.68,i%4);
+ if(i%3===0){box(3,.23,1.2,x+.5,.5,-27,stone);box(3,.65,.18,x+.5,1,-27.7,stone)}
+}
+for(const x of [-315,-150,15,180,345]){
+ box(13,.10,7,x,.055,-25,walk);
+ for(const d of [-5,5])tree(x+d,-18,.55,2);
+}
+for(const x of [-316.5,-187.5,-22.5,142.5,307.5,472.5]){
+ path([[x,-34],[x,-14]],2.3,walk,.18);
+ for(let k=-3;k<=3;k++)box(1.3,.035,.32,x,.16,-7+k*1.12,white);
+}
+// Plano viario: cinco bairros com ruas locais, vias coletoras e parques entre setores.
+// Cada bairro possui 10 linhas x 5 quadras, com 4 lotes por quadra.
+// Planta v7.1: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
+// A ordem dos 250 quarteiroes e dos 1000 IDs permanece identica (5 setores de 50).
+const blocks=[];
+const districts=Array.from({length:5},(_,i)=>({x:-270+i*165,z:10,angle:0}));
+const stepX=31,stepZ=29;
+function blockPoint(di,row,col){return [-270+di*165+(col-2)*stepX,10+row*stepZ]}
+for(let di=0;di<5;di++)for(let row=0;row<10;row++)for(let col=0;col<5;col++){
+ const [x,z]=blockPoint(di,row,col);blocks.push({x,z,di,row,col});
+ box(27,.11,25,x,.02,z,park);
+ for(const side of [-1,1]){box(27,.055,.12,x,.17,z+side*12.45,white);box(.12,.055,25,x+side*13.45,.17,z,white)}
+ box(.09,.05,25,x,.17,z,white);box(27,.05,.09,x,.17,z,white);
+ if((row+col)%3===0){tree(x-14,z-13,.63,(row+col)%4);tree(x+14,z+13,.66,(row+di)%4)}
+}
+// Ruas locais: todas as intersecoes conectadas, sem trechos mortos.
+for(let di=0;di<5;di++){
+ const left=blockPoint(di,0,0)[0],right=blockPoint(di,0,4)[0];
+ for(let col=0;col<4;col++){
+  const x=left+col*stepX+stepX/2;
+  path([[x,-6],[x,287]],4.6,road,.085);
+ }
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  path([[left-16,z],[right+16,z]],4.6,road,.085);
+ }
+}
+// Avenidas estruturantes: duas longitudinais e quatro conectores entre bairros.
+const minX=blockPoint(0,0,0)[0]-17,maxX=blockPoint(4,0,4)[0]+17;
+for(const z of [-7,286])path([[minX,z],[maxX,z]],9.5,road,.09);
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ path([[x,-10],[x,290]],9,road,.09);
+ // Ruas coletoras atravessam o corredor entre bairros e conectam as malhas locais.
+ const right=blockPoint(di,0,4)[0],left=blockPoint(di+1,0,0)[0];
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  path([[right+13,z],[left-13,z]],4.6,road,.086);
+ }
+ for(let j=0;j<8;j++)tree(x+14,10+j*36,.66,j%4);
+}
+// Limite urbano ortogonal, sem rua veicular perto da praia.
+for(const x of [minX,maxX])path([[x,-7],[x,286]],7.2,road,.09);
+// Calcadas junto as avenidas, mantendo a faixa de rolamento livre.
+for(const z of [-15,294])path([[minX,z],[maxX,z]],2.3,walk,.12);
+// Eixo central ocupa o corredor publico entre as linhas 4 e 5.
+path([[minX,140.5],[maxX,140.5]],4.6,road,.085);
+// Praças nos corredores publicos entre setores, fora dos lotes.
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ for(const z of [65,215]){
+  for(let j=0;j<7;j++)tree(x+Math.cos(j*2.4)*11,z+Math.sin(j*2.4)*10,.68,j%4);
+ }
+}
+// Centro civico acessivel em area publica fora dos lotes.
+path([[minX,47],[-373,47]],5.5,road,.09);
+box(35,.10,29,-389,.005,65,walk);
+const commercial=new THREE.Group();commercial.position.set(-405,0,61);scene.add(commercial);
+for(let i=0;i<5;i++){
+ const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
+ box(9,h,9,x,h/2,z,stone,commercial);box(9.6,.5,9.6,x,h+.3,z,roof,commercial);
+ for(let f=2;f<h;f+=3)for(const side of [-1,1])box(7,.85,.12,x,f,z+side*4.55,glass,commercial);
+}
+const lots=[],raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected=-1;
+for(let bi=0;bi<250;bi++){
+ const {x,z}=blocks[bi];
+ for(let k=0;k<4;k++){
+  const id=bi*4+k,xx=x+(k%2?6.72:-6.72),zz=z+(k>=2?6.22:-6.22);
+  const plot=box(13.2,.045,12.15,xx,.165,zz,mat(0x78a569));
+  plot.userData.id=id;lots[id]={plot,x:xx,z:zz,building:null};
+ }
+}
+function house(id,kind){
+ const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);scene.add(group);
+ const facade=mat(state.lots[id].color||'#e3e1d4'),trim=mat('#f4eee2'),concrete=mat('#b7b6ae'),glass=mat('#397c9b'),frames=mat('#243b4c'),wood=mat('#875c3e'),plants=mat('#3d8755'),metal=mat('#485766');
+ const add=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,group);
+ const window=(x,y,z,w=1.2,h=1.45)=>{add(w+.22,h+.22,.12,x,y,z,trim);add(w,h,.16,x,y,z+.1,frames);add(w-.13,h-.13,.17,x,y,z+.2,glass);add(.07,h,.2,x,y,z+.3,trim);add(w,.06,.2,x,y,z+.3,trim);add(w+.38,.13,.4,x,y-h/2-.13,z+.2,concrete)};
+ if(kind==='casa'){
+  // Casa contemporanea com telhado em dois planos, garagem, varanda e jardim.
+  add(6.3,.25,6.4,0,.12,0,concrete);
+  add(5.8,3.4,5.2,0,1.85,-.25,facade);
+  add(2.5,2.5,.3,-1.55,1.4,2.5,frames);
+  add(2.22,2.2,.33,-1.55,1.4,2.7,wood);
+  for(let i=0;i<4;i++)add(.06,2.15,.35,-2.35+i*.48,1.4,2.88,metal);
+  add(2.1,.24,2.3,1.55,2.95,3.02,concrete);
+  add(.18,2.8,.18,2.5,1.45,3.9,trim);
+  add(2.1,.12,2.1,1.5,.23,3.25,trim);
+  window(1.3,1.75,2.47,1.45,1.55);
+  // Telhado de duas aguas com beiral e cumeeira visiveis.
+  const roofMat=mat('#873f33');
+  for(const side of [-1,1]){const slab=add(3.7,.27,6.1,side*1.57,4.14,-.2,roofMat);slab.rotation.z=side*.31}
+  add(.22,.23,6.2,0,4.75,-.2,roofMat);
+  add(1.1,.95,.85,-1.8,4.55,-1.25,concrete);
+  add(.8,.12,.9,-1.8,5.08,-1.25,metal);
+  for(const px of [-2.55,2.55]){add(.8,.75,.8,px,.4,-2.45,plants);add(.93,.22,.93,px,.12,-2.45,concrete)}
+ }else{
+  // Predio residencial com fachada modulada, sacadas e cobertura.
+  add(6.5,.28,6.5,0,.15,0,concrete);
+  add(5.4,14.2,5.3,0,7.25,-.2,facade);
+  add(1.05,14.35,.3,-2.25,7.25,2.52,trim);add(1.05,14.35,.3,2.25,7.25,2.52,trim);
+  add(5.7,.45,5.7,0,14.6,-.2,concrete);
+  add(2.1,.2,2.1,0,15.1,-.3,metal);
+  add(1.8,.65,1.7,0,15.5,-.3,concrete);
+  add(2.1,2.6,.25,0,1.45,2.56,frames);add(1.65,2.2,.29,0,1.35,2.75,glass);
+  for(let floor=1;floor<=4;floor++){
+   const y=1.2+floor*2.55;
+   add(5.7,.22,1.2,0,y-.96,3.05,concrete);
+   for(const side of [-1,1]){
+    window(side*1.32,y,2.52,1.45,1.55);
+    add(.09,1.05,.09,side*2.63,y-.35,3.65,metal);
+   }
+   add(5.5,.08,.08,0,y-.32,3.66,metal);
+   add(5.5,.09,.09,0,y+.14,3.66,metal);
+   for(const xx of [-2.65,0,2.65])add(.08,.62,.08,xx,y-.12,3.66,metal);
+  }
+  for(const side of [-1,1]){for(let floor=1;floor<=4;floor++){const y=1.2+floor*2.55;add(.18,1.4,1.55,side*2.75,y,-.6,frames);add(.13,1.25,1.3,side*2.87,y,-.6,glass)}}
+  add(2,.18,1.4,0,.3,3.15,trim);
+ }
+ return group;
+}
+// Construir precisa de confirmacao claramente visivel no celular.
+// A janela fica sobre a cena 3D, nao escondida abaixo do painel.
+function beginConstruction(id,type,price){
+ const property=state.lots[id];
+ if(property.owner!=='me'||property.building){status.textContent='Selecione um terreno seu, ainda sem construcao.';return}
+ if(state.balance<price){status.textContent='Saldo insuficiente. Faltam '+fmt(price-state.balance)+' IU$ para construir '+type+'.';return}
+ const modal=document.createElement('div');modal.className='build-overlay';modal.setAttribute('role','dialog');
+ modal.setAttribute('aria-label','Confirmar construcao');
+ const dialog=document.createElement('div');dialog.className='build-dialog';modal.append(dialog);
+ const title=document.createElement('h3');title.textContent='🏗️ Construir '+(type==='casa'?'casa':'prédio')+' no terreno #'+String(id+1).padStart(3,'0');
+ const help=document.createElement('p');help.textContent='1. Escolha a cor. 2. Toque no botão verde para concluir a obra.';
+ const priceNote=document.createElement('p');priceNote.textContent='Custo: '+fmt(price)+' IU$ · Seu saldo: '+fmt(state.balance)+' IU$';
+ const palette=document.createElement('div');palette.className='build-palette';
+ const bottom=document.createElement('div');bottom.className='build-bottom';
+ let chosen=colors.includes(property.color)?property.color:colors[0];
+ function repaint(){
+  palette.replaceChildren();
+  colors.forEach(color=>{
+   const sw=document.createElement('button');sw.type='button';sw.className='swatch'+(chosen===color?' active':'');sw.style.backgroundColor=color;
+   sw.title='Escolher cor '+color;sw.setAttribute('aria-label','Cor '+color);
+   sw.onclick=()=>{chosen=color;repaint()};palette.append(sw);
+  });
+ }
+ repaint();
+ const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='Cancelar';
+ cancel.onclick=()=>modal.remove();
+ const confirm=document.createElement('button');confirm.textContent='✓ Confirmar obra · '+fmt(price)+' IU$';
+ confirm.onclick=()=>{
+  // Bloqueia duplo clique e valida novamente o patrimonio no momento da compra.
+  confirm.disabled=true;
+  const current=state.lots[id];
+  if(current.owner!=='me'||current.building||state.balance<price){
+   status.textContent='Construção não autorizada: confira terreno e saldo.';
+   modal.remove();renderState();return;
+  }
+  state.balance-=price;current.building=type;current.color=chosen;
+  save();modal.remove();selected=id;
+  renderState();status.textContent='✅ Obra construída no terreno #'+String(id+1).padStart(3,'0')+'. Saldo atualizado.';
+  target.set(lots[id].x,0,lots[id].z);distance=95;updateCam();
+ };
+ bottom.append(cancel,confirm);dialog.append(title,help,priceNote,palette,bottom);stage.append(modal);
+}
+function renderState(){
+ document.getElementById('balance').textContent=fmt(state.balance)+' IU$';
+ for(let i=0;i<1000;i++){
+  const l=state.lots[i],p=lots[i];
+  p.plot.material.color.setHex(l.owner==='npc'?0xa6a88f:l.owner==='me'?(l.price?0xc0ae6e:0x659ca0):zone(i).grade==='A'?0xa4c08c:zone(i).grade==='B'?0x92b47f:zone(i).grade==='C'?0x84ab74:0x79a467);
+  p.plot.scale.y=selected===i?2:1;
+  if(p.building&&p.building.userData.kind!==l.building){scene.remove(p.building);p.building=null}
+  if(l.building&&!p.building){p.building=house(i,l.building);p.building.userData.kind=l.building}
+ }
+ actions.replaceChildren();
+ const panelTitle=document.getElementById('title'),desc=document.getElementById('desc');
+ if(selected<0){
+  panelTitle.textContent='🏠 Mercado imobiliário';
+  desc.textContent='Toque em um terreno ou use "Meus terrenos" para construir. Modo local: multiplayer ainda não ativado.';
+  return;
+ }
+ const l=state.lots[selected],name='#'+String(selected+1).padStart(3,'0');
+ panelTitle.textContent='📍 Terreno '+name;
+ desc.textContent=area(selected).toLocaleString('pt-BR')+' m² · '+lotShape(selected)+' · '+rarityNames[rarityIndex(selected)]+' · Zona '+zoneDescription(selected)+' · '+
+ (l.owner==='free'?'Disponível · '+fmt(cost(selected))+' IU$':l.owner==='npc'?'Outro proprietário':'Seu terreno'+(l.building?' · Construído: '+l.building:' · Sem construção')+(l.price?' · À venda por '+fmt(l.price):''));
+ function btn(label,fn,alt=false,disabled=false){
+  const b=document.createElement('button');b.textContent=label;if(alt)b.className='alt';
+  b.disabled=disabled;
+  if(disabled){b.style.opacity='.6';b.style.cursor='not-allowed'}
+  else b.onclick=fn;
+  actions.append(b);return b;
+ }
+ if(l.owner==='free'){
+  const price=cost(selected),insufficient=state.balance<price;
+  btn(insufficient?'Comprar · faltam '+fmt(price-state.balance)+' IU$':'Comprar · '+fmt(price)+' IU$',()=>{
+   if(state.balance<cost(selected)){status.textContent='Saldo insuficiente.';return}
+   state.balance-=cost(selected);l.owner='me';save();renderState();
+   status.textContent='Terreno comprado. Agora escolha a construção.';
+  },false,insufficient);
+ }
+ if(l.owner==='me'){
+  if(!l.building){
+   for(const [type,price] of [['casa',7000],['predio',18000]]){
+    const affordable=state.balance>=price;
+    btn((type==='casa'?'🏠 Casa':'🏢 Prédio')+(affordable?' · '+fmt(price)+' IU$':' · faltam '+fmt(price-state.balance)+' IU$'),
+     ()=>beginConstruction(selected,type,price),false,!affordable);
+   }
+   const tip=document.createElement('div');tip.style.cssText='width:100%;color:#bfcee0;font-size:12px;margin-top:4px';
+   tip.textContent='A construção será confirmada numa janela com as cores e o botão de finalizar.';actions.append(tip);
+  }else{
+   const info=document.createElement('div');info.style.cssText='color:#a6f6c9;font-size:13px;width:100%';
+   info.textContent='✓ Construção existente: '+l.building+'.';actions.append(info);
+  }
+  if(!l.price){
+   const inp=document.createElement('input');inp.type='number';inp.value=String(cost(selected)*2);actions.append(inp);
+   btn('Anunciar',()=>{
+    const v=Number(inp.value);if(!Number.isSafeInteger(v)||v<1000||v>1e7){status.textContent='Informe um preço válido para o anúncio.';return}
+    l.price=v;save();renderState();status.textContent='Terreno anunciado por '+fmt(v)+' IU$.';
+   },true);
+  }else{
+   btn('Simular venda (apenas neste aparelho)',()=>{
+    state.balance+=l.price;l.owner='npc';l.price=0;save();renderState();
+   },true);
+   btn('Retirar anúncio',()=>{l.price=0;save();renderState()});
+  }
+ }
+}
+let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
+const canvas=renderer.domElement;
+const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
+canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.preventDefault();const old=touches.get(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1&&!wasGesture){if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>9)down.moved=true; // Um dedo: deslizar cidade, sem alterar a câmera.
+ const dx=e.clientX-old.x,dy=e.clientY-old.y,scale=distance*.002;target.x-=dx*Math.cos(yaw)*scale+dy*Math.sin(yaw)*scale;target.z+=dx*Math.sin(yaw)*scale-dy*Math.cos(yaw)*scale;
+ }else if(touches.size===2){const now=measure();if(gesture){
+ // Dois dedos: arrastar gira a camera, pinca controla zoom. Nao desloca o alvo.
+ const dx=now.mx-gesture.mx,dy=now.my-gesture.my;
+ distance*=gesture.span/now.span;
+ yaw+=dx*.006;
+ pitch-=dy*.004;
+ // Torcao de dois dedos tambem gira a camera no mesmo sentido.
+ let twist=now.angle-gesture.angle;
+ twist=Math.atan2(Math.sin(twist),Math.cos(twist));
+ yaw+=twist*.95;
+ }gesture=now;
+ }else{const pts=[...touches.values()];const prev=old;const dx=e.clientX-prev.x,dy=e.clientY-prev.y;const f=distance*.0018;target.x-=dx*Math.cos(yaw)*f;target.z+=dy*f;gesture=null}updateCam()});
+canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(lots.map(l=>l.plot))[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
+document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(65,0,95);updateCam()};
+let myLotCursor=-1;
+document.getElementById('myLots').onclick=()=>{
+ const owned=[];
+ for(let i=0;i<state.lots.length;i++)if(state.lots[i].owner==='me')owned.push(i);
+ if(!owned.length){status.textContent='Você ainda não possui terrenos. Selecione um terreno disponível para comprar.';return}
+ myLotCursor=(myLotCursor+1)%owned.length;
+ selected=owned[myLotCursor];target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
+ status.textContent='Seu terreno #'+String(selected+1).padStart(3,'0')+' · '+(state.lots[selected].building?'Já construído':'Disponível para construir');
+ renderState();
+};
+renderState();if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';loading.remove();function animate(){requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
+</script></body></html>
