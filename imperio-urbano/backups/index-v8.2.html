@@ -1,0 +1,859 @@
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v8.2</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}#maptools{position:absolute;left:8px;top:8px;z-index:4;width:min(52%,228px);background:#132a41eF;border:1px solid #63829b;border-radius:12px;padding:8px;box-shadow:0 3px 16px #07152266;font-size:12px}#maptools select,#maptools button{width:100%;min-height:34px;margin-bottom:5px;padding:6px 7px;border:1px solid #65849a;border-radius:8px;color:#fff;background:#254762;font-size:12px}#maptools button.active{border-color:#f4ce62;color:#ffe29b;background:#374e53}#maptools summary{cursor:pointer;list-style-position:inside;font-weight:700;color:#dceaff;padding:3px 0}#maptools .legend-row{display:flex;align-items:center;gap:5px;margin:5px 0;color:#dfeaf2;line-height:1.35}#maptools .legend-swatch{width:12px;height:12px;border:2px solid;border-radius:3px;flex-shrink:0}#maptools .legend-gem{min-width:17px;text-align:center;font-weight:800;color:#ffd968}#maptools .legend-note{font-size:11px;line-height:1.35;color:#aabfd3;padding-top:5px;border-top:1px solid #465e70}#maptools option{color:#fff;background:#223a52}.build-dialog{max-height:calc(100% - 6px);overflow-y:auto}.build-models{display:grid;grid-template-columns:1fr;gap:7px;margin:10px 0}.build-model{width:100%;padding:10px;border:1px solid #58768d;border-radius:10px;background:#27445d;color:#eaf5fd;text-align:left;line-height:1.3}.build-model strong{display:block;font-size:14px}.build-model small{display:block;margin-top:3px;color:#c3d1dc;font-size:12px}.build-model.chosen{border-color:#51ebb4;background:#285469;box-shadow:inset 0 0 0 1px #51ebb4}.build-model.locked{opacity:.60;border-style:dashed;cursor:not-allowed}.build-model .model-price{color:#a7f0c7;font-weight:800;margin-top:4px}.build-model.locked .model-price{color:#bac6d0}.build-choice-intro{font-size:12px;color:#d1dfee;margin:8px 0}.build-status{font-size:12px;color:#ffe3aa;margin-bottom:8px}.build-bottom button:disabled{opacity:.5;cursor:not-allowed}#maptools{width:auto;max-width:min(70%,280px)}#maptools .map-contents{display:none}#maptools.open .map-contents{display:block}#maptools .map-toggle{width:auto;margin:0;background:#254762;padding:8px 11px;font-weight:700}#maptools.open{width:min(70%,260px)}#maptools.open .map-toggle{margin-bottom:7px}.build-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom));background:#071929ed;touch-action:pan-y;overscroll-behavior:contain}.build-dialog{width:min(100%,440px);height:min(90dvh,760px);min-height:0;max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;background:#19314a;border:1px solid #5786a8;border-radius:16px;touch-action:pan-y}.build-dialog-head{padding:12px 14px 9px;flex:none;background:#19314a;border-bottom:1px solid #3b576f}.build-dialog-head h3{margin:0;font-size:17px}.build-back{float:right;padding:7px 10px;border:1px solid #7790a4;border-radius:9px;background:#2a435b;color:#fff;font-size:12px}.build-dialog-body{padding:12px 14px;min-height:0;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}.build-dialog-body h4{margin:2px 0 8px;font-size:14px}.build-dialog-footer{flex:none;background:#162d45;border-top:1px solid #4b6880;padding:10px 14px 12px}.build-dialog-footer .build-status{min-height:30px;margin:0 0 8px;line-height:1.3}.build-dialog-footer .build-bottom{display:flex;gap:8px;flex-wrap:nowrap}.build-dialog-footer .build-bottom button{min-width:0;flex:1;padding:12px 8px;font-size:13px}.build-dialog-footer .build-bottom .cancel{background:#c9d4df}.build-dialog-footer .build-bottom button:disabled{opacity:.5}.build-models{margin-bottom:12px}.build-choice-intro{clear:both}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v8.2</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><button id="myLots">🏠 Meus terrenos</button><div id="maptools" aria-label="Destaques imobiliários"><button class="map-toggle" id="mapToggle" type="button" aria-expanded="false">💠 Terrenos e filtros ▾</button><div class="map-contents">
+<select id="rarityFilter" aria-label="Filtrar terrenos">
+<option value="all">🗺️ Todos os terrenos</option>
+<option value="premium">💎 Só premium (A e B)</option>
+<option value="rare">🔵 Só raros</option>
+<option value="epic">🟣 Só épicos</option>
+<option value="legendary">⭐ Só lendários</option>
+</select>
+<button id="heatToggle" type="button" aria-pressed="false">🌡️ Mapa de valor: desligado</button>
+<details id="mapLegend"><summary>💠 Cores e selos</summary>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#c2c7c7"></i> Comum</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#4bdd78"></i> Incomum</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#45a8ff"></i> Raro</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#b06aff"></i> Épico</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#ffd04a"></i> Lendário</div>
+<div class="legend-row"><b class="legend-gem">◆</b> Dourado: Zona A, lago</div>
+<div class="legend-row"><b class="legend-gem" style="color:#9cd9f5">◆</b> Azul: Zona B, nobre</div>
+<div class="legend-row"><b class="legend-gem" style="color:#91dfa0">◆</b> Verde: Zona C, residencial</div>
+<div class="legend-note">A borda mostra a raridade; o diamante mostra a localização. No mapa de valor: amarelo=A, azul=B, verde=C, cinza=D. A compra e venda continuam iguais.</div>
+</details></div></div><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
+const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+// A versao nova nao altera nenhum saldo existente e nao concede bonus retroativos.
+// Nunca apagar construcoes persistidas ao atualizar a versao.\n// Credito de teste solicitado pelo criador: SOMENTE ao acessar o link especial.
+// O jogo ainda e local; nao existe conta remota nem autenticacao de jogadores.
+// Credito aditivo, uma unica vez por perfil salvo neste navegador.
+// Preserve todos os terrenos, construcoes, anuncios e saldo existente.
+let testCreditApplied=false;
+const requestTestCredit=new URLSearchParams(window.location.search).get('credito_teste');
+if(requestTestCredit==='1milhao'&&!state.creditoTeste1MV73){
+ try{
+  const snapshotKey=KEY+'_antes_credito_teste_1m_v73';
+  if(!localStorage.getItem(snapshotKey))localStorage.setItem(snapshotKey,JSON.stringify(state));
+ }catch{}
+ const previousBalance=Number(state.balance);
+ if(Number.isSafeInteger(previousBalance)&&previousBalance>=0&&previousBalance<=Number.MAX_SAFE_INTEGER-1000000){
+  state.balance=previousBalance+1000000;
+  state.creditoTeste1MV73=true;
+  try{localStorage.setItem(KEY,JSON.stringify(state));testCreditApplied=true}
+  catch(err){state.balance=previousBalance;state.creditoTeste1MV73=false;status.textContent='Não foi possível salvar o crédito de teste. Verifique o armazenamento do navegador.'}
+ }
+}
+// O saldo nunca e recalculado a partir do desenho do mapa. Backup de patrimonio antes das operacoes.
+try{if(!localStorage.getItem(KEY+'_snapshot_v63'))localStorage.setItem(KEY+'_snapshot_v63',JSON.stringify(state))}catch{}
+const colors=['#e3e1d4','#f4a261','#f28482','#8ecae6','#a8dadc','#b8a0d9','#f6d365','#91c788','#fafafa','#5e7083'];
+const save=()=>{try{const prior=localStorage.getItem(KEY);if(prior)localStorage.setItem(KEY+'_previous',prior);localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){status.textContent='Erro ao salvar progresso no navegador.';return false}};const fmt=n=>Math.round(n).toLocaleString('pt-BR');const rarityNames=['Comum','Incomum','Raro','Épico','Lendário'];
+const rarityColors=['#c2c7c7','#4bdd78','#45a8ff','#b06aff','#ffd04a'];
+const rarityIndex=i=>{const n=(i*37+11)%100;return n<2?4:n<10?3:n<25?2:n<50?1:0};
+const area=i=>{const r=rarityIndex(i),n=(i*17+7)%100;return r===4?1200+n*8:r===3?650+n*3:r===2?420+n*3:r===1?220+n*2:120+n};
+const lotShape=i=>['Quadrado','Retangular','Esquina'][(i*7+3)%3];
+const baseCost=i=>Math.round((3500+area(i)*19)*(1+rarityIndex(i)*.42)/100)*100;
+function zone(i){
+ // Cinco bairros contem 200 lotes cada, na ordem linha/coluna/quadra.
+ // A linha 0 e a mais proxima da praia em todos os bairros.
+ const row=Math.floor((i%200)/20);
+ if(row===0)return {grade:'A',name:'Frente para o lago',factor:1.8};
+ if(row<=2)return {grade:'B',name:'Bairro nobre',factor:1.5};
+ if(row<=5)return {grade:'C',name:'Residencial planejado',factor:1.2};
+ return {grade:'D',name:'Expansão urbana',factor:1};
+}
+const cost=i=>Math.round(baseCost(i)*zone(i).factor/100)*100;
+
+const BUILD_MODELS=[
+ {id:'house_popular',type:'casa',name:'Casa Popular',base:7000,min:0,desc:'1 pavimento · telhado colonial · jardim frontal'},
+ {id:'house_padrao',type:'casa',name:'Casa Padrão',base:10000,min:0,desc:'Garagem · varanda · fachada residencial'},
+ {id:'house_premium',type:'casa',name:'Casa Premium',base:16000,min:1,desc:'2 pavimentos · fachada envidraçada · varanda'},
+ {id:'house_luxo',type:'casa',name:'Casa de Luxo',base:28000,min:2,desc:'Mansão contemporânea · piscina · pergolado'},
+ {id:'predio_compacto',type:'predio',name:'Residencial Compacto',base:18000,min:0,desc:'3 pavimentos · entradas e sacadas'},
+ {id:'predio_urbano',type:'predio',name:'Residencial Urbano',base:26000,min:1,desc:'5 pavimentos · apartamentos e comércio'},
+ {id:'predio_premium',type:'predio',name:'Prédio Premium',base:38000,min:2,desc:'6 pavimentos · varandas amplas · terraço'},
+ {id:'torre_nobre',type:'predio',name:'Torre Nobre',base:55000,min:3,desc:'8 pavimentos · fachadas elegantes · jardins'},
+ {id:'torre_luxo',type:'predio',name:'Torre de Luxo',base:85000,min:4,desc:'10 pavimentos · fachada panorâmica · cobertura'}
+];
+const BUILD_BY_ID=Object.fromEntries(BUILD_MODELS.map(m=>[m.id,m]));
+const BUILD_RARITY_PRICE=[1,1.08,1.18,1.30,1.50];
+const normalizeBuilding=id=>id==='casa'?'house_padrao':id==='predio'?'predio_urbano':id;
+const buildingDefinition=id=>BUILD_BY_ID[normalizeBuilding(id)]||null;
+const buildingPrice=(i,id)=>{
+ const model=buildingDefinition(id);
+ return model?Math.round(model.base*BUILD_RARITY_PRICE[rarityIndex(i)]/100)*100:0;
+};
+// LIBERACAO POR RARIDADE: nao confundir raridade com Zona A/B/C/D.
+// Comum: 3 opcoes; Incomum: 5; Raro: 7; Epico: 8; Lendario: 9.
+// Localizacao influencia valor imobiliario, nunca bloqueia um Lendario.
+function buildingRestriction(i,id){
+ const model=buildingDefinition(id);
+ if(!model)return 'Modelo indisponível.';
+ if(rarityIndex(i)<model.min)return 'Exige terreno '+rarityNames[model.min]+' ou superior.';
+ return '';
+}
+const buildingAvailability=i=>BUILD_MODELS.filter(m=>!buildingRestriction(i,m.id));
+const buildingLabel=id=>buildingDefinition(id)?.name||'Construção existente';
+
+const zoneDescription=i=>zone(i).grade+' — '+zone(i).name+' · '+Math.round(zone(i).factor*100)+'% do valor-base';
+// Planta-mestra v6: cinco bairros de 200 lotes, parque central e orla paisagistica.
+// Todos os IDs continuam estaveis; a economia permanece no armazenamento existente.
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa5c9df);scene.fog=new THREE.FogExp2(0xa5c9df,.00065);
+const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.24;renderer.outputColorSpace=THREE.SRGBColorSpace;stage.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe7f5ff,0x577448,1.8));
+const sun=new THREE.DirectionalLight(0xffefce,2.0);sun.position.set(-170,280,130);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;
+sun.shadow.camera.top=550;sun.shadow.camera.bottom=-550;sun.shadow.bias=-.0003;scene.add(sun);
+const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.94});
+const turf=mat(0x729b63),forest=mat(0x3d6b40),park=mat(0x82a66d),sand=mat(0xd9c79d),
+road=mat(0x555e64),walk=mat(0xbebdb0),white=mat(0xe9eadf),mark=mat(0xe9dfc2);
+const water=new THREE.MeshStandardMaterial({color:0x1680a2,roughness:.34,metalness:.03,side:THREE.DoubleSide});
+const trunk=mat(0x755439),leaf=[mat(0x315c3b),mat(0x40774b),mat(0x59884f),mat(0x326e54)];
+const roof=mat(0x8d5044),glass=mat(0x6c9caa),stone=mat(0xcac7b7);
+function box(w,h,d,x,y,z,m,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=h>1.5;parent.add(o);return o}
+box(1320,.6,1040,175,-1,15,turf);
+function surface(cx,cz,rx,rz,material,y,seed=0){
+ const n=160,p=[0,0,0],ids=[];
+ for(let i=0;i<=n;i++){
+  const a=i/n*Math.PI*2;
+  const f=1+.065*Math.sin(3*a+seed)+.04*Math.sin(7*a+seed*2)+.018*Math.cos(13*a+seed);
+  p.push(Math.cos(a)*rx*f,0,Math.sin(a)*rz*f);
+ }
+ for(let i=1;i<=n;i++)ids.push(0,i,i+1);
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setIndex(ids);g.computeVertexNormals();
+ const mesh=new THREE.Mesh(g,material);mesh.position.set(cx,y,cz);mesh.receiveShadow=true;scene.add(mesh);return mesh;
+}
+function path(points,width,material,y=.12){
+ for(let i=1;i<points.length;i++){
+  const [x,z]=points[i-1],[xx,zz]=points[i],dx=xx-x,dz=zz-z;
+  const b=box(width,.12,Math.hypot(dx,dz)+.3,(x+xx)/2,y,(z+zz)/2,material);b.rotation.y=Math.atan2(dx,dz);
+ }
+}
+function tree(x,z,size=1,type=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);scene.add(g);
+ const t=new THREE.Mesh(new THREE.CylinderGeometry(.16,.26,3.6,6),trunk);t.position.y=1.8;g.add(t);
+ for(let j=0;j<3;j++){const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.7-j*.18,1),leaf[(type+j)%4]);c.position.set((j-1)*.65,4.1+j*.47,(j%2-.5)*.7);g.add(c)}
+}
+function grove(cx,cz,rx,rz,count,seed){
+ for(let i=0;i<count;i++){
+  const a=i*2.39996+seed,r=Math.sqrt((i+.5)/count),x=cx+Math.cos(a)*rx*r,z=cz+Math.sin(a)*rz*r;
+  tree(x,z,.65+(i%5)*.14,i%4);
+ }
+}
+// Orla v7.1: lago, areia, faixa verde e calcadao publico, sem avenida torta.
+const lakeNear=x=>-59+5*Math.sin(x*.012)+2.5*Math.sin(x*.033+.7);
+const lakeFar=x=>-345+15*Math.sin(x*.008);
+function waterCap(x){return Math.min(THREE.MathUtils.clamp((x+450)/65,0,1),THREE.MathUtils.clamp((585-x)/65,0,1))}
+function bankNear(x){const f=waterCap(x);return lakeNear(x)*f-198*(1-f)}
+function bankFar(x){const f=waterCap(x);return lakeFar(x)*f-198*(1-f)}
+function lakeRibbon(z1,z2,m,y){
+ const v=[],ind=[],n=160;
+ for(let i=0;i<=n;i++){const x=-450+1035*i/n;v.push(x,y,z1(x),x,y,z2(x));
+  if(i<n){const p=i*2;ind.push(p,p+1,p+2,p+1,p+3,p+2)}}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(ind);g.computeVertexNormals();
+ const obj=new THREE.Mesh(g,m);obj.receiveShadow=true;scene.add(obj);
+}
+const waterMat=water.clone(),beachMat=sand.clone();waterMat.side=THREE.DoubleSide;beachMat.side=THREE.DoubleSide;
+lakeRibbon(x=>bankNear(x)+12,x=>bankNear(x)-2,beachMat,-.14);
+lakeRibbon(x=>bankNear(x)-1,x=>bankFar(x)+1,waterMat,-.24);
+lakeRibbon(x=>bankFar(x)+1,x=>bankFar(x)-9,beachMat,-.14);
+for(const [x,z,rx,rz,n] of [[-160,-240,44,22,1],[125,-255,58,26,2],[387,-225,36,18,3]]){
+ surface(x,z,rx+5,rz+4,sand,-.12,n);surface(x,z,rx,rz,park,-.06,n);grove(x,z,rx*.68,rz*.6,17,n);
+}
+grove(-510,-75,50,135,65,3);grove(660,-30,80,230,100,5);grove(100,405,530,68,110,1);
+path([[-356,-34],[485,-34]],3.8,walk,.13);
+path([[-356,-37],[485,-37]],.18,white,.18);
+for(let i=0;i<46;i++){
+ const x=-340+i*18.1;tree(x,-20+(i%2)*.9,.68,i%4);
+ if(i%3===0){box(3,.23,1.2,x+.5,.5,-27,stone);box(3,.65,.18,x+.5,1,-27.7,stone)}
+}
+for(const x of [-315,-150,15,180,345]){
+ box(13,.10,7,x,.055,-25,walk);
+ for(const d of [-5,5])tree(x+d,-18,.55,2);
+}
+for(const x of [-316.5,-187.5,-22.5,142.5,307.5,472.5]){
+ path([[x,-34],[x,-14]],2.3,walk,.18);
+ for(let k=-3;k<=3;k++)box(1.3,.035,.32,x,.16,-7+k*1.12,white);
+}
+// Plano viario: cinco bairros com ruas locais, vias coletoras e parques entre setores.
+// Cada bairro possui 10 linhas x 5 quadras, com 4 lotes por quadra.
+// Planta v7.1: malha ortogonal UNICA, hierarquia viaria e lotes preservados.
+// A ordem dos 250 quarteiroes e dos 1000 IDs permanece identica (5 setores de 50).
+const blocks=[];
+const districts=Array.from({length:5},(_,i)=>({x:-270+i*165,z:10,angle:0}));
+const stepX=31,stepZ=29;
+function blockPoint(di,row,col){return [-270+di*165+(col-2)*stepX,10+row*stepZ]}
+for(let di=0;di<5;di++)for(let row=0;row<10;row++)for(let col=0;col<5;col++){
+ const [x,z]=blockPoint(di,row,col);blocks.push({x,z,di,row,col});
+ box(27,.11,25,x,.02,z,park);
+ for(const side of [-1,1]){box(27,.055,.12,x,.17,z+side*12.45,white);box(.12,.055,25,x+side*13.45,.17,z,white)}
+ box(.09,.05,25,x,.17,z,white);box(27,.05,.09,x,.17,z,white);
+ if((row+col)%3===0){tree(x-14,z-13,.63,(row+col)%4);tree(x+14,z+13,.66,(row+di)%4)}
+}
+// Ruas locais: todas as intersecoes conectadas, sem trechos mortos.
+for(let di=0;di<5;di++){
+ const left=blockPoint(di,0,0)[0],right=blockPoint(di,0,4)[0];
+ for(let col=0;col<4;col++){
+  const x=left+col*stepX+stepX/2;
+  path([[x,-6],[x,287]],4.6,road,.085);
+ }
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  path([[left-16,z],[right+16,z]],4.6,road,.085);
+ }
+}
+// Avenidas estruturantes: duas longitudinais e quatro conectores entre bairros.
+const minX=blockPoint(0,0,0)[0]-17,maxX=blockPoint(4,0,4)[0]+17;
+for(const z of [-7,286])path([[minX,z],[maxX,z]],9.5,road,.09);
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ path([[x,-10],[x,290]],9,road,.09);
+ // Ruas coletoras atravessam o corredor entre bairros e conectam as malhas locais.
+ const right=blockPoint(di,0,4)[0],left=blockPoint(di+1,0,0)[0];
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  path([[right+13,z],[left-13,z]],4.6,road,.086);
+ }
+ for(let j=0;j<8;j++)tree(x+14,10+j*36,.66,j%4);
+}
+// Limite urbano ortogonal, sem rua veicular perto da praia.
+for(const x of [minX,maxX])path([[x,-7],[x,286]],7.2,road,.09);
+// Calcadas junto as avenidas, mantendo a faixa de rolamento livre.
+for(const z of [-15,294])path([[minX,z],[maxX,z]],2.3,walk,.12);
+// Eixo central ocupa o corredor publico entre as linhas 4 e 5.
+path([[minX,140.5],[maxX,140.5]],4.6,road,.085);
+// Praças nos corredores publicos entre setores, fora dos lotes.
+for(let di=0;di<4;di++){
+ const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
+ for(const z of [65,215]){
+  for(let j=0;j<7;j++)tree(x+Math.cos(j*2.4)*11,z+Math.sin(j*2.4)*10,.68,j%4);
+ }
+}
+// Centro civico acessivel em area publica fora dos lotes.
+path([[minX,47],[-373,47]],5.5,road,.09);
+box(35,.10,29,-389,.005,65,walk);
+const commercial=new THREE.Group();commercial.position.set(-405,0,61);scene.add(commercial);
+for(let i=0;i<5;i++){
+ const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
+ box(9,h,9,x,h/2,z,stone,commercial);box(9.6,.5,9.6,x,h+.3,z,roof,commercial);
+ for(let f=2;f<h;f+=3)for(const side of [-1,1])box(7,.85,.12,x,f,z+side*4.55,glass,commercial);
+}
+const lots=[],raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected=-1;
+let plotFilter='all',heatMode=false,selectablePlots=[];
+for(let bi=0;bi<250;bi++){
+ const {x,z}=blocks[bi];
+ for(let k=0;k<4;k++){
+  const id=bi*4+k,xx=x+(k%2?6.72:-6.72),zz=z+(k>=2?6.22:-6.22);
+  const plot=box(13.2,.045,12.15,xx,.165,zz,mat(0x78a569));
+  plot.userData.id=id;lots[id]={plot,x:xx,z:zz,building:null};
+ }
+}
+// Sinalização v8.2: 5 batches de bordas, 3 batches de diamantes e brilhos lendários.
+// Só 9 draw calls extras em vez de milhares de objetos individuais.
+const rarityBuckets=Array.from({length:5},()=>[]),zoneBuckets={A:[],B:[],C:[]};
+for(let i=0;i<lots.length;i++){
+ rarityBuckets[rarityIndex(i)].push(i);
+ const grade=zone(i).grade;if(zoneBuckets[grade])zoneBuckets[grade].push(i);
+}
+const borderGeometry=new THREE.BoxGeometry(1,1,1);
+const rarityBorders=rarityBuckets.map((bucket,r)=>{
+ const material=new THREE.MeshBasicMaterial({color:rarityColors[r],toneMapped:false});
+ const mesh=new THREE.InstancedMesh(borderGeometry,material,bucket.length*4);
+ mesh.count=0;mesh.frustumCulled=false;mesh.renderOrder=2;scene.add(mesh);return mesh;
+});
+const gemGeometry=new THREE.OctahedronGeometry(1,0);
+const markerPalette={A:0xffd05d,B:0x8bcaff,C:0x7cdf8e};
+const zoneGems={};
+for(const grade of ['A','B','C']){
+ const material=new THREE.MeshStandardMaterial({color:markerPalette[grade],emissive:markerPalette[grade],emissiveIntensity:.28,roughness:.36,metalness:.15});
+ const mesh=new THREE.InstancedMesh(gemGeometry,material,zoneBuckets[grade].length);
+ mesh.count=0;mesh.frustumCulled=false;scene.add(mesh);zoneGems[grade]=mesh;
+}
+const legendaryGlow=new THREE.MeshStandardMaterial({color:0xffcf56,emissive:0xffad19,emissiveIntensity:.9,roughness:.26,metalness:.15});
+const legendaryGems=new THREE.InstancedMesh(gemGeometry,legendaryGlow,rarityBuckets[4].length);
+legendaryGems.count=0;legendaryGems.frustumCulled=false;scene.add(legendaryGems);
+const markerTransform=new THREE.Object3D();
+function lotMatches(i){
+ if(plotFilter==='all')return true;
+ if(plotFilter==='premium')return zone(i).grade==='A'||zone(i).grade==='B';
+ if(plotFilter==='rare')return rarityIndex(i)===2;
+ if(plotFilter==='epic')return rarityIndex(i)===3;
+ if(plotFilter==='legendary')return rarityIndex(i)===4;
+ return true;
+}
+function instanceAt(mesh,index,x,y,z,w,h,d){
+ markerTransform.position.set(x,y,z);
+ markerTransform.rotation.set(0,0,0);
+ markerTransform.scale.set(w,h,d);
+ markerTransform.updateMatrix();
+ mesh.setMatrixAt(index,markerTransform.matrix);
+}
+function updateMapHighlights(){
+ selectablePlots=[];
+ for(let i=0;i<lots.length;i++){
+  const visible=lotMatches(i);
+  lots[i].plot.visible=visible;
+  if(visible)selectablePlots.push(lots[i].plot);
+  if(heatMode){
+   const shades={A:0xe4c65b,B:0x73b3e8,C:0x81c589,D:0x9ca6a9};
+   lots[i].plot.material.color.setHex(shades[zone(i).grade]);
+  }else{
+   const o=state.lots[i].owner;
+   lots[i].plot.material.color.setHex(o==='npc'?0xa6a88f:o==='me'?(state.lots[i].price?0xc0ae6e:0x659ca0):zone(i).grade==='A'?0xa4c08c:zone(i).grade==='B'?0x92b47f:zone(i).grade==='C'?0x84ab74:0x79a467);
+  }
+ }
+ for(let r=0;r<5;r++){
+  const mesh=rarityBorders[r];let n=0;
+  for(const i of rarityBuckets[r]){
+   if(!lotMatches(i))continue;
+   const {x,z}=lots[i];
+   const thick=r===4?.43:r===3?.35:.23,y=.238;
+   instanceAt(mesh,n++,x,y,z-6.04,13.15,.07,thick);
+   instanceAt(mesh,n++,x,y,z+6.04,13.15,.07,thick);
+   instanceAt(mesh,n++,x-6.54,y,z,thick,.07,12.12);
+   instanceAt(mesh,n++,x+6.54,y,z,thick,.07,12.12);
+  }
+  mesh.count=n;mesh.instanceMatrix.needsUpdate=true;
+ }
+ for(const grade of ['A','B','C']){
+  const mesh=zoneGems[grade];let n=0;
+  for(const i of zoneBuckets[grade]){
+   if(!lotMatches(i))continue;
+   const {x,z}=lots[i];
+   instanceAt(mesh,n++,x+4.2,1.05,z-4.2,grade==='A'?.84:.62,grade==='A'?1.18:.93,grade==='A'?.84:.62);
+  }
+  mesh.count=n;mesh.instanceMatrix.needsUpdate=true;
+ }
+ let n=0;
+ for(const i of rarityBuckets[4]){
+  if(!lotMatches(i))continue;
+  const {x,z}=lots[i];
+  instanceAt(legendaryGems,n++,x-4.1,1.6,z+3.9,.92,1.33,.92);
+ }
+ legendaryGems.count=n;legendaryGems.instanceMatrix.needsUpdate=true;
+ if(selected>=0&&!lotMatches(selected))selected=-1;
+}
+const mapToggle=document.getElementById('mapToggle');
+mapToggle.onclick=()=>{
+ const panel=document.getElementById('maptools');
+ const open=!panel.classList.contains('open');
+ panel.classList.toggle('open',open);
+ mapToggle.setAttribute('aria-expanded',String(open));
+ mapToggle.textContent=open?'💠 Terrenos e filtros ▴':'💠 Terrenos e filtros ▾';
+};
+const filterInput=document.getElementById('rarityFilter');
+filterInput.onchange=()=>{
+ plotFilter=filterInput.value;
+ updateMapHighlights();renderState();
+ status.textContent=selectablePlots.length+' terrenos no filtro. Selecione um lote para ver raridade, zona e preço.';
+};
+const heatButton=document.getElementById('heatToggle');
+heatButton.onclick=()=>{
+ heatMode=!heatMode;
+ heatButton.classList.toggle('active',heatMode);
+ heatButton.setAttribute('aria-pressed',heatMode?'true':'false');
+ heatButton.textContent=heatMode?'🌡️ Mapa de valor: ligado':'🌡️ Mapa de valor: desligado';
+ updateMapHighlights();renderState();
+ status.textContent=heatMode?'Mapa de valor: amarelo A, azul B, verde C, cinza D.':'Visualização de valor desligada.';
+};
+updateMapHighlights();
+
+// Arquitetura v8.2: materiais reutilizados e geometria instanciada para celulares.
+// Cada um dos nove modelos tem volumetria, cobertura e detalhes próprios.
+const buildingUnitBox=new THREE.BoxGeometry(1,1,1);
+const buildingShrubGeometry=new THREE.IcosahedronGeometry(1,1);
+const buildingMaterialCache=new Map();
+function buildingMat(color,rough=.8,metal=.02,glow=0){
+ const key=color+'_'+rough+'_'+metal+'_'+glow;
+ if(!buildingMaterialCache.has(key))buildingMaterialCache.set(key,
+  new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,
+   emissive:glow?new THREE.Color(color).multiplyScalar(glow):0x000000}));
+ return buildingMaterialCache.get(key);
+}
+function house(id,kind){
+ const model=buildingDefinition(kind)||BUILD_BY_ID.house_padrao;
+ const {x,z}=lots[id],group=new THREE.Group();
+ group.position.set(x,.28,z);
+ scene.add(group);
+ const facade=buildingMat(state.lots[id].color||'#e3e1d4',.81);
+ const stucco=buildingMat('#ede7db'),whiteMat=buildingMat('#f6f2e8');
+ const sandStone=buildingMat('#c3b7a5'),stoneDark=buildingMat('#888c89');
+ const charcoal=buildingMat('#3c4851',.59),bronze=buildingMat('#ab885b',.44,.34);
+ const slate=buildingMat('#555f68'),terracotta=buildingMat('#a65d45'),tileDark=buildingMat('#5c4b46');
+ const wood=buildingMat('#966342'),woodLight=buildingMat('#c4905c'),brick=buildingMat('#a9715b');
+ const glass=buildingMat('#75b8ce',.17,.40),glassBlue=buildingMat('#4e8ba9',.21,.34);
+ const glassDark=buildingMat('#244b62',.19,.40),poolWater=buildingMat('#27b7d4',.16,.35);
+ const hedge=buildingMat('#3c7650'),lawn=buildingMat('#79a568'),grass=buildingMat('#4e915b');
+ const paving=buildingMat('#d0c7ba'),cream=buildingMat('#d8cec0'),gold=buildingMat('#c8ab74',.40,.30);
+ const warm=buildingMat('#f6dfae',.35,.12,.15);
+ const batch=new Map(),shrubs=[];
+ function add(w,h,d,x,y,z,material,rz=0,ry=0){
+  if(!batch.has(material))batch.set(material,[]);
+  batch.get(material).push([w,h,d,x,y,z,rz,ry]);
+ }
+ function planted(x,z,size=.48){shrubs.push([x,.4*size,z,size])}
+ function planting(){
+  for(const sx of [-4.85,4.85]){
+   for(const zz of [-3.7,-2.25,-.8,1.0,2.8])planted(sx,zz,.40);
+  }
+ }
+ function frontWindow(px,py,pz,w=1.28,h=1.30){
+  add(w+.20,h+.20,.13,px,py,pz,charcoal);
+  add(w,h,.16,px,py,pz+.10,glass);
+  add(.075,h,.20,px,py,pz+.21,whiteMat);
+  add(w,.07,.20,px,py,pz+.21,whiteMat);
+  add(w+.35,.15,.36,px,py-h/2-.12,pz+.20,sandStone);
+ }
+ function sideWindow(px,py,pz,w=1.12,h=1.3){
+  add(.14,h+.17,w+.18,px,py,pz,charcoal);
+  add(.18,h,w,px+.08,py,pz,glass);
+  add(.2,h,.07,px+.20,py,pz,whiteMat);
+ }
+ function entry(px,pz,height=2.22){
+  add(1.60,height,.14,px,height/2+.18,pz,charcoal);
+  add(1.36,height-.23,.18,px,height/2+.18,pz+.12,wood);
+  add(.07,.15,.20,px+.46,1.20,pz+.25,gold);
+  add(.46,.15,.18,px,height+0.23,pz+.17,warm);
+  add(1.9,.12,1.08,px,.12,pz+.75,paving);
+ }
+ function flatRoof(w,d,height,x=0,z=0,material=slate){
+  add(w+.38,.24,d+.38,x,height,z,material);
+  // Pequenos parapeitos em duas laterais para dar profundidade.
+  add(.20,.34,d+.35,x-w/2,height+.2,z,material);
+  add(.20,.34,d+.35,x+w/2,height+.2,z,material);
+ }
+ function gableRoof(w,d,eave,material=terracotta,rise=1.10,x=0,z=0){
+  const slope=Math.atan2(rise,w/2),length=Math.hypot(w/2,rise)+.42;
+  add(length,.23,d+.5,x-w/4,eave+rise/2,z,material,slope);
+  add(length,.23,d+.5,x+w/4,eave+rise/2,z,material,-slope);
+  add(.18,.18,d+.6,x,eave+rise+.05,z,tileDark);
+  // Linhas de beiral, telhas e arremates.
+  for(const side of [-1,1])add(.12,.21,d+.53,x+side*w/2,eave-.05,z,wood);
+ }
+ function glassRailing(w,x,y,z){
+  add(w,.88,.10,x,y,z,glass);
+  add(w,.10,.13,x,y+.46,z,charcoal);
+  for(const dx of [-w/2,0,w/2])add(.08,.95,.10,x+dx,y,z,charcoal);
+ }
+ function pool(cx,cz,w=2.75,d=3.05){
+  add(w+.42,.12,d+.42,cx,.09,cz,whiteMat);
+  add(w,.13,d,cx,.16,cz,poolWater);
+  add(w-.22,.03,d-.22,cx,.235,cz,glassBlue);
+  add(w+.5,.22,.18,cx,.18,cz-d/2,cream);
+  add(w+.5,.22,.18,cx,.18,cz+d/2,cream);
+ }
+ function pergola(x,z,w=3.1,d=2.0,top=3.4){
+  for(const px of [x-w/2,x+w/2])for(const pz of [z-d/2,z+d/2])
+   add(.13,top-.1,.13,px,top/2,pz,woodLight);
+  for(let k=0;k<7;k++)add(.13,.13,d+.25,x-w/2+k*w/6,top,z,woodLight);
+ }
+ function lawnAndPath(){
+  add(11.3,.06,10.6,0,.00,0,lawn);
+  add(1.55,.095,3.0,-.7,.07,4.0,paving);
+  // Jardim organizado ao longo da fachada.
+  for(const px of [-3.9,3.9])for(const pz of [3.1,4.4])planted(px,pz,.52);
+ }
+ function carGate(x,z,w=2.25){
+  add(w,2.10,.11,x,1.15,z,charcoal);
+  add(w-.22,1.92,.14,x,1.17,z,cream);
+  for(let j=0;j<4;j++)add(w-.25,.055,.16,x,.49+j*.45,z+.10,stoneDark);
+  add(w+.25,.12,2.05,x,.105,z+.72,paving);
+ }
+ // Lotes continuam livres na frente e nas laterais: largura max 12.2, prof. max 11.8.
+ lawnAndPath();
+ if(model.type==='casa'){
+  if(model.id==='house_popular'){
+   // Casa térrea colonial: cobertura inclinada, varanda, porta e esquadrias.
+   add(7.5,.16,7.2,-.1,.13,-.75,paving);
+   add(6.55,3.0,5.45,-.15,1.65,-1.22,facade);
+   add(.45,3.0,5.50,-3.25,1.65,-1.2,stucco);
+   gableRoof(6.65,5.5,3.10,terracotta,1.18,-.15,-1.22);
+   add(4.1,.19,1.56,-.45,2.90,2.42,terracotta);
+   for(const px of [-2.12,1.35])add(.18,2.54,.18,px,1.42,3.11,stucco);
+   entry(-.28,1.58,2.14);
+   frontWindow(-2.12,1.67,1.60,1.14,1.20);
+   frontWindow(2.03,1.67,1.60,1.14,1.20);
+   sideWindow(3.18,1.75,-1.1,.95,1.14);
+  }else if(model.id==='house_padrao'){
+   // Casa familiar com dois volumes, garagem coberta e telhado em duas águas.
+   add(7.85,3.55,6.75,-.15,1.92,-.83,facade);
+   gableRoof(7.9,6.8,3.72,tileDark,.98,-.15,-.83);
+   add(2.85,2.7,2.65,2.63,1.48,2.12,stucco);
+   add(3.12,.18,3.13,2.63,2.94,2.12,terracotta);
+   carGate(2.64,3.51,2.30);
+   entry(-1.5,2.62,2.18);
+   frontWindow(-3.12,2.15,2.56,1.10,1.3);
+   frontWindow(.46,2.14,2.58,1.18,1.36);
+   sideWindow(3.7,2.0,-1.05,1.15,1.20);
+   add(1.85,.15,1.18,-1.5,.16,4.0,paving);
+   planted(-3.55,3.6,.67);planted(-3.0,3.6,.5);
+  }else if(model.id==='house_premium'){
+   // Dois pavimentos: volumes deslocados, painéis de madeira e varanda em vidro.
+   add(8.0,3.45,6.5,-.2,1.9,-1.02,stucco);
+   add(6.65,3.15,5.42,.55,5.22,-1.55,facade);
+   flatRoof(8.0,6.5,3.73,-.2,-1.02,slate);
+   flatRoof(6.75,5.48,6.88,.55,-1.55,slate);
+   for(const xx of [-2.65,-1.12,.44,2.0])frontWindow(xx,5.0,1.23,1.08,1.65);
+   add(6.60,.15,1.65,.52,3.77,2.27,paving);
+   glassRailing(6.45,.52,4.32,3.07);
+   add(3.0,2.8,.22,2.03,1.82,2.29,glassDark);
+   for(let j=0;j<7;j++)add(.12,2.65,.18,-3.70+j*.30,1.72,2.45,woodLight);
+   entry(-1.2,2.24);
+   frontWindow(-2.5,1.93,2.3,1.33,1.45);
+   pergola(3.75,3.58,1.9,1.65,3.04);
+   planted(-3.0,3.8,.65);planted(-2.5,4.2,.50);
+  }else{
+   // Mansão: bloco envidraçado, pedra natural, piscina e pérgola.
+   add(8.0,3.48,6.35,-.1,1.92,-1.56,stucco);
+   add(5.95,3.35,5.15,-1.45,5.33,-1.90,facade);
+   flatRoof(8.1,6.45,3.78,-.1,-1.56,stoneDark);
+   flatRoof(6.1,5.22,7.13,-1.45,-1.90,slate);
+   add(3.45,3.0,.19,1.93,1.83,1.65,glassDark);
+   for(let i=0;i<4;i++)add(.09,2.9,.24,.6+i*.85,1.85,1.76,bronze);
+   for(const xx of [-3.35,-1.72,-.15])frontWindow(xx,5.25,.76,1.17,1.95);
+   add(5.85,.14,1.5,-1.3,3.87,1.48,paving);
+   glassRailing(5.65,-1.32,4.42,2.22);
+   add(1.7,2.4,.15,-2.85,1.39,1.72,wood);
+   pool(3.55,3.45,2.4,3.05);
+   pergola(-2.48,3.85,3.6,1.5,3.25);
+   planted(-4.45,2.6,.59);planted(-4.45,3.85,.56);
+   for(const zz of [2.55,3.5,4.4])add(.18,.31,.64,4.96,.27,zz,woodLight);
+  }
+  planting();
+ }else{
+  // Predios com materiais, sacadas, esquadrias e silhuetas progressivamente distintos.
+  const specs={
+   predio_compacto:[6.85,6.8,3],
+   predio_urbano:[7.5,7.15,5],
+   predio_premium:[7.75,7.4,6],
+   torre_nobre:[8.1,7.7,8],
+   torre_luxo:[8.55,7.9,10]
+  };
+  const [w,d,floors]=specs[model.id]||specs.predio_compacto;
+  const h=2.65*floors;
+  const compact=model.id==='predio_compacto',urban=model.id==='predio_urbano';
+  const premium=model.id==='predio_premium',noble=model.id==='torre_nobre',luxury=model.id==='torre_luxo';
+  const accent=compact?terracotta:urban?brick:premium?woodLight:noble?bronze:gold;
+  const face=compact?facade:urban?stucco:premium?stucco:noble?cream:stucco;
+  add(w+.95,.17,d+.75,0,.15,-.48,paving);
+  // Torre superior recuada no edifício lendário cria uma silhueta reconhecível.
+  if(luxury){
+   add(w,7*2.65,d,0,7*2.65/2+.25,-.65,face);
+   add(w-1.24,3*2.65,d-1.07,.42,7*2.65+3*2.65/2+.24,-1.05,glassDark);
+  }else add(w,h,d,0,h/2+.24,-.65,face);
+  flatRoof(luxury?w-.9:w,d-(luxury?.3:0),h+.38,luxury?.25:0,-.65,premium?slate:stoneDark);
+  // Faixas verticais e lajes internas impedem aparência de um cubo liso.
+  for(const px of [-w/2+.26,w/2-.26]){
+   add(.30,h+.12,.30,px,h/2+.25,d/2-.65,accent);
+   add(.17,h+.1,.28,px,h/2+.25,-d/2-.65,stoneDark);
+  }
+  entry(-.18,d/2-.48,2.25);
+  add(w+.5,.17,1.35,0,2.53,d/2-.04,paving);
+  for(let floor=0;floor<floors;floor++){
+   const y=floor*2.65+1.56;
+   const upper=luxury&&floor>=7;
+   const width=upper?w-1.24:w;
+   const center=upper?.42:0;
+   const zz=upper?(d-1.07)/2-1.05:d/2-.65;
+   const count=compact?2:3;
+   for(let k=0;k<count;k++){
+    const xx=center+(k-(count-1)/2)*width*.28;
+    frontWindow(xx,y,zz+.045,compact?1.22:1.38,1.45);
+   }
+   if(floor>0){
+    if(compact){
+     for(const px of [-1.85,1.85]){
+      add(2.0,.16,.76,px,y-.98,zz+.55,paving);
+      glassRailing(1.78,px,y-.40,zz+.96);
+     }
+    }else{
+     const everyFloor=premium||noble||luxury;
+     if(everyFloor||floor%2===0){
+      add(width+.44,.16,.95,center,y-.98,zz+.54,cream);
+      glassRailing(width+.29,center,y-.39,zz+1.01);
+      if(premium||noble||luxury)for(const px of [center-width*.34,center+width*.34])planted(px,zz+.82,.42);
+     }
+    }
+   }
+   // Laterais possuem janelas reais e não paredes vazias.
+   if(floor>0&&floor%2===0){
+    const sideX=center+width/2-.04;
+    sideWindow(sideX,y,-1.2,1.16,1.35);
+   }
+   if(urban){
+    for(const px of [-2.65,2.65])add(.20,2.45,.14,px,y,zz,brick);
+   }
+   if(noble||luxury){
+    for(const px of [center-width*.30,center+width*.30]){
+     add(.16,2.44,.16,px,y,zz,accent);
+    }
+   }
+  }
+  if(compact){
+   gableRoof(w+.14,d+.05,h+.42,terracotta,.48,0,-.65);
+  }else if(urban){
+   // Pavimento comercial com marquise, vitrines e fachada em tijolo.
+   add(w+.5,.28,1.15,0,2.83,d/2+.08,tileDark);
+   for(const px of [-2.42,2.4])add(1.6,1.8,.13,px,1.15,d/2-.48,glassDark);
+   for(const px of [-w*.27,w*.27])add(.7,h,.15,px,h/2+.26,d/2-.45,brick);
+  }else if(premium){
+   add(3.5,.68,2.4,0,h+.83,-1.25,glass);
+   add(4.1,.18,2.8,0,h+1.21,-1.25,slate);
+   for(const px of [-w*.42,w*.42])add(.45,h,.23,px,h/2+.24,d/2-.5,woodLight);
+  }else if(noble){
+   for(const px of [-w*.4,w*.4])add(.48,h+.6,.35,px,h/2+.45,d/2-.42,bronze);
+   add(4.4,1.1,3.1,0,h+.91,-.75,glass);
+   add(5.0,.19,3.65,0,h+1.53,-.75,gold);
+  }else{
+   // Coroa dourada, pele de vidro e cobertura panorâmica.
+   for(const px of [-w*.38,w*.38])add(.35,7*2.65,.3,px,7*2.65/2+.3,d/2-.43,bronze);
+   add(4.1,1.5,3.2,.42,h+1.28,-1.1,glassDark);
+   add(5.5,.24,4.4,.42,h+2.11,-1.1,gold);
+   for(let k=0;k<6;k++)add(.14,.13,4.0,-2.1+k*.98,h+2.47,-1.1,bronze);
+  }
+  for(const px of [-4.5,4.5])for(const zz of [-3.2,1.2,3.2])planted(px,zz,.40);
+ }
+ // Acessos, vegetação e detalhes são agrupados por material, para poucas draw calls.
+ const tmp=new THREE.Object3D();
+ for(const [material,parts] of batch.entries()){
+  const inst=new THREE.InstancedMesh(buildingUnitBox,material,parts.length);
+  for(let n=0;n<parts.length;n++){
+   const [w,h,d,xx,yy,zz,rz,ry]=parts[n];
+   tmp.position.set(xx,yy,zz);tmp.rotation.set(0,ry,rz);tmp.scale.set(w,h,d);tmp.updateMatrix();
+   inst.setMatrixAt(n,tmp.matrix);
+  }
+  inst.instanceMatrix.needsUpdate=true;
+  inst.castShadow=material===facade||material===stucco||material===cream||material===slate||material===terracotta;
+  inst.receiveShadow=true;group.add(inst);
+ }
+ if(shrubs.length){
+  const inst=new THREE.InstancedMesh(buildingShrubGeometry,hedge,shrubs.length);
+  for(let n=0;n<shrubs.length;n++){
+   const [xx,yy,zz,sz]=shrubs[n];
+   tmp.position.set(xx,yy,zz);tmp.rotation.set(0,0,0);tmp.scale.set(sz,sz*.7,sz);tmp.updateMatrix();
+   inst.setMatrixAt(n,tmp.matrix);
+  }
+  inst.instanceMatrix.needsUpdate=true;inst.receiveShadow=true;group.add(inst);
+ }
+ group.userData.kind=model.id;
+ return group;
+}
+// Construir precisa de confirmacao claramente visivel no celular.
+// A janela fica sobre a cena 3D, nao escondida abaixo do painel.
+
+
+let activeBuildDialog=false;
+function beginConstruction(id,type){
+ const prop=state.lots[id];
+ if(activeBuildDialog)return;
+ if(!prop||prop.owner!=='me'||prop.building){
+  status.textContent='Selecione um terreno seu, sem construção, para começar outra obra.';return;
+ }
+ const models=BUILD_MODELS.filter(m=>m.type===type);
+ if(!models.length){status.textContent='Nenhum modelo disponível para este tipo.';return;}
+ activeBuildDialog=true;
+ const overlay=document.createElement('div');
+ overlay.className='build-overlay';overlay.setAttribute('role','presentation');
+ const dialog=document.createElement('div');
+ dialog.className='build-dialog';dialog.setAttribute('role','dialog');
+ dialog.setAttribute('aria-modal','true');
+ dialog.setAttribute('aria-label','Escolher construção do terreno #'+String(id+1).padStart(3,'0'));
+ overlay.append(dialog);
+ const head=document.createElement('div');head.className='build-dialog-head';
+ const title=document.createElement('h3');
+ title.textContent=(type==='casa'?'🏠 Casas':'🏢 Prédios')+' · Terreno #'+String(id+1).padStart(3,'0');
+ const closeTop=document.createElement('button');closeTop.className='build-back';
+ closeTop.type='button';closeTop.textContent='✕ Fechar';closeTop.setAttribute('aria-label','Voltar sem construir');
+ const intro=document.createElement('p');intro.className='build-choice-intro';
+ intro.textContent='Raridade '+rarityNames[rarityIndex(id)]+' · Zona '+zone(id).grade+' · '+buildingAvailability(id).length+' de 9 modelos liberados · '+fmt(state.balance)+' IU$ disponíveis';
+ head.append(title,closeTop,intro);
+ const scroller=document.createElement('div');scroller.className='build-dialog-body';
+ const label=document.createElement('h4');label.textContent='Escolha o modelo';
+ const choices=document.createElement('div');choices.className='build-models';
+ const colorsLabel=document.createElement('h4');colorsLabel.textContent='🎨 Cor da construção';
+ const palette=document.createElement('div');palette.className='build-palette';
+ scroller.append(label,choices,colorsLabel,palette);
+ const bottom=document.createElement('div');bottom.className='build-dialog-footer';
+ const note=document.createElement('p');note.className='build-status';
+ const row=document.createElement('div');row.className='build-bottom';
+ const cancel=document.createElement('button');cancel.className='cancel';cancel.type='button';
+ cancel.textContent='← Voltar';
+ const confirm=document.createElement('button');confirm.type='button';
+ row.append(cancel,confirm);bottom.append(note,row);
+ dialog.append(head,scroller,bottom);
+ let closed=false,charging=false;
+ function exit(){
+  if(closed)return;
+  closed=true;activeBuildDialog=false;overlay.remove();
+  document.removeEventListener('keydown',onKey);
+ }
+ function onKey(e){if(e.key==='Escape'){e.preventDefault();exit();}}
+ closeTop.onclick=exit;cancel.onclick=exit;
+ overlay.onclick=e=>{if(e.target===overlay)exit()};
+ document.addEventListener('keydown',onKey);
+ let color=colors.includes(prop.color)?prop.color:colors[0];
+ let selectedModel=models.find(m=>!buildingRestriction(id,m.id)&&state.balance>=buildingPrice(id,m.id))?.id||
+  models.find(m=>!buildingRestriction(id,m.id))?.id||null;
+ function paintColors(){
+  palette.replaceChildren();
+  colors.forEach(c=>{
+   const b=document.createElement('button');b.type='button';
+   b.className='swatch'+(color===c?' active':'');
+   b.style.backgroundColor=c;b.setAttribute('aria-label','Cor '+c);
+   b.onclick=()=>{color=c;paintColors()};
+   palette.append(b);
+  });
+ }
+ function paintChoices(){
+  choices.replaceChildren();
+  models.forEach(m=>{
+   const reason=buildingRestriction(id,m.id),price=buildingPrice(id,m.id);
+   const btn=document.createElement('button');btn.type='button';
+   btn.className='build-model'+(reason?' locked':'')+(m.id===selectedModel?' chosen':'');
+   btn.disabled=!!reason;
+   const name=document.createElement('strong');name.textContent=(reason?'🔒 ':'')+m.name;
+   const detail=document.createElement('small');detail.textContent=m.desc;
+   const priceLabel=document.createElement('small');priceLabel.className='model-price';
+   priceLabel.textContent=fmt(price)+' IU$ · '+rarityNames[m.min]+'+'+(reason?' · 🔒 '+reason:' · ✓ Liberado');
+   btn.append(name,detail,priceLabel);
+   if(!reason)btn.onclick=()=>{selectedModel=m.id;paintChoices()};
+   choices.append(btn);
+  });
+  const model=BUILD_BY_ID[selectedModel],price=model?buildingPrice(id,model.id):0;
+  const reason=model?buildingRestriction(id,model.id):'Sem modelos disponíveis';
+  const lacking=state.balance<price;
+  confirm.disabled=!model||!!reason||lacking||charging;
+  confirm.textContent=confirm.disabled?'Construção indisponível':'✓ Confirmar '+fmt(price)+' IU$';
+  note.textContent=reason||(
+   lacking?'Saldo insuficiente: faltam '+fmt(price-state.balance)+' IU$.':
+   'Selecionado: '+model.name+' · '+fmt(price)+' IU$ · Terreno #'+String(id+1).padStart(3,'0'));
+ }
+ confirm.onclick=()=>{
+  if(confirm.disabled||closed||charging)return;
+  const m=BUILD_BY_ID[selectedModel],current=state.lots[id];
+  const reason=buildingRestriction(id,m?.id),price=buildingPrice(id,m?.id);
+  if(!m||m.type!==type||reason||!current||current.owner!=='me'||current.building||state.balance<price){
+   note.textContent=reason||'Não foi possível construir. Confira o saldo e o terreno.';
+   paintChoices();return;
+  }
+  charging=true;confirm.disabled=true;cancel.disabled=true;closeTop.disabled=true;
+  const previous={balance:state.balance,building:current.building,color:current.color,meta:current.buildingMeta};
+  state.balance-=price;current.building=m.id;current.color=color;
+  current.buildingMeta={model:m.id,category:m.type,costPaid:price,rarityAtBuild:rarityNames[rarityIndex(id)],
+   zoneAtBuild:zone(id).grade,builtAt:new Date().toISOString()};
+  if(!save()){
+   state.balance=previous.balance;current.building=previous.building;current.color=previous.color;
+   current.buildingMeta=previous.meta;
+   charging=false;cancel.disabled=false;closeTop.disabled=false;
+   note.textContent='Erro ao salvar. O saldo foi restaurado. Tente novamente.';
+   paintChoices();return;
+  }
+  exit();
+  selected=id;
+  renderState();
+  status.textContent='✅ '+m.name+' construída no terreno #'+String(id+1).padStart(3,'0')+' por '+fmt(price)+' IU$.';
+  target.set(lots[id].x,0,lots[id].z);distance=105;updateCam();
+ };
+ // Fora do #stage: o mapa usa touch-action:none, o diálogo PRECISA permitir rolagem.
+ document.body.append(overlay);
+ paintColors();paintChoices();
+}
+function renderState(){
+ document.getElementById('balance').textContent=fmt(state.balance)+' IU$';
+ for(let i=0;i<1000;i++){
+  const l=state.lots[i],p=lots[i];
+  // Cor por propriedade (ou mapa de calor) atualizada em updateMapHighlights.
+  p.plot.scale.y=selected===i?2:1;
+  if(p.building&&p.building.userData.kind!==normalizeBuilding(l.building)){scene.remove(p.building);p.building=null}
+  if(l.building&&!p.building){p.building=house(i,l.building);p.building.userData.kind=l.building}
+ }
+ actions.replaceChildren();
+ const panelTitle=document.getElementById('title'),desc=document.getElementById('desc');
+ if(selected<0){
+  panelTitle.textContent='🏠 Mercado imobiliário';
+  desc.textContent='Toque em um terreno ou use "Meus terrenos" para construir. Modo local: multiplayer ainda não ativado.';
+  return;
+ }
+ const l=state.lots[selected],name='#'+String(selected+1).padStart(3,'0');
+ panelTitle.textContent='📍 Terreno '+name;
+ desc.textContent=area(selected).toLocaleString('pt-BR')+' m² · '+lotShape(selected)+' · Raridade: '+rarityNames[rarityIndex(selected)]+' · Zona '+zoneDescription(selected)+' · Valor de referência: '+fmt(cost(selected))+' IU$ · '+
+ (l.owner==='free'?'Disponível · '+fmt(cost(selected))+' IU$':l.owner==='npc'?'Outro proprietário':'Seu terreno'+(l.building?' · Construído: '+buildingLabel(l.building)+(l.buildingMeta?.costPaid?' · Investimento: '+fmt(l.buildingMeta.costPaid)+' IU$':''):' · Sem construção')+(l.price?' · À venda por '+fmt(l.price):''));
+ function btn(label,fn,alt=false,disabled=false){
+  const b=document.createElement('button');b.textContent=label;if(alt)b.className='alt';
+  b.disabled=disabled;
+  if(disabled){b.style.opacity='.6';b.style.cursor='not-allowed'}
+  else b.onclick=fn;
+  actions.append(b);return b;
+ }
+ if(l.owner==='free'){
+  const price=cost(selected),insufficient=state.balance<price;
+  btn(insufficient?'Comprar · faltam '+fmt(price-state.balance)+' IU$':'Comprar · '+fmt(price)+' IU$',()=>{
+   if(state.balance<cost(selected)){status.textContent='Saldo insuficiente.';return}
+   state.balance-=cost(selected);l.owner='me';save();updateMapHighlights();renderState();
+   status.textContent='Terreno comprado. Agora escolha a construção.';
+  },false,insufficient);
+ }
+ if(l.owner==='me'){
+  if(!l.building){
+   btn('🏠 Casas · 4 modelos',()=>beginConstruction(selected,'casa'));
+   btn('🏢 Prédios · 5 modelos',()=>beginConstruction(selected,'predio'));
+   const tip=document.createElement('div');tip.style.cssText='width:100%;color:#bfcee0;font-size:12px;margin-top:4px';
+   tip.textContent='🔒 Construções especiais exigem raridade e localização apropriadas. Os preços variam pela raridade.';actions.append(tip);
+  }else{
+   const info=document.createElement('div');info.style.cssText='color:#a6f6c9;font-size:13px;width:100%';
+   info.textContent='✓ Construção existente: '+buildingLabel(l.building)+(l.buildingMeta?.costPaid?' · Custo pago: '+fmt(l.buildingMeta.costPaid)+' IU$':'')+'.';actions.append(info);
+  }
+  if(!l.price){
+   const inp=document.createElement('input');inp.type='number';inp.value=String(cost(selected)*2);actions.append(inp);
+   btn('Anunciar',()=>{
+    const v=Number(inp.value);if(!Number.isSafeInteger(v)||v<1000||v>1e7){status.textContent='Informe um preço válido para o anúncio.';return}
+    l.price=v;save();updateMapHighlights();renderState();status.textContent='Terreno anunciado por '+fmt(v)+' IU$.';
+   },true);
+  }else{
+   btn('Simular venda (apenas neste aparelho)',()=>{
+    state.balance+=l.price;l.owner='npc';l.price=0;save();updateMapHighlights();renderState();
+   },true);
+   btn('Retirar anúncio',()=>{l.price=0;save();updateMapHighlights();renderState()});
+  }
+ }
+}
+let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
+const canvas=renderer.domElement;
+const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
+canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.preventDefault();const old=touches.get(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1&&!wasGesture){if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>9)down.moved=true; // Um dedo: deslizar cidade, sem alterar a câmera.
+ const dx=e.clientX-old.x,dy=e.clientY-old.y,scale=distance*.002;target.x-=dx*Math.cos(yaw)*scale+dy*Math.sin(yaw)*scale;target.z+=dx*Math.sin(yaw)*scale-dy*Math.cos(yaw)*scale;
+ }else if(touches.size===2){const now=measure();if(gesture){
+ // Dois dedos: arrastar gira a camera, pinca controla zoom. Nao desloca o alvo.
+ const dx=now.mx-gesture.mx,dy=now.my-gesture.my;
+ distance*=gesture.span/now.span;
+ yaw+=dx*.006;
+ pitch-=dy*.004;
+ // Torcao de dois dedos tambem gira a camera no mesmo sentido.
+ let twist=now.angle-gesture.angle;
+ twist=Math.atan2(Math.sin(twist),Math.cos(twist));
+ yaw+=twist*.95;
+ }gesture=now;
+ }else{const pts=[...touches.values()];const prev=old;const dx=e.clientX-prev.x,dy=e.clientY-prev.y;const f=distance*.0018;target.x-=dx*Math.cos(yaw)*f;target.z+=dy*f;gesture=null}updateCam()});
+canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(selectablePlots)[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
+document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(65,0,95);updateCam()};
+let myLotCursor=-1;
+document.getElementById('myLots').onclick=()=>{
+ const owned=[];
+ for(let i=0;i<state.lots.length;i++)if(state.lots[i].owner==='me')owned.push(i);
+ if(!owned.length){status.textContent='Você ainda não possui terrenos. Selecione um terreno disponível para comprar.';return}
+ const vacant=owned.filter(i=>!state.lots[i].building);
+ const visit=vacant.length?vacant:owned;
+ myLotCursor=(myLotCursor+1)%visit.length;
+ selected=visit[myLotCursor];
+ if(!lotMatches(selected)){plotFilter='all';filterInput.value='all';updateMapHighlights()}
+ target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
+ status.textContent='Seu terreno #'+String(selected+1).padStart(3,'0')+' · '+
+  (vacant.length?'Disponível para construir · '+vacant.length+' terreno(s) vazios no total.':'Você não possui terrenos vazios; confira suas construções.');
+ renderState();
+};
+renderState();if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';loading.remove();function animate(t){requestAnimationFrame(animate);legendaryGlow.emissiveIntensity=.65+.36*Math.sin(t*.0025);renderer.render(scene,camera)}animate(0);
+</script></body></html>
