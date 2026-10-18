@@ -23,7 +23,12 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   emissive:n==='light'?0xb66a1b:0x000000,emissiveIntensity:n==='light'?0.65:0
  });
  const storefront=['mercado','padaria','farmacia','restaurante','lojas','hotel','industria','logistica','escola','hospital','seguranca'].includes(kind)||!!brandKey;
- if(storefront){materials.storeGlass=new THREE.MeshStandardMaterial({color:0x9acbd0,roughness:.22,metalness:.04,emissive:0xffc96e,emissiveIntensity:.48*commercialNight});materials.storeGlass.userData.lightType='window';commercialLights.add(materials.storeGlass)}
+ if(storefront){
+  materials.storeGlass=new THREE.MeshStandardMaterial({color:0x9acbd0,roughness:.22,metalness:.04,emissive:0xffc96e,emissiveIntensity:.48*commercialNight,side:THREE.DoubleSide});
+  materials.storeGlass.userData.lightType='window';commercialLights.add(materials.storeGlass);
+  materials.glass.emissive.setHex(0xffc96e);materials.glass.emissiveIntensity=.48*commercialNight;
+  materials.glass.userData.lightType='window';commercialLights.add(materials.glass);
+ }
  function box(mat,w,h,d,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[mat]);o.position.set(x,y,z);o.receiveShadow=true;g.add(o);return o}
  function facade(width,depth,height,color='concrete'){
   box('gray',11,.14,11,0,.07,0);
@@ -76,6 +81,20 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
    glazing(fl*2.5+.55,3,width/2+.12);
    for(const side of [-1,1])box('glass',.11,1.4,2.1,side*(width/2+.12),fl*2.5+.55,0);
  }}
+ function wraparoundWindows(width,depth,height){
+  const levels=Math.max(1,Math.min(6,Math.floor((height-1.1)/2.55)));
+  for(let floor=0;floor<levels;floor++){
+   const y=levels===1?Math.min(2.35,height*.54):1.72+floor*2.62;
+   for(const xx of [-width*.28,width*.28]){
+    box('dark',1.46,1.46,.14,xx,y,-depth/2-.07);
+    box('storeGlass',1.27,1.27,.18,xx,y,-depth/2-.16);
+   }
+   for(const side of [-1,1])for(const zz of [-depth*.25,depth*.25]){
+    box('dark',.14,1.46,1.40,side*(width/2+.07),y,zz);
+    box('storeGlass',.18,1.27,1.22,side*(width/2+.16),y,zz);
+   }
+  }
+ }
  function equipment(){for(const xx of [-2.6,-.7,1.2]){box('gray',1.1,.7,1.2,xx,5.25,-1.7);
    box('dark',.8,.15,.9,xx,5.68,-1.7)}}
  switch(kind){
@@ -131,6 +150,11 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
    box('steel',2.25,.12,.2,xx,2.85,4.92)}
   signage('blue',brandKey==='mercadolivre'?'mercadolivre':'logistica');box('blue',9.1,.55,.3,0,3.53,4.9);break;
  default:return null;
+ }
+ if(storefront){
+  const dimensions={escola:[10,8.5,5.6],hospital:[9.5,8.7,8],seguranca:[8.5,8,5.4],mercado:[9.1,7.7,4.35],padaria:[8,7.2,4],farmacia:[8.5,7.5,4.2],restaurante:[8.4,7.9,4.1],lojas:[9,7.5,7.5],hotel:[9.1,8.5,15.6],industria:[9.6,9.3,5.3],logistica:[9.6,9.5,4.1]};
+  const [width,depth,height]=dimensions[kind]||[8,7,4];
+  wraparoundWindows(width,depth,height);
  }
  return g;
 }
