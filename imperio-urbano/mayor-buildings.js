@@ -22,7 +22,7 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   color:c,roughness:n==='glass'?.24:.85,metalness:n==='steel'?.38:0,
   emissive:n==='light'?0xb66a1b:0x000000,emissiveIntensity:n==='light'?0.65:0
  });
- const storefront=['mercado','padaria','farmacia','restaurante','lojas','hotel','industria','logistica'].includes(kind)||!!brandKey;
+ const storefront=['mercado','padaria','farmacia','restaurante','lojas','hotel','industria','logistica','escola','hospital','seguranca'].includes(kind)||!!brandKey;
  if(storefront){materials.storeGlass=new THREE.MeshStandardMaterial({color:0x9acbd0,roughness:.22,metalness:.04,emissive:0xffc96e,emissiveIntensity:.48*commercialNight});materials.storeGlass.userData.lightType='window';commercialLights.add(materials.storeGlass)}
  function box(mat,w,h,d,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[mat]);o.position.set(x,y,z);o.receiveShadow=true;g.add(o);return o}
  function facade(width,depth,height,color='concrete'){

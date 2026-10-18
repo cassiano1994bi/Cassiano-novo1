@@ -196,7 +196,7 @@ export class MayorEconomy{
    case 'residential':return ['popular','medio','luxo','apartamentos'];
    case 'commercial':return ['mercado','padaria','farmacia','restaurante','lojas','apartamentos'];
    case 'industrial':return ['industria','logistica'];
-   case 'tourism':return ['hotel','restaurante','luxo','apartamentos','mercado'];
+   case 'tourism':return housingShortage?['medio','apartamentos']:['hotel','restaurante','luxo','apartamentos','mercado'];
    case 'mixed':return housingShortage?['popular','medio','apartamentos','mercado']:['medio','apartamentos','mercado','padaria','farmacia','restaurante','lojas'];
    default:return [];
   }
@@ -223,7 +223,9 @@ export class MayorEconomy{
   for(const {i} of free){
    // Amostra determinística limitada para respeitar Android; cada bairro é avaliado.
    if((i*37+s.day*11+inv.id.length)%7!==0)continue;
-   const zone=this.zoneFor(i);const housingShortage=climate.capacity<climate.population*1.15&&s.day<100;
+   // Moradia continua prioritária enquanto a reserva de unidades for pequena;
+   // não desligar a expansão no dia 100 evita bairros que param de receber casas.
+   const zone=this.zoneFor(i);const housingShortage=climate.capacity<climate.population*1.60;
    let options=this.modelOptions(zone,housingShortage);
    if(inv.brand==='cocacola'){
     if(zone!=='industrial')continue;
@@ -244,6 +246,7 @@ export class MayorEconomy{
     const attractiveness=climate.satisfaction/100;
     const tourismBonus=model.type==='tourism'?(zone==='tourism'?.47:0):0;
   const housingBonus=model.type==='residential'?.68*climate.pressure:0;
+    const housingUrgency=model.type==='residential'?clamp((climate.population*1.60-climate.capacity)/Math.max(1,climate.population),0,1)*.62:0;
   const apartmentBonus=kind==='apartamentos'?clamp((climate.population-climate.capacity*.8)/700,.25,1.0):0;
     const retailBonus=model.type==='retail'?clamp(density/310,.4,1.5)*.35:0;
     const industrialBonus=model.type==='industry'?.26:0;
@@ -253,7 +256,7 @@ export class MayorEconomy{
     const nearby=nearbyByType[district+':'+kind]||0;
     const rivalry=nearby*.075+competition*.012;
     const costPenalty=required/capital*.11;
-    const score=services*.24+attractiveness*.33+tourismBonus+housingBonus+retailBonus+corporateCommitment+
+    const score=services*.24+attractiveness*.33+tourismBonus+housingBonus+housingUrgency+retailBonus+corporateCommitment+
       industrialBonus+investorPreference+apartmentBonus-taxPenalty-rivalry-costPenalty+s.cycle*.38+
       (i%5===0?.03:0)+(district===0&&model.type==='residential'?.11:0);
     scored.push({plot:i,kind,score,land,license,build:model.cost,reserve,required,district});
@@ -298,8 +301,10 @@ export class MayorEconomy{
   const permit=this.s.permits.find(p=>p.id===id);
   if(!permit||permit.status!=='pending')return false;
   const plot=this.s.plots[permit.plot];
+  const climate=this.economicClimate();
+  const housingShortage=climate.capacity<climate.population*1.60;
   if(!approve){permit.status='denied';plot.project=null;this.news('Licença de '+CITY_MODELS[permit.kind].name+' recusada.','permit');this.persist();return true}
-  if(plot.holder!=='free'||plot.project!==permit.id||!this.modelOptions(this.zoneFor(permit.plot)).includes(permit.kind)){
+  if(plot.holder!=='free'||plot.project!==permit.id||!this.modelOptions(this.zoneFor(permit.plot),housingShortage).includes(permit.kind)){
    permit.status='denied';plot.project=null;this.persist();return false;
   }
   // Pré-validação integral: evitar compra sem ter dinheiro para a obra.
@@ -585,7 +590,7 @@ export class MayorEconomy{
   if(population<=0||!s.households.length)return 0;
   const quality=clamp(s.metrics.satisfaction,0,100);
   // Saldo líquido diário: sem teto artificial, mas com um pequeno freio em crises.
-  const incomingRate=.0012+quality*.000002;
+  const incomingRate=.0055+quality*.00002;
   const departureRate=.00028+Math.max(0,50-quality)*.00001;
   s.migrationRemainder=(s.migrationRemainder||0)+population*incomingRate;
   const arrivals=Math.floor(s.migrationRemainder);

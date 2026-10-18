@@ -126,11 +126,12 @@ export function runMayorEconomyTests(){
   return g.s.ledger.length+' transações recentes conferidas';
  });
  scenario('Estoque comercial e mercadorias contabilizadas',()=>{
-  const {game:g}=make();g.setTax('service',1);g.runDays(85);
+  const {game:g}=make();g.setTax('service',1);let sawRestock=false;
+  for(let day=0;day<85;day++){g.tickDay();sawRestock ||= g.s.ledger.some(t=>t.reason.startsWith('Reposição de estoque'))}
   const shops=g.s.companies.filter(c=>c.sector==='retail');
   assert(shops.length>0,'Nenhum comércio foi aberto');
   assert(shops.every(c=>Number.isFinite(c.stock)&&c.stock>=0),'Estoque inválido');
-  assert(g.s.ledger.some(t=>t.reason.startsWith('Reposição de estoque')),'Nenhuma compra de mercadorias');
+  assert(sawRestock,'Nenhuma compra de mercadorias');
   assert(g.total()===g.s.initialTotal,'Compras geraram dinheiro');
   return shops.length+' comércios, estoque e pagamentos registrados';
  });
@@ -148,12 +149,17 @@ export function runMayorEconomyTests(){
  });
  scenario('Construção privada continua depois dos primeiros meses',()=>{
   const {game:g}=make();g.setTax('service',1);g.setTax('permit',0);
-  for(let day=0;day<300;day++)g.tickDay();
+  for(let day=0;day<100;day++)g.tickDay();
+  const homesAt100=g.s.projects.filter(p=>['popular','medio','luxo','apartamentos'].includes(p.kind)).length;
+  for(let day=100;day<200;day++)g.tickDay();
+  const homesAt200=g.s.projects.filter(p=>['popular','medio','luxo','apartamentos'].includes(p.kind)).length;
+  assert(homesAt200>homesAt100,'Novas obras residenciais não começaram depois do dia 100: '+homesAt100+' → '+homesAt200);
+  for(let day=200;day<300;day++)g.tickDay();
   const completed=g.s.projects.filter(p=>p.status==='complete').length;
   assert(completed>30,'Investimentos pararam cedo: '+completed+' obras concluídas');
   assert(g.s.investors.some(i=>i.debt>0),'Crédito de expansão não foi acionado');
   assert(g.total()===g.s.initialTotal,'Crédito criou dinheiro em vez de transferir reservas');
-  return completed+' construções concluídas em 300 dias; caixa preservado';
+  return completed+' construções concluídas; obras residenciais '+homesAt100+' → '+homesAt200+' do dia 100 ao 200; caixa preservado';
  });
  scenario('Migração e chegada de grandes empresas',()=>{
   const {game:g}=make();g.setTax('service',1);g.setTax('permit',0);
