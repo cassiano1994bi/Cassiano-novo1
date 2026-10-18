@@ -60,6 +60,12 @@ header small{font-size:11px}
  #maptools.open{width:210px;max-width:210px}
  #maptools.open .map-contents{max-height:52dvh}
 }
+#panel:not(.open){width:max-content;max-width:calc(100vw - 16px)}
+#panel:not(.open) #panelToggle{font-size:11px;padding:8px 11px}
+#viewToast{position:absolute;left:50%;top:62px;transform:translateX(-50%);z-index:7;background:#1a3d57ee;color:#fff;border:1px solid #74a1bb;border-radius:10px;padding:9px 12px;max-width:85%;font-size:12px;text-align:center;pointer-events:none}
+#viewToast[hidden]{display:none!important}
+#panel.open{width:min(calc(100vw - 16px),420px)}
+@media(orientation:landscape) and (max-height:650px){#panel.open{width:min(calc(100vw - 16px),315px)}}
 </style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v9.3</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div><div id="clockBar"><span id="clockReadout" aria-live="off">☀️ Dia 1 · 08:00</span><button type="button" id="nightModeButton" aria-pressed="false">🌙 Ver noite</button><span id="clockHelp">1 dia = 5 min</span></div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><div id="quicktools" aria-label="Ferramentas da cidade">
 <button id="quickToggle" type="button" aria-expanded="false" aria-controls="quickItems">☰ Menu</button>
 <div id="quickItems" hidden>
@@ -87,7 +93,7 @@ header small{font-size:11px}
 <div class="legend-row"><b class="legend-gem" style="color:#9cd9f5">◆</b> Azul: Zona B, nobre</div>
 <div class="legend-row"><b class="legend-gem" style="color:#91dfa0">◆</b> Verde: Zona C, residencial</div>
 <div class="legend-note">A borda mostra a raridade; o diamante mostra a localização. No mapa de valor: amarelo=A, azul=B, verde=C, cinza=D. A compra e venda continuam iguais.</div>
-</details></div></div><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div>
+</details></div></div><div id="hint">☝️ Mover e selecionar · ✌️ Girar e zoom</div><div id="viewToast" role="status" hidden></div></div>
 <section id="panel" aria-label="Detalhes imobiliários">
 <button type="button" id="panelToggle" aria-expanded="false" aria-controls="panelContents">🏠 Mercado imobiliário <span aria-hidden="true">⌃</span></button>
 <div id="panelContents" hidden>
@@ -1217,10 +1223,67 @@ function updateMapHighlights(){
  legendaryGems.count=n;legendaryGems.instanceMatrix.needsUpdate=true;
  if(selected>=0&&!lotMatches(selected))selected=-1;
 }
+// Interface responsiva v9.3: o mapa continua livre até o usuário pedir detalhes.
+const panelElement=document.getElementById('panel');
+const panelToggle=document.getElementById('panelToggle');
+const panelContents=document.getElementById('panelContents');
+const quickToggle=document.getElementById('quickToggle');
+const quickItems=document.getElementById('quickItems');
+let panelExpanded=false;
+function setPanelExpanded(expanded){
+ panelExpanded=!!expanded;
+ panelContents.hidden=!panelExpanded;
+ panelElement.classList.toggle('open',panelExpanded);
+ panelToggle.setAttribute('aria-expanded',String(panelExpanded));
+ const label=selected<0?'🏠 Mercado imobiliário':
+   isPublicParkLot(selected)?'🌳 Parque público · Informações':
+   '📍 Terreno #'+String(selected+1).padStart(3,'0')+' · '+(state.lots[selected]?.owner==='me'?'Meu terreno':'Negociação');
+ panelToggle.textContent=label+(panelExpanded?' ▾':' ▴');
+}
+panelToggle.onclick=()=>setPanelExpanded(!panelExpanded);
+function setQuickMenu(open){
+ quickItems.hidden=!open;
+ quickToggle.setAttribute('aria-expanded',String(open));
+ quickToggle.textContent=open?'✕ Fechar':'☰ Menu';
+}
+quickToggle.onclick=()=>{
+ const open=quickItems.hidden;
+ setQuickMenu(open);
+ if(open){
+  document.getElementById('maptools').classList.remove('open');
+  document.getElementById('mapToggle').setAttribute('aria-expanded','false');
+  document.getElementById('mapToggle').textContent='💠 Terrenos e filtros ▾';
+ }
+};
+const viewToast=document.getElementById('viewToast');
+let toastTimeout=null;
+function showViewToast(message){
+ viewToast.textContent=message;
+ viewToast.hidden=false;
+ clearTimeout(toastTimeout);
+ toastTimeout=setTimeout(()=>{viewToast.hidden=true},4800);
+}
+document.getElementById('landscapeView').onclick=async()=>{
+ setQuickMenu(false);
+ let fullscreenOk=!!document.fullscreenElement;
+ let orientationOk=window.innerWidth>window.innerHeight;
+ if(!fullscreenOk&&document.documentElement.requestFullscreen){
+  try{await document.documentElement.requestFullscreen();fullscreenOk=true}
+  catch(error){console.info('Tela cheia indisponível:',error)}
+ }
+ if(!orientationOk&&screen.orientation?.lock){
+  try{await screen.orientation.lock('landscape');orientationOk=true}
+  catch(error){console.info('Bloqueio de orientação indisponível:',error)}
+ }
+ if(!orientationOk)showViewToast('↔️ Gire o celular e ative a Rotação automática no Android.');
+ else showViewToast('↔️ Modo horizontal: mapa ampliado e painéis compactos.');
+ resize();
+};
 const mapToggle=document.getElementById('mapToggle');
 mapToggle.onclick=()=>{
  const panel=document.getElementById('maptools');
  const open=!panel.classList.contains('open');
+ if(open)setQuickMenu(false);
  panel.classList.toggle('open',open);
  mapToggle.setAttribute('aria-expanded',String(open));
  mapToggle.textContent=open?'💠 Terrenos e filtros ▴':'💠 Terrenos e filtros ▾';
@@ -1689,7 +1752,7 @@ document.getElementById('graphicsFocus').onclick=()=>{
  if(!lotMatches(selected)){plotFilter='all';filterInput.value='all';updateMapHighlights();}
  target.set(lots[selected].x,0,lots[selected].z);
  distance=57;pitch=.92;updateCam();
- renderState();
+ renderState();setPanelExpanded(true);
  status.textContent=lots[selected].building?.userData.kenneyAddon?
   '✅ Novo modelo 3D aplicado no terreno #'+String(selected+1).padStart(3,'0'):
   'Carregando o novo modelo 3D do terreno #'+String(selected+1).padStart(3,'0');
@@ -2181,6 +2244,7 @@ function beginConstruction(id,type){
  paintColors();paintChoices();
 }
 function renderState(){
+ setPanelExpanded(panelExpanded);
  document.getElementById('balance').textContent=fmt(state.balance)+' IU$';
  document.getElementById('stats').textContent='1.000 lotes · 250 quadras · '+PUBLIC_PARK_COUNT+' parques públicos · '+(1000-PUBLIC_PARK_COUNT*4)+' lotes privados';
  for(let i=0;i<1000;i++){
@@ -2248,7 +2312,7 @@ function renderState(){
   }
  }
 }
-let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
+let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);if(typeof ResizeObserver!=='undefined')new ResizeObserver(resize).observe(stage);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
 const canvas=renderer.domElement;
 const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
@@ -2266,7 +2330,7 @@ canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.
  yaw+=twist*.95;
  }gesture=now;
  }else{const pts=[...touches.values()];const prev=old;const dx=e.clientX-prev.x,dy=e.clientY-prev.y;const f=distance*.0018;target.x-=dx*Math.cos(yaw)*f;target.z+=dy*f;gesture=null}updateCam()});
-canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(selectablePlots)[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(selectablePlots)[0];if(hit){selected=hit.object.userData.id;setQuickMenu(false);document.getElementById('maptools').classList.remove('open');renderState();setPanelExpanded(true)}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
 document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(65,0,95);updateCam()};
@@ -2279,7 +2343,7 @@ document.getElementById('parksJump').onclick=()=>{
  selected=block*4;
  if(plotFilter!=='all'){plotFilter='all';filterInput.value='all';updateMapHighlights()}
  target.set(blocks[block].x,0,blocks[block].z);
- distance=105;pitch=.79;updateCam();renderState();
+ distance=105;pitch=.79;updateCam();renderState();setQuickMenu(false);setPanelExpanded(true);
  status.textContent='🌳 '+publicParkName(block)+' · Parque '+(publicParkCursor+1)+' de '+publicParkBlocks.length+'.';
 };
 document.getElementById('myLots').onclick=()=>{
@@ -2291,7 +2355,7 @@ document.getElementById('myLots').onclick=()=>{
  myLotCursor=(myLotCursor+1)%visit.length;
  selected=visit[myLotCursor];
  if(!lotMatches(selected)){plotFilter='all';filterInput.value='all';updateMapHighlights()}
- target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
+ target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();setQuickMenu(false);setPanelExpanded(true);
  status.textContent='Seu terreno #'+String(selected+1).padStart(3,'0')+' · '+
   (vacant.length?'Disponível para construir · '+vacant.length+' terreno(s) vazios no total.':'Você não possui terrenos vazios; confira suas construções.');
  renderState();
