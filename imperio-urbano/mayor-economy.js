@@ -58,7 +58,7 @@ export class MayorEconomy{
   this.state=s;
   for(let i=0;i<1000;i++){
    const l=this.legacyLots[i]||{};
-   s.plots.push({holder:this.parkIds.has(i)||l.owner==='park'?'public':(l.owner==='free'&&!l.building?'free':'legacy'),project:null,model:l.building||null,zone:null});
+   s.plots.push({holder:this.parkIds.has(i)||l.owner==='park'?'public':((!l.owner||l.owner==='free')&&!l.building?'free':'legacy'),project:null,model:l.building||null,zone:null});
   }
   // Economia monetária fechada: recursos iniciais vêm de reservas regionais explícitas.
   this.move('regional','treasury',1450000,'Transferência inicial de infraestrutura estadual');
@@ -131,7 +131,7 @@ export class MayorEconomy{
   for(let i=0;i<1000;i++){
    if(this.parkIds.has(i))this.s.plots[i].holder='public';
    const l=this.legacyLots[i]||{};
-   if((l.owner!=='free'||l.building)&&this.s.plots[i].holder==='free')this.s.plots[i].holder='legacy';
+   if(((l.owner&&l.owner!=='free')||l.building)&&this.s.plots[i].holder==='free')this.s.plots[i].holder='legacy';
   }
  }
  persist(now=Date.now()){
@@ -155,7 +155,16 @@ export class MayorEconomy{
   this.news('Prefeitura alterou '+key+' para '+value.toFixed(1)+'%.','policy');
   this.persist();return true;
  }
- setPermitMode(auto){this.s.policy.autoPermits=!!auto;this.persist();}
+ setPermitMode(auto){
+  this.s.policy.autoPermits=!!auto;
+  if(auto)for(const p of [...this.s.permits])if(p.status==='pending'){
+   if(!this.decidePermit(p.id,true)&&p.status==='pending'&&this.account(p.investor)<p.cost){
+    p.status='denied';if(this.s.plots[p.plot].project===p.id)this.s.plots[p.plot].project=null;
+    this.news('Proposta sem capital disponível foi arquivada; lote liberado para novos investidores.','permit');
+   }
+  }
+  this.persist();
+ }
  setSpeed(value){
   if(![1,5,10,30,60].includes(value))return false;
   this.s.speed=value;this.persist();return true;
@@ -195,7 +204,8 @@ export class MayorEconomy{
    for(const kind of options){
     const model=CITY_MODELS[kind];
     const district=this.district(i),distance=this.district(i);
-    const capital=this.account(inv.id),land=this.landCost(i),license=money(model.cost*s.rates.permit/100);
+    const committed=s.permits.filter(p=>p.investor===inv.id&&p.status==='pending').reduce((n,p)=>n+p.cost,0);
+    const capital=Math.max(0,this.account(inv.id)-committed),land=this.landCost(i),license=money(model.cost*s.rates.permit/100);
     const reserve=money(model.cost*.20),required=land+license+model.cost+reserve;
     if(capital<required)continue;
     const density=climate.population/5;
@@ -235,7 +245,11 @@ export class MayorEconomy{
    cost:offer.required,land:offer.land,license:offer.license,build:offer.build,reserve:offer.reserve,
    status:'pending',score:offer.score,day:this.s.day};
   this.s.permits.unshift(permit);
-  if(this.s.permits.length>90)this.s.permits.length=90;
+  if(this.s.permits.length>90){
+   // Nunca descartar uma licença pendente e deixar o lote bloqueado para sempre.
+   const pending=this.s.permits.filter(p=>p.status==='pending');
+   this.s.permits=[...pending,...this.s.permits.filter(p=>p.status!=='pending').slice(0,Math.max(0,90-pending.length))];
+  }
   this.s.plots[offer.plot].project=permit.id;
   this.news(inv.name+' solicita licença para '+CITY_MODELS[offer.kind].name+' no lote #'+(offer.plot+1)+'.','permit');
   if(this.s.policy.autoPermits)this.decidePermit(permit.id,true);
@@ -413,7 +427,7 @@ export class MayorEconomy{
    for(let k=0;k<local.length;k++){
     const c=local[k],rent=k===local.length-1?remaining:Math.min(remaining,amount);
     remaining-=rent;
-    this.move(h.id,c.investor,rent,'Aluguel residencial do lote #'+(c.plot+1));
+    this.move(h.id,c.id,rent,'Aluguel residencial do lote #'+(c.plot+1));
     c.revenue+=rent;
    }
   }
@@ -426,6 +440,10 @@ export class MayorEconomy{
    const overhead=money(Math.min(this.account(c.id),10+CITY_MODELS[c.kind].jobs*5));
    if(overhead&&this.move(c.id,'regional',overhead,'Compra de insumos, água e energia'))c.expenses+=overhead;
    c.profit=c.revenue-c.expenses;
+   // Distribuir apenas caixa acima da reserva de giro; receitas e tributos ficam na empresa.
+   const reserve=CITY_MODELS[c.kind].cost*.2;
+   const dividend=money(Math.min(Math.max(0,c.profit)*.35,Math.max(0,this.account(c.id)-reserve)));
+   if(c.investor&&dividend)this.move(c.id,c.investor,dividend,'Dividendos de '+CITY_MODELS[c.kind].name);
    if(this.account(c.id)<150&&c.age>12&&c.sector!=='residential'){
     c.active=false;c.workers=0;
     this.news(CITY_MODELS[c.kind].name+' encerrou operações por falta de caixa no lote #'+(c.plot+1)+'.','crisis');
@@ -492,6 +510,7 @@ export class MayorEconomy{
    for(const inv of order.slice(0,2))this.tryInvestment(inv);
   }
   if(s.day%30===0)this.monthEnd();
+  this.updateChallenge();
   this.validate();
   this.persist();
   return this.snapshot();
@@ -515,6 +534,37 @@ export class MayorEconomy{
   // Sem servidor: apenas cálculo local, limitado a 15min de tempo real ao reabrir.
   this.advance(elapsed);
   this.persist(now);
+ }
+ updateChallenge(){
+  const s=this.s;
+  if(s.challenge&&s.challenge.status==='pending'&&s.day>=s.challenge.deadline){
+   s.challenge.status='expired';this.news('A proposta regional expirou. Novas oportunidades chegarão.','event');
+  }
+  if(s.day%18===4&&(!s.challenge||s.challenge.status!=='pending')){
+   const kinds=['education','health','transport'],category=kinds[Math.floor(s.day/18)%3];
+   s.challenge={id:'event:'+s.day,category,status:'pending',deadline:s.day+14,cost:24000};
+   this.news('O conselho propõe um mutirão de serviços. Analise a proposta na Prefeitura.','event');
+  }
+ }
+ decideChallenge(accept){
+  const c=this.s.challenge;
+  if(!c||c.status!=='pending'||this.s.day>=c.deadline)return false;
+  if(accept){
+   if(!this.move('treasury','family:0',c.cost,'Contrato de mutirão de serviços municipais'))return false;
+   this.s.allocations[c.category]=clamp(this.s.allocations[c.category]+4,0,100);
+  }
+  c.status=accept?'accepted':'declined';
+  this.news(accept?'Mutirão realizado: serviço melhorou 4 pontos, com custo documentado.':'Prefeitura optou por preservar caixa e recusou o mutirão.','event');
+  this.persist();return true;
+ }
+ objectives(){
+  const s=this.s;
+  return [
+   {title:'Primeira obra pública',hint:'Abra Obras municipais e financie um serviço.',current:s.works.length,target:1,tab:'projects'},
+   {title:'Cidade em movimento',hint:'Mantenha zonas compatíveis e impostos atrativos para os investidores.',current:s.projects.filter(p=>p.status==='complete').length,target:5,tab:'zones'},
+   {title:'Serviço entregue',hint:'Acompanhe o prazo das obras; a entrega melhora os serviços.',current:s.works.filter(w=>w.status==='complete').length,target:1,tab:'projects'},
+   {title:'Prefeitura bem avaliada',hint:'Melhore serviços e favoreça empregos para elevar a satisfação.',current:Math.floor(s.metrics.satisfaction),target:75,tab:'finance'}
+  ];
  }
  snapshot(){
   const s=this.s,climate=this.economicClimate();

@@ -2,7 +2,9 @@ import {PUBLIC_WORKS,CITY_MODELS} from './mayor-economy.js';
 const fmt=n=>Math.round(n||0).toLocaleString('pt-BR');
 const pct=n=>(Number(n)||0).toFixed(1)+'%';
 const ZONES={residential:'Residencial',mixed:'Mista',commercial:'Comercial',industrial:'Industrial',tourism:'Turística',environmental:'Proteção ambiental'};
-const TITLES={overview:'Visão geral',finance:'Tesouro e impostos',projects:'Obras municipais',zones:'Zoneamento',investors:'Investidores',news:'Jornal',ledger:'Extrato',permits:'Licenciamento'};
+const SERVICES={health:'Saúde',education:'Educação',safety:'Segurança',roads:'Vias',water:'Saneamento',transport:'Transporte',parks:'Parques'};
+const PHASES={preparation:'Preparação',foundation:'Fundação',structure:'Estrutura',finish:'Acabamento',complete:'Concluída'};
+const TITLES={guide:'Como jogar',view:'Câmera e gráficos',overview:'Visão geral',finance:'Tesouro e impostos',projects:'Obras municipais',zones:'Zoneamento',investors:'Investidores',news:'Jornal',ledger:'Extrato',permits:'Licenciamento'};
 const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 export function mountMayorUI(engine,ctx){
  const holder=document.getElementById('mayorHUD');
@@ -15,6 +17,7 @@ export function mountMayorUI(engine,ctx){
   '<button id="mayorSpeed" type="button" aria-label="Acelerar simulação">⏩ 10×</button>'+
   '<button id="mayorRotate" type="button" aria-label="Visualização horizontal">↔️</button>'+
   '</div>'+
+  '<div id="mayorMission"></div>'+
   '<div id="mayorDrawer" hidden><div class="mayorDrawerHead">'+
   '<strong id="mayorTitle">🏛️ Prefeitura</strong><button id="mayorClose" type="button" aria-label="Fechar painel">✕</button></div>'+
   '<div id="mayorTabs"></div><div id="mayorBody"></div></div>'+
@@ -34,13 +37,13 @@ export function mountMayorUI(engine,ctx){
   const projects=s.works.filter(w=>w.status!=='complete');
   return header('Obras públicas aprovadas')+
    (projects.length?projects.map(w=>'<div class="mayorItem"><b>'+esc(PUBLIC_WORKS[w.kind].name)+'</b>'+
-    '<small>'+esc(w.status)+' · '+w.elapsed+'/'+w.days+' dias · contrato '+fmt(w.cost)+' IU$</small></div>').join(''):
+    '<small>'+esc(PHASES[w.status]||w.status)+' · '+w.elapsed+'/'+w.days+' dias · contrato '+fmt(w.cost)+' IU$</small><progress max="'+w.days+'" value="'+w.elapsed+'" aria-label="Progresso da obra"></progress></div>').join(''):
     '<p class="mayorEmpty">Não há obras públicas em execução.</p>')+
    header('Investir em serviços da cidade')+
    '<p>Cada projeto é pago pelo Tesouro e financiado antes de começar. Contratos geram salários e compras de materiais.</p>'+
    Object.entries(PUBLIC_WORKS).map(([id,w])=>'<div class="mayorItem"><b>'+esc(w.name)+'</b><small>'+
    fmt(w.cost)+' IU$ · '+w.days+' dias · melhoria '+w.benefit+' pontos</small>'+
-   button('Financiar obra', 'work',id,engine.account('treasury')<w.cost)+'</div>').join('');
+   button(s.works.some(x=>x.category===w.category&&x.status!=='complete')?'Obra em andamento':'Financiar obra', 'work',id,engine.account('treasury')<w.cost||s.works.some(x=>x.category===w.category&&x.status!=='complete'))+'</div>').join('');
  }
  function zoneView(){
   const types=Object.entries(ZONES);
@@ -66,7 +69,7 @@ export function mountMayorUI(engine,ctx){
     '<label class="mayorTax">'+esc(label)+' <b>'+pct(s.rates[id])+'</b>'+
     '<input type="range" min="0" max="12" step="0.5" value="'+s.rates[id]+'" data-tax="'+id+'"></label>').join('')+
    header('Serviços públicos')+
-   Object.entries(s.allocations).map(([name,val])=>row(name,Math.round(val)+' / 100')).join('');
+   Object.entries(s.allocations).map(([name,val])=>row(SERVICES[name]||name,Math.round(val)+' / 100')).join('');
  }
  function investorsView(){
   const active=s.companies.filter(c=>c.active);
@@ -106,12 +109,43 @@ export function mountMayorUI(engine,ctx){
      button('Aprovar', 'permitYes',p.id)+button('Recusar','permitNo',p.id)+'</div>').join(''):
     '<p class="mayorEmpty">Sem pedidos pendentes.</p>');
  }
+ function guideView(){
+  return header('Você governa. A cidade empreende.')+
+   '<p>Seu dinheiro é o Tesouro municipal. Casas, lojas e fábricas são financiadas pelos investidores, que tomam decisões sozinhos.</p>'+
+   '<div class="mayorItem"><b>1 · Prepare a cidade</b><span>Veja os bairros no Zoneamento. Residencial recebe moradias; comercial recebe lojas; industrial gera empregos; mista combina usos.</span>'+button('Planejar bairros','tab','zones')+'</div>'+
+   '<div class="mayorItem"><b>2 · Invista em um serviço</b><span>Uma obra pública consome caixa agora e melhora serviços quando termina. Evite gastar todo o Tesouro: a manutenção continua a cada dia.</span>'+button('Escolher uma obra','tab','projects')+'</div>'+
+   '<div class="mayorItem"><b>3 · Observe o resultado</b><span>Acelere o tempo e acompanhe os canteiros. Empresas criam empregos, atendem moradores e pagam impostos. Tributos excessivos afastam investimentos.</span>'+button('Ver investidores','tab','investors')+'</div>'+
+   header('Mover a câmera')+'<p>No celular: um dedo move; dois dedos giram e fazem zoom. No computador: arraste para mover e use a roda para aproximar. Câmera e gráficos oferecem botões de giro e zoom.</p>'+
+   header('Objetivo da gestão')+'<p>Equilibre caixa, empregos e satisfação. As metas guiam seu progresso; não dão dinheiro artificial. O progresso é salvo neste navegador.</p>';
+ }
+ function viewView(){
+  return header('Explore Nova Jundiaí')+
+   button('⌖ Cidade inteira','camera','city')+button('🌅 Olhar para o mar','camera','sea')+
+   button('🏗️ Obra mais recente','camera','project')+button('🌳 Visitar parque','camera','park')+
+   header('Controle da câmera')+
+   button('＋ Aproximar','camera','in')+button('− Afastar','camera','out')+
+   button('↶ Girar esquerda','camera','left')+button('↷ Girar direita','camera','right')+
+   header('Qualidade gráfica')+'<p>Economia reduz resolução e sombras. Alta melhora a definição em aparelhos mais potentes.</p>'+
+   '<label class="mayorZone">Qualidade<select data-quality="1">'+['economy','balanced','high'].map((v,i)=>'<option value="'+v+'"'+(ctx.quality?.()===v?' selected':'')+'>'+['Economia','Equilibrada','Alta'][i]+'</option>').join('')+'</select></label>';
+ }
+ function guidance(){
+  const pending=s.permits.filter(p=>p.status==='pending').length;
+  if(pending)return {text:pending+' proposta(s) aguardando licença. Revise para liberar investimentos.',tab:'permits'};
+  const weak=Object.entries(s.allocations).sort((a,b)=>a[1]-b[1])[0];
+  if(engine.account('treasury')<100000)return {text:'Caixa baixo: preserve a reserva e revise despesas antes de novas obras.',tab:'finance'};
+  if(s.metrics.unemployment>25)return {text:'Faltam empregos. Avalie bairros comerciais e industriais e a carga de impostos.',tab:'zones'};
+  return {text:'Prioridade sugerida: '+SERVICES[weak[0]]+' ('+Math.round(weak[1])+'/100). Uma obra melhora esse serviço.',tab:'projects'};
+ }
  function overviewView(){
   const data=engine.snapshot();
   const active=s.companies.filter(c=>c.active);
   const jobs=active.reduce((n,c)=>n+c.workers,0);
   const wages=s.ledger.filter(t=>t.day>=Math.max(0,s.day-6)&&t.reason.includes('Salários')).reduce((a,t)=>a+t.amount,0);
-  return '<label class="mayorZone">🗺️ Mapa temático <select data-map="1">'+
+  const advice=guidance(),challenge=s.challenge;
+  return '<div class="mayorItem"><b>📋 Gabinete do prefeito</b><span>'+esc(advice.text)+'</span>'+button('Ver prioridade','tab',advice.tab)+button('Como jogar','tab','guide')+'</div>'+
+   (challenge?.status==='pending'?'<div class="mayorItem"><b>🤝 Proposta do conselho</b><span>Mutirão de '+esc(SERVICES[challenge.category])+': +4 pontos por '+fmt(challenge.cost)+' IU$. Você decide se a melhoria vale o custo. Prazo: dia '+(challenge.deadline+1)+'.</span>'+button('Financiar mutirão','challenge','yes',engine.account('treasury')<challenge.cost)+button('Preservar caixa','challenge','no')+'</div>':'')+
+   header('Metas da gestão')+engine.objectives().map(o=>'<div class="mayorItem"><b>'+(o.current>=o.target?'✓ ':'○ ')+esc(o.title)+' · '+Math.min(o.current,o.target)+'/'+o.target+'</b><progress max="'+o.target+'" value="'+Math.min(o.current,o.target)+'"></progress><small>'+esc(o.hint)+'</small></div>').join('')+
+   '<label class="mayorZone">🗺️ Mapa temático <select data-map="1">'+
    '<option value="none">Normal</option>'+
    '<option value="zone">Zoneamento</option>'+
    '<option value="owner">Propriedade</option>'+
@@ -141,10 +175,12 @@ export function mountMayorUI(engine,ctx){
    button('📊 Impostos','tab','finance')+
    button('🏢 Investidores','tab','investors')+
    button('📰 Jornal','tab','news')+
-   '<p class="mayorInfo">Simulação local por etapas: as contas são fechadas por dia. Na velocidade 10×, um dia econômico passa a cada 30 segundos reais.</p>';
+   '<p class="mayorInfo">Simulação local por etapas: as contas são fechadas por dia. Use ⏩ para escolher a velocidade: 10× corresponde a 30 segundos por dia. Pausar também interrompe o ciclo de luz.</p>';
  }
  function content(){
   switch(active){
+   case 'guide':return guideView();
+   case 'view':return viewView();
    case 'finance':return financeView();
    case 'projects':return workView();
    case 'zones':return zoneView();
@@ -155,22 +191,30 @@ export function mountMayorUI(engine,ctx){
    default:return overviewView();
   }
  }
- const TABS=['overview','finance','projects','zones','investors','permits','news','ledger'];
+ const TABS=['overview','guide','view','finance','projects','zones','investors','permits','news','ledger'];
  function drawPanel(){
   if(!isOpen)return;
   tabs.innerHTML=TABS.map(k=>'<button type="button" data-tab="'+k+'"'+(active===k?' class="current"':'')+'>'+TITLES[k]+'</button>').join('');
   byId('mayorTitle').textContent='🏛️ '+TITLES[active];
+  const scrollTop=body.scrollTop;
   body.innerHTML='<div id="mayorMessage" hidden></div>'+content();
+  const mapSelect=body.querySelector('[data-map]');if(mapSelect)mapSelect.value=mapLayer;
+  body.scrollTop=scrollTop;
  }
  function updateHeadline(){
   const d=engine.snapshot();
   toolbar.textContent='🏦 '+fmt(d.treasury)+' IU$ · 👥 '+fmt(d.population)+' · 🏢 '+d.companies+
    ' · Dia '+(d.day+1)+' / M'+d.month;
   byId('mayorPause').textContent=d.paused?'▶️':'⏸';
+  byId('mayorPause').setAttribute('aria-label',d.paused?'Retomar simulação':'Pausar simulação');
+  const goals=engine.objectives(),next=goals.find(o=>o.current<o.target);
+  const mission=byId('mayorMission');
+  mission.textContent=next?'🎯 '+next.title+' · '+Math.min(next.current,next.target)+'/'+next.target:'🏆 Todas as metas iniciais concluídas! Continue desenvolvendo a cidade.';
+  mission.onclick=()=>open(next?.tab||'overview');
   byId('mayorSpeed').textContent='⏩ '+d.speed+'×';
  }
- function open(tab='overview'){isOpen=true;active=tab;drawer.hidden=false;drawPanel()}
- function close(){isOpen=false;drawer.hidden=true}
+ function open(tab='overview'){isOpen=true;active=tab;byId('mayorMenuButton').setAttribute('aria-expanded','true');body.scrollTop=0;drawer.hidden=false;drawPanel()}
+ function close(){isOpen=false;byId('mayorMenuButton').setAttribute('aria-expanded','false');drawer.hidden=true}
  byId('mayorMenuButton').onclick=()=>isOpen?close():open();
  byId('mayorClose').onclick=close;
  byId('mayorPause').onclick=()=>{engine.togglePause();updateHeadline();ctx.notice?.(engine.s.paused?'Simulação pausada':'Simulação retomada')};
@@ -188,16 +232,23 @@ export function mountMayorUI(engine,ctx){
   const b=e.target.closest('button[data-action]');if(!b)return;
   const {action,value}=b.dataset;
   if(action==='tab'){active=value;drawPanel();return}
+  if(action==='camera'){ctx.camera?.(value);return}
+  if(action==='challenge'){
+   const ok=engine.decideChallenge(value==='yes');
+   drawPanel();msg(ok?'Decisão registrada no jornal e no Tesouro.':'Saldo insuficiente ou proposta expirada.');updateHeadline();return;
+  }
+  let feedback='';
   if(action==='work'){
    const out=engine.startWork(value);
-   msg(out.ok?'Contrato financiado e obra iniciada.':out.reason);
+   feedback=out.ok?'Contrato financiado e obra iniciada.':out.reason;
   }else if(action==='permitYes'||action==='permitNo'){
-   msg(engine.decidePermit(value,action==='permitYes')?'Licenciamento registrado.':'Proposta inválida ou sem capital.');
+   feedback=engine.decidePermit(value,action==='permitYes')?'Licenciamento registrado.':'Proposta inválida ou sem capital.';
   }
-  updateHeadline();ctx.refresh?.();drawPanel();
+  updateHeadline();ctx.refresh?.();drawPanel();if(feedback)msg(feedback);
  };
  body.onchange=e=>{
   const el=e.target;
+  if(el.dataset.quality!==undefined){ctx.setQuality?.(el.value);ctx.notice?.('Qualidade gráfica atualizada.');return}
   if(el.dataset.map!==undefined){
    mapLayer=el.value;ctx.paintMap?.(mapLayer);ctx.notice?.('Mapa: '+el.value);
   }else if(el.dataset.zone!==undefined){
@@ -213,14 +264,14 @@ export function mountMayorUI(engine,ctx){
   chosenLot=plot;
   if(plot===null||plot<0){lotBox.hidden=true;return}
   const lot=s.plots[plot],zone=engine.zoneFor(plot);
-  const work=s.projects.find(p=>p.plot===plot&&p.status!=='complete');
+  const work=s.projects.find(p=>p.plot===plot&&p.status!=='complete'&&p.status!=='cancelled');
   const company=s.companies.find(c=>c.plot===plot);
   const holder=s.investors.find(i=>i.id===lot.holder);
   const stateLabel=lot.holder==='public'?'Área pública':
    lot.holder==='legacy'?'Imóvel anterior preservado':
    lot.holder==='free'?'Lote disponível para investidores':
    'Propriedade de '+(holder?.name||lot.holder);
-  const detail=work?' · Construção: '+CITY_MODELS[work.kind].name+' · '+work.status+' · '+Math.round(work.elapsed/work.days*100)+'%':
+  const detail=work?' · Construção: '+CITY_MODELS[work.kind].name+' · '+(PHASES[work.status]||work.status)+' · '+Math.round(work.elapsed/work.days*100)+'%':
    company?' · '+CITY_MODELS[company.kind].name+(company.active?' em operação':' fechada')+' · receita '+fmt(company.revenue)+' IU$'+(company.sector==='retail'?' · estoque '+fmt(company.stock||0)+' IU$':''):
    lot.model?' · Construção existente':'';
   lotBox.hidden=false;
@@ -233,10 +284,14 @@ export function mountMayorUI(engine,ctx){
   updateHeadline();
   if(force||lastDay!==s.day){
    lastDay=s.day;
-   if(isOpen)drawPanel();
+   if(isOpen&&!(body.contains(document.activeElement)&&document.activeElement.matches('input,select,textarea')))drawPanel();
    if(chosenLot!==null)showLot(chosenLot);
   }
  }
+ const helpButton=document.createElement('button');helpButton.id='mayorHelp';helpButton.textContent='?';helpButton.setAttribute('aria-label','Como jogar');helpButton.onclick=()=>open('guide');byId('mayorToolbar').append(helpButton);
+ const mission=byId('mayorMission');mission.setAttribute('role','button');mission.tabIndex=0;mission.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mission.click()}};
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){close();lotBox.hidden=true;chosenLot=null}});
  updateHeadline();
+ if(s.day===0&&!s.works.length)open('guide');
  return {open,close,refresh,showLot,isOpen:()=>isOpen};
 }

@@ -21,11 +21,13 @@ export function runMayorEconomyTests(){
  scenario('Cidade em crescimento',()=>{
   const {game:g}=make();g.setTax('service',1);
   g.setTax('permit',0);g.startWork('avenida');g.startWork('escola');
-  g.runDays(65);
+  // O extrato é limitado: capturar contratos enquanto ocorrem, não após sua expiração.
+  let sawContract=false;
+  for(let d=0;d<65;d++){g.tickDay();sawContract ||= g.s.ledger.some(x=>x.reason.includes('Contrato de construção'));}
   const built=g.s.projects.filter(p=>p.status==='complete').length;
   assert(built>2,'Investidores não concluíram obras');
   assert(g.s.companies.length>6,'Empresas não surgiram');
-  assert(g.s.ledger.some(x=>x.reason.includes('Contrato de construção')),'Contratos não registrados');
+  assert(sawContract,'Contratos não registrados');
   assert(g.total()===40000000,'Dinheiro criado durante crescimento');
   return built+' obras privadas concluídas';
  });
@@ -132,6 +134,52 @@ export function runMayorEconomyTests(){
   const restored=new MayorEconomy({storage,legacyLots:legacy,parkIds,now:5000});
   assert(JSON.stringify(restored.s)===copyState,'Persistência perdeu dados de anos');
   return g.s.companies.length+' empresas após '+g.s.day+' dias';
+ });
+ scenario('Município sem imóveis antigos continua investível',()=>{
+  const g=new MayorEconomy({storage:{getItem(){return null},setItem(){}},now:1000});
+  assert(g.s.plots.every(p=>p.holder==='free'),'Lotes vazios tratados como patrimônio antigo');
+  g.runDays(40);assert(g.s.projects.length>0,'Cidade vazia não recebeu investimentos');
+ });
+ scenario('Ativar licenciamento automático processa fila',()=>{
+  const {game:g}=make();g.setPermitMode(false);g.setTax('service',0);
+  g.runDays(10);const pending=g.s.permits.filter(p=>p.status==='pending');
+  assert(pending.length>0,'Sem propostas para testar');
+  g.setPermitMode(true);
+  assert(g.s.permits.every(p=>p.status!=='pending'),'Propostas ficaram bloqueadas');g.validate();
+ });
+ scenario('Aluguel entra na empresa e paga tributo',()=>{
+  const {game:g}=make();
+  const inv=g.s.investors[0];
+  g.s.accounts['business:test']=0;g.move('regional','business:test',20000,'Capital de teste');
+  const home={id:'business:test',plot:80,kind:'medio',investor:inv.id,sector:'residential',workers:0,capacity:9,age:0,active:true};
+  g.s.companies.push(home);g.operateCompanies();
+  assert(home.revenue>0,'Sem aluguel');
+  assert(g.s.ledger.some(t=>t.to===home.id&&t.reason.startsWith('Aluguel')),'Aluguel desviou da empresa');
+  assert(g.s.ledger.some(t=>t.from===home.id&&t.to==='treasury'),'Faturamento sem tributação');
+  g.validate();
+ });
+ scenario('Proposta tem custo, efeito e decisão única',()=>{
+  const {game:g}=make();g.runDays(4);
+  const c=g.s.challenge;assert(c?.status==='pending','Evento não apareceu');
+  const cash=g.account('treasury'),quality=g.s.allocations[c.category];
+  assert(g.decideChallenge(true),'Decisão recusada');
+  assert(g.account('treasury')===cash-c.cost,'Mutirão não debitou tesouro');
+  assert(g.s.allocations[c.category]===quality+4,'Serviço não melhorou');
+  assert(!g.decideChallenge(true),'Evento pago duas vezes');g.validate();
+ });
+ scenario('Pausa e velocidade respeitam tempo econômico',()=>{
+  const {game:g}=make();g.setSpeed(60);g.togglePause();
+  assert(g.advance(300000)===0&&g.s.day===0,'Pausa ignorada');g.togglePause();
+  assert(g.advance(5000)===1&&g.s.day===1,'Velocidade incorreta');
+ });
+ scenario('Fila com mais de 90 pedidos conserva referências',()=>{
+  const {game:g}=make();g.setPermitMode(false);g.setTax('service',0);
+  const inv=g.s.investors[0];
+  g.move('regional',inv.id,30000000,'Capital de teste para fila extensa');
+  for(let i=0;i<300;i++){g.s.day=i;g.tryInvestment(inv)}
+  const pending=g.s.permits.filter(p=>p.status==='pending');
+  assert(pending.length>90,'Cenário não preencheu fila');
+  for(const p of g.s.plots)if(p.project)assert(g.s.permits.some(x=>x.id===p.project),'Lote bloqueado sem licença');
  });
  return {passed:cases.filter(c=>c.ok).length,total:cases.length,cases};
 }
