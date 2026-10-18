@@ -343,7 +343,7 @@ for(let i=0;i<8;i++){
   box(.08,.17,.30,-1.68,.81,zSide,trafficTailLights,group);
  }
  const lane=i<4?-7:286;
- const z=lane+(heading>0?2.0:-2.0);
+ const z=lane+(lane===286?(heading>0?2.2:-.9):(heading>0?2.0:-2.0));
  group.rotation.y=heading>0?0:Math.PI;
  const fraction=((i*109+36)%797)/797;
  const x=minX+fraction*(maxX-minX);
@@ -999,8 +999,10 @@ function updateCityTime(force=false){
  const dayValue=elapsed/CITY_DAY_MS+8/24;
  const hour=(dayValue%1)*24;
  const dayNum=Math.floor(dayValue)+1;
- const hh=Math.floor(hour);
- const mm=Math.floor((hour-hh)*60);
+ // Arredondar no relógio evita mostrar 07:59 exatamente na virada do dia.
+ const totalMinutes=Math.round((dayValue%1)*1440)%1440;
+ const hh=Math.floor(totalMinutes/60);
+ const mm=totalMinutes%60;
  const clockString=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
  const naturalLevel=smoothTime(5.2,7.3,hour)*(1-smoothTime(17.4,19.6,hour));
  const daylight=previewNight?0:naturalLevel;
