@@ -722,6 +722,36 @@ function buildingMat(color,rough=.8,metal=.02,glow=0){
 const litWindowMaterial=buildingMat('#7cbbd1',.23,.08);
 const unlitWindowMaterial=buildingMat('#4e7e9a',.32,.08);
 const porchLampMaterial=buildingMat('#e4d8a9',.33,.03);
+// Comércio público não negociável na faixa da orla: cafés e quiosques iluminados.
+// Não ocupam nenhum dos 1.000 lotes nem substituem imóveis dos jogadores.
+const promenadeCafes=[];
+const cafeStone=buildingMat('#f2e9d6');
+const cafeTimber=buildingMat('#9b7653');
+const cafeRoof=buildingMat('#4e5a60');
+const cafeBlueGlass=litWindowMaterial;
+for(const [i,x] of [-291,-117,55,231,404].entries()){
+ const g=new THREE.Group();
+ g.position.set(x,0,-24.1);scene.add(g);
+ const twoFloors=i%2===1,h=twoFloors?5.7:3.2;
+ box(9.6,.11,8.4,0,.07,0,pavingPublic(),g);
+ box(7.1,h,5.5,0,h/2+.13,-.55,i%2?cafeStone:cafeTimber,g);
+ box(7.8,.3,6.1,0,h+.35,-.55,cafeRoof,g);
+ box(5.9,1.9,.16,0,1.35,2.28,cafeBlueGlass,g);
+ box(6.3,.16,2.0,0,2.55,2.86,cafeTimber,g);
+ box(1.4,2.15,.12,0,1.27,2.44,cafeTimber,g);
+ if(twoFloors){
+  for(const xx of [-2.05,0,2.05]){
+   box(1.25,1.48,.15,xx,4.25,2.27,cafeBlueGlass,g);
+   box(1.5,.14,.82,xx,3.38,2.68,cafeStone,g);
+  }
+ }
+ for(const xx of [-3.5,3.5]){
+  box(.18,2.1,.16,xx,1.25,3.55,cafeTimber,g);
+  box(1.1,.10,1.1,xx,.24,4.5,cafeStone,g);
+ }
+ promenadeCafes.push(g);
+}
+function pavingPublic(){return promenadeRailMat}
 function house(id,kind){
  const model=buildingDefinition(kind)||BUILD_BY_ID.house_padrao;
  const {x,z}=lots[id],group=new THREE.Group();
