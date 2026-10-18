@@ -2763,6 +2763,11 @@ function updateCityTime(force=false){
  nightButton.textContent=previewMode===null?(naturalLevel>.5?'🌙 Ver noite':'☀️ Ver dia'):'⏱️ Automático';
  nightButton.classList.toggle('active',previewMode!==null);
  nightButton.setAttribute('aria-pressed',String(previewMode!==null));
+ // Sol/Lua e direção do sol avançam mesmo quando a claridade não muda ao meio-dia.
+ const orbitHour=previewMode==='day'?12:previewMode==='night'?0:hour;
+ updateCelestialBodies(orbitHour,daylight);
+ const orbitAngle=(orbitHour-6)*Math.PI/12;
+ sun.position.set(-170*Math.cos(orbitAngle),24+260*Math.max(0,Math.sin(orbitAngle)),130*Math.sin(orbitAngle));
  if(!force&&Math.abs(daylight-lastVisualLevel)<.008)return;
  lastVisualLevel=daylight;
  scene.background.lerpColors(nightFogColor,dayFogColor,daylight);
@@ -2777,9 +2782,7 @@ function updateCityTime(force=false){
  sun.color.copy(moonSunColor).lerp(daySunColor,daylight);
  road.color.copy(nightRoadColor).lerp(dayRoadColor,daylight);
  park.color.copy(nightParkColor).lerp(dayParkColor,daylight);
- const sunAngle=(hour-6)*Math.PI/12;
- sun.position.set(-170*Math.cos(sunAngle),24+260*Math.max(0,Math.sin(sunAngle)),130*Math.sin(sunAngle));
- updateCelestialBodies(previewMode==='day'?12:previewMode==='night'?0:hour,daylight);
+ // Órbita já atualizada acima para não travar o sol no horário de máxima luz.
  // Sombras suaves continuam visíveis sob a luz da lua.
  if(sun.castShadow!==(daylight>.18))sun.castShadow=daylight>.18;
  renderer.toneMappingExposure=1.33+.02*daylight;
