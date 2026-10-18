@@ -1,4 +1,23 @@
-<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v7.3</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v7.3</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><button id="myLots">🏠 Meus terrenos</button><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v7.4</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}#maptools{position:absolute;left:8px;top:8px;z-index:4;width:min(52%,228px);background:#132a41eF;border:1px solid #63829b;border-radius:12px;padding:8px;box-shadow:0 3px 16px #07152266;font-size:12px}#maptools select,#maptools button{width:100%;min-height:34px;margin-bottom:5px;padding:6px 7px;border:1px solid #65849a;border-radius:8px;color:#fff;background:#254762;font-size:12px}#maptools button.active{border-color:#f4ce62;color:#ffe29b;background:#374e53}#maptools summary{cursor:pointer;list-style-position:inside;font-weight:700;color:#dceaff;padding:3px 0}#maptools .legend-row{display:flex;align-items:center;gap:5px;margin:5px 0;color:#dfeaf2;line-height:1.35}#maptools .legend-swatch{width:12px;height:12px;border:2px solid;border-radius:3px;flex-shrink:0}#maptools .legend-gem{min-width:17px;text-align:center;font-weight:800;color:#ffd968}#maptools .legend-note{font-size:11px;line-height:1.35;color:#aabfd3;padding-top:5px;border-top:1px solid #465e70}#maptools option{color:#fff;background:#223a52}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v7.4</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><button id="myLots">🏠 Meus terrenos</button><div id="maptools" aria-label="Destaques imobiliários">
+<select id="rarityFilter" aria-label="Filtrar terrenos">
+<option value="all">🗺️ Todos os terrenos</option>
+<option value="premium">💎 Só premium (A e B)</option>
+<option value="rare">🔵 Só raros</option>
+<option value="epic">🟣 Só épicos</option>
+<option value="legendary">⭐ Só lendários</option>
+</select>
+<button id="heatToggle" type="button" aria-pressed="false">🌡️ Mapa de valor: desligado</button>
+<details id="mapLegend"><summary>💠 Cores e selos</summary>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#c2c7c7"></i> Comum</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#4bdd78"></i> Incomum</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#45a8ff"></i> Raro</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#b06aff"></i> Épico</div>
+<div class="legend-row"><i class="legend-swatch" style="border-color:#ffd04a"></i> Lendário</div>
+<div class="legend-row"><b class="legend-gem">◆</b> Dourado: Zona A, lago</div>
+<div class="legend-row"><b class="legend-gem" style="color:#9cd9f5">◆</b> Azul: Zona B, nobre</div>
+<div class="legend-row"><b class="legend-gem" style="color:#91dfa0">◆</b> Verde: Zona C, residencial</div>
+<div class="legend-note">A borda mostra a raridade; o diamante mostra a localização. No mapa de valor: amarelo=A, azul=B, verde=C, cinza=D. A compra e venda continuam iguais.</div>
+</details></div><div id="hint">☝️ 1 dedo: mover e selecionar · ✌️ 2 dedos: girar e zoom</div></div><section id="panel"><h2 id="title">🏠 Mercado imobiliário</h2><div id="desc">Toque em um terreno para comprar, construir e anunciar. Modo local: multiplayer ainda não ativado.</div><div id="actions"></div><div id="status"></div></section><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
@@ -37,7 +56,7 @@ if(requestTestCredit==='1milhao'&&!state.creditoTeste1MV73){
 try{if(!localStorage.getItem(KEY+'_snapshot_v63'))localStorage.setItem(KEY+'_snapshot_v63',JSON.stringify(state))}catch{}
 const colors=['#e3e1d4','#f4a261','#f28482','#8ecae6','#a8dadc','#b8a0d9','#f6d365','#91c788','#fafafa','#5e7083'];
 const save=()=>{try{const prior=localStorage.getItem(KEY);if(prior)localStorage.setItem(KEY+'_previous',prior);localStorage.setItem(KEY,JSON.stringify(state))}catch{}};const fmt=n=>Math.round(n).toLocaleString('pt-BR');const rarityNames=['Comum','Incomum','Raro','Épico','Lendário'];
-const rarityColors=['#a6b4a7','#6fb6ff','#9b83ff','#edaa55','#ffd85d'];
+const rarityColors=['#c2c7c7','#4bdd78','#45a8ff','#b06aff','#ffd04a'];
 const rarityIndex=i=>{const n=(i*37+11)%100;return n<2?4:n<10?3:n<25?2:n<50?1:0};
 const area=i=>{const r=rarityIndex(i),n=(i*17+7)%100;return r===4?1200+n*8:r===3?650+n*3:r===2?420+n*3:r===1?220+n*2:120+n};
 const lotShape=i=>['Quadrado','Retangular','Esquina'][(i*7+3)%3];
@@ -200,6 +219,7 @@ for(let i=0;i<5;i++){
  for(let f=2;f<h;f+=3)for(const side of [-1,1])box(7,.85,.12,x,f,z+side*4.55,glass,commercial);
 }
 const lots=[],raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected=-1;
+let plotFilter='all',heatMode=false,selectablePlots=[];
 for(let bi=0;bi<250;bi++){
  const {x,z}=blocks[bi];
  for(let k=0;k<4;k++){
@@ -208,6 +228,107 @@ for(let bi=0;bi<250;bi++){
   plot.userData.id=id;lots[id]={plot,x:xx,z:zz,building:null};
  }
 }
+// Sinalização v7.4: 5 batches de bordas, 3 batches de diamantes e brilhos lendários.
+// Só 9 draw calls extras em vez de milhares de objetos individuais.
+const rarityBuckets=Array.from({length:5},()=>[]),zoneBuckets={A:[],B:[],C:[]};
+for(let i=0;i<lots.length;i++){
+ rarityBuckets[rarityIndex(i)].push(i);
+ const grade=zone(i).grade;if(zoneBuckets[grade])zoneBuckets[grade].push(i);
+}
+const borderGeometry=new THREE.BoxGeometry(1,1,1);
+const rarityBorders=rarityBuckets.map((bucket,r)=>{
+ const material=new THREE.MeshBasicMaterial({color:rarityColors[r],toneMapped:false});
+ const mesh=new THREE.InstancedMesh(borderGeometry,material,bucket.length*4);
+ mesh.count=0;mesh.frustumCulled=false;mesh.renderOrder=2;scene.add(mesh);return mesh;
+});
+const gemGeometry=new THREE.OctahedronGeometry(1,0);
+const markerPalette={A:0xffd05d,B:0x8bcaff,C:0x7cdf8e};
+const zoneGems={};
+for(const grade of ['A','B','C']){
+ const material=new THREE.MeshStandardMaterial({color:markerPalette[grade],emissive:markerPalette[grade],emissiveIntensity:.28,roughness:.36,metalness:.15});
+ const mesh=new THREE.InstancedMesh(gemGeometry,material,zoneBuckets[grade].length);
+ mesh.count=0;mesh.frustumCulled=false;scene.add(mesh);zoneGems[grade]=mesh;
+}
+const legendaryGlow=new THREE.MeshStandardMaterial({color:0xffcf56,emissive:0xffad19,emissiveIntensity:.9,roughness:.26,metalness:.15});
+const legendaryGems=new THREE.InstancedMesh(gemGeometry,legendaryGlow,rarityBuckets[4].length);
+legendaryGems.count=0;legendaryGems.frustumCulled=false;scene.add(legendaryGems);
+const markerTransform=new THREE.Object3D();
+function lotMatches(i){
+ if(plotFilter==='all')return true;
+ if(plotFilter==='premium')return zone(i).grade==='A'||zone(i).grade==='B';
+ if(plotFilter==='rare')return rarityIndex(i)===2;
+ if(plotFilter==='epic')return rarityIndex(i)===3;
+ if(plotFilter==='legendary')return rarityIndex(i)===4;
+ return true;
+}
+function instanceAt(mesh,index,x,y,z,w,h,d){
+ markerTransform.position.set(x,y,z);
+ markerTransform.rotation.set(0,0,0);
+ markerTransform.scale.set(w,h,d);
+ markerTransform.updateMatrix();
+ mesh.setMatrixAt(index,markerTransform.matrix);
+}
+function updateMapHighlights(){
+ selectablePlots=[];
+ for(let i=0;i<lots.length;i++){
+  const visible=lotMatches(i);
+  lots[i].plot.visible=visible;
+  if(visible)selectablePlots.push(lots[i].plot);
+  if(heatMode){
+   const shades={A:0xe4c65b,B:0x73b3e8,C:0x81c589,D:0x9ca6a9};
+   lots[i].plot.material.color.setHex(shades[zone(i).grade]);
+  }else{
+   const o=state.lots[i].owner;
+   lots[i].plot.material.color.setHex(o==='npc'?0xa6a88f:o==='me'?(state.lots[i].price?0xc0ae6e:0x659ca0):zone(i).grade==='A'?0xa4c08c:zone(i).grade==='B'?0x92b47f:zone(i).grade==='C'?0x84ab74:0x79a467);
+  }
+ }
+ for(let r=0;r<5;r++){
+  const mesh=rarityBorders[r];let n=0;
+  for(const i of rarityBuckets[r]){
+   if(!lotMatches(i))continue;
+   const {x,z}=lots[i];
+   const thick=r===4?.43:r===3?.35:.23,y=.238;
+   instanceAt(mesh,n++,x,y,z-6.04,13.15,.07,thick);
+   instanceAt(mesh,n++,x,y,z+6.04,13.15,.07,thick);
+   instanceAt(mesh,n++,x-6.54,y,z,thick,.07,12.12);
+   instanceAt(mesh,n++,x+6.54,y,z,thick,.07,12.12);
+  }
+  mesh.count=n;mesh.instanceMatrix.needsUpdate=true;
+ }
+ for(const grade of ['A','B','C']){
+  const mesh=zoneGems[grade];let n=0;
+  for(const i of zoneBuckets[grade]){
+   if(!lotMatches(i))continue;
+   const {x,z}=lots[i];
+   instanceAt(mesh,n++,x+4.2,1.65,z-4.2,grade==='A'?1.45:1.12,grade==='A'?2:1.6,grade==='A'?1.45:1.12);
+  }
+  mesh.count=n;mesh.instanceMatrix.needsUpdate=true;
+ }
+ let n=0;
+ for(const i of rarityBuckets[4]){
+  if(!lotMatches(i))continue;
+  const {x,z}=lots[i];
+  instanceAt(legendaryGems,n++,x-4.1,2.25,z+3.9,1.4,2.1,1.4);
+ }
+ legendaryGems.count=n;legendaryGems.instanceMatrix.needsUpdate=true;
+ if(selected>=0&&!lotMatches(selected))selected=-1;
+}
+const filterInput=document.getElementById('rarityFilter');
+filterInput.onchange=()=>{
+ plotFilter=filterInput.value;
+ updateMapHighlights();renderState();
+ status.textContent=selectablePlots.length+' terrenos no filtro. Selecione um lote para ver raridade, zona e preço.';
+};
+const heatButton=document.getElementById('heatToggle');
+heatButton.onclick=()=>{
+ heatMode=!heatMode;
+ heatButton.classList.toggle('active',heatMode);
+ heatButton.setAttribute('aria-pressed',heatMode?'true':'false');
+ heatButton.textContent=heatMode?'🌡️ Mapa de valor: ligado':'🌡️ Mapa de valor: desligado';
+ updateMapHighlights();renderState();
+ status.textContent=heatMode?'Mapa de valor: amarelo A, azul B, verde C, cinza D.':'Visualização de valor desligada.';
+};
+updateMapHighlights();
 function house(id,kind){
  const {x,z}=lots[id],group=new THREE.Group();group.position.set(x,.45,z);scene.add(group);
  const facade=mat(state.lots[id].color||'#e3e1d4'),trim=mat('#f4eee2'),concrete=mat('#b7b6ae'),glass=mat('#397c9b'),frames=mat('#243b4c'),wood=mat('#875c3e'),plants=mat('#3d8755'),metal=mat('#485766');
@@ -302,7 +423,7 @@ function renderState(){
  document.getElementById('balance').textContent=fmt(state.balance)+' IU$';
  for(let i=0;i<1000;i++){
   const l=state.lots[i],p=lots[i];
-  p.plot.material.color.setHex(l.owner==='npc'?0xa6a88f:l.owner==='me'?(l.price?0xc0ae6e:0x659ca0):zone(i).grade==='A'?0xa4c08c:zone(i).grade==='B'?0x92b47f:zone(i).grade==='C'?0x84ab74:0x79a467);
+  // Cor por propriedade (ou mapa de calor) atualizada em updateMapHighlights.
   p.plot.scale.y=selected===i?2:1;
   if(p.building&&p.building.userData.kind!==l.building){scene.remove(p.building);p.building=null}
   if(l.building&&!p.building){p.building=house(i,l.building);p.building.userData.kind=l.building}
@@ -316,7 +437,7 @@ function renderState(){
  }
  const l=state.lots[selected],name='#'+String(selected+1).padStart(3,'0');
  panelTitle.textContent='📍 Terreno '+name;
- desc.textContent=area(selected).toLocaleString('pt-BR')+' m² · '+lotShape(selected)+' · '+rarityNames[rarityIndex(selected)]+' · Zona '+zoneDescription(selected)+' · '+
+ desc.textContent=area(selected).toLocaleString('pt-BR')+' m² · '+lotShape(selected)+' · Raridade: '+rarityNames[rarityIndex(selected)]+' · Zona '+zoneDescription(selected)+' · Valor de referência: '+fmt(cost(selected))+' IU$ · '+
  (l.owner==='free'?'Disponível · '+fmt(cost(selected))+' IU$':l.owner==='npc'?'Outro proprietário':'Seu terreno'+(l.building?' · Construído: '+l.building:' · Sem construção')+(l.price?' · À venda por '+fmt(l.price):''));
  function btn(label,fn,alt=false,disabled=false){
   const b=document.createElement('button');b.textContent=label;if(alt)b.className='alt';
@@ -329,7 +450,7 @@ function renderState(){
   const price=cost(selected),insufficient=state.balance<price;
   btn(insufficient?'Comprar · faltam '+fmt(price-state.balance)+' IU$':'Comprar · '+fmt(price)+' IU$',()=>{
    if(state.balance<cost(selected)){status.textContent='Saldo insuficiente.';return}
-   state.balance-=cost(selected);l.owner='me';save();renderState();
+   state.balance-=cost(selected);l.owner='me';save();updateMapHighlights();renderState();
    status.textContent='Terreno comprado. Agora escolha a construção.';
   },false,insufficient);
  }
@@ -350,13 +471,13 @@ function renderState(){
    const inp=document.createElement('input');inp.type='number';inp.value=String(cost(selected)*2);actions.append(inp);
    btn('Anunciar',()=>{
     const v=Number(inp.value);if(!Number.isSafeInteger(v)||v<1000||v>1e7){status.textContent='Informe um preço válido para o anúncio.';return}
-    l.price=v;save();renderState();status.textContent='Terreno anunciado por '+fmt(v)+' IU$.';
+    l.price=v;save();updateMapHighlights();renderState();status.textContent='Terreno anunciado por '+fmt(v)+' IU$.';
    },true);
   }else{
    btn('Simular venda (apenas neste aparelho)',()=>{
-    state.balance+=l.price;l.owner='npc';l.price=0;save();renderState();
+    state.balance+=l.price;l.owner='npc';l.price=0;save();updateMapHighlights();renderState();
    },true);
-   btn('Retirar anúncio',()=>{l.price=0;save();renderState()});
+   btn('Retirar anúncio',()=>{l.price=0;save();updateMapHighlights();renderState()});
   }
  }
 }
@@ -378,7 +499,7 @@ canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;e.
  yaw+=twist*.95;
  }gesture=now;
  }else{const pts=[...touches.values()];const prev=old;const dx=e.clientX-prev.x,dy=e.clientY-prev.y;const f=distance*.0018;target.x-=dx*Math.cos(yaw)*f;target.z+=dy*f;gesture=null}updateCam()});
-canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(lots.map(l=>l.plot))[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
+canvas.addEventListener('pointerup',e=>{if(touches.size===1&&down&&!down.moved&&!wasGesture){const rect=canvas.getBoundingClientRect();pointer.x=(e.clientX-rect.left)/rect.width*2-1;pointer.y=-(e.clientY-rect.top)/rect.height*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(selectablePlots)[0];if(hit){selected=hit.object.userData.id;renderState()}}touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('pointercancel',e=>{touches.delete(e.pointerId);gesture=measure();down=null;if(touches.size===0)wasGesture=false});
 canvas.addEventListener('wheel',e=>{e.preventDefault();distance*=e.deltaY>0?1.1:.9;updateCam()},{passive:false});
 document.getElementById('resetview').onclick=()=>{yaw=.7;pitch=.83;distance=720;target.set(65,0,95);updateCam()};
@@ -388,9 +509,9 @@ document.getElementById('myLots').onclick=()=>{
  for(let i=0;i<state.lots.length;i++)if(state.lots[i].owner==='me')owned.push(i);
  if(!owned.length){status.textContent='Você ainda não possui terrenos. Selecione um terreno disponível para comprar.';return}
  myLotCursor=(myLotCursor+1)%owned.length;
- selected=owned[myLotCursor];target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
+ selected=owned[myLotCursor];if(!lotMatches(selected)){plotFilter='all';filterInput.value='all';updateMapHighlights()}target.set(lots[selected].x,0,lots[selected].z);distance=105;updateCam();
  status.textContent='Seu terreno #'+String(selected+1).padStart(3,'0')+' · '+(state.lots[selected].building?'Já construído':'Disponível para construir');
  renderState();
 };
-renderState();if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';loading.remove();function animate(){requestAnimationFrame(animate);renderer.render(scene,camera)}animate();
+renderState();if(testCreditApplied)status.textContent='✅ Crédito de teste: +1.000.000 IU$ adicionado ao saldo deste navegador (apenas uma vez).';loading.remove();function animate(t){requestAnimationFrame(animate);legendaryGlow.emissiveIntensity=.65+.36*Math.sin(t*.0025);renderer.render(scene,camera)}animate(0);
 </script></body></html>
