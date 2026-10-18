@@ -991,10 +991,29 @@ parkPalette.umbrellaBlue=mat(0x6cacc1);
 parkPalette.beachTeak=mat(0x9b7c58);
 parkPalette.beachFabric=mat(0xf7e7cd);
 parkPalette.beachFabricBlue=mat(0x6fa9be);
+// Materiais quentes e detalhes inspirados nas referências de orla.
+parkPalette.kioskWood=mat(0x9d6948);
+parkPalette.kioskLightWood=mat(0xc89b6e);
+parkPalette.kioskCounter=mat(0xe8d5b6);
+parkPalette.kioskRoof=mat(0x566d73);
+parkPalette.kioskWhite=mat(0xf4efe0);
+parkPalette.kioskTile=mat(0xdab991);
+parkPalette.kioskFlowers=mat(0xda6c62);
+parkPalette.kioskGlass=mat(0x78b3c0);
+for(const key of ['umbrellaCoral','umbrellaCream','umbrellaBlue']){
+ parkPalette[key].side=THREE.DoubleSide;
+ parkPalette[key].vertexColors=true;
+}
+function pu(name,x,y,z,r){parkPiece('umbrella',name,x,y,z,r,1,r)}
 function beachUmbrella(x,z,tone){
- pc('beachTeak',x,1.42,z,.082,2.55);
- pn(tone,x,2.85,z,1.65,.76);
- pc('beachTeak',x,2.42,z,.16,.12);
+ pc('beachTeak',x,1.47,z,.085,2.62);
+ pu(tone,x,2.96,z,1.90);
+ pc('kioskWood',x,2.99,z,.13,.22);
+ for(let j=0;j<8;j++){
+  const a=j*Math.PI/4;
+  const xx=x+Math.sin(a)*.83,zz=z+Math.cos(a)*.83;
+  pb('kioskLightWood',xx,2.74,zz,.045,.05,1.62,a);
+ }
 }
 function beachLounger(x,z,tone='beachFabric',yaw=0){
  pb('beachTeak',x,.23,z,.92,.12,2.22,yaw);
@@ -1055,11 +1074,37 @@ for(let i=0;i<78;i++){
  if(i%5===0)ps('rock',x,.01,zz,.34+(i%3)*.13,.14,.30);
 }
 
+// Toldo segmentado com leve curvatura, bainha ondulada e faixas de tecido.
+function makeBeachParasolGeometry(){
+ const p=[],co=[],ind=[];
+ function add(a,b,c,shade){
+  const idx=p.length/3;
+  p.push(...a,...b,...c);
+  for(let n=0;n<3;n++)co.push(shade,shade,shade);
+  ind.push(idx,idx+1,idx+2);
+ }
+ const sectors=12;
+ for(let k=0;k<sectors;k++){
+  const a=k/sectors*Math.PI*2,b=(k+1)/sectors*Math.PI*2;
+  const v=(ang,r,y)=>[Math.sin(ang)*r,y,Math.cos(ang)*r];
+  const tone=k%3===0?.92:k%3===1?1.04:.97;
+  const mid=(a+b)/2;
+  add(v(mid,0,.45),v(a,.65,.19),v(b,.65,.19),tone);
+  add(v(a,.65,.19),v(a,1,-.10),v(b,1,-.10),tone*.99);
+  add(v(a,.65,.19),v(b,1,-.10),v(b,.65,.19),tone*.99);
+  add(v(a,1,-.10),v(mid,1.02,-.20),v(b,1,-.10),tone*.87);
+ }
+ const g=new THREE.BufferGeometry();
+ g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
+ g.setAttribute('color',new THREE.Float32BufferAttribute(co,3));
+ g.setIndex(ind);g.computeVertexNormals();return g;
+}
 const parkShapeGeometry={
  box:new THREE.BoxGeometry(1,1,1),
  cyl:new THREE.CylinderGeometry(1,1,1,10),
  sphere:new THREE.IcosahedronGeometry(1,1),
- cone:new THREE.ConeGeometry(1,1,9)
+ cone:new THREE.ConeGeometry(1,1,9),
+ umbrella:makeBeachParasolGeometry()
 };
 const parkTransform=new THREE.Object3D();
 const publicParkMeshes=[];
