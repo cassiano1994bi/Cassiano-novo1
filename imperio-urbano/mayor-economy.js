@@ -84,7 +84,7 @@ export class MayorEconomy{
    this.move('regional',businessId,30000,'Capital de giro de empresa já existente');
    s.companies.push({id:businessId,plot:i,kind:model,investor:null,sector:CITY_MODELS[model].type,
     workers:CITY_MODELS[model].jobs,capacity:CITY_MODELS[model].capacity,revenue:0,expenses:0,
-    profit:0,age:0,active:true,initialLegacy:true});
+    profit:0,age:0,active:true,stock:0,initialLegacy:true});
    oldSeed++;
   }
   this.news('Prefeitura assume a administração de Nova Jundiaí. O patrimônio anterior foi preservado.');
@@ -287,7 +287,7 @@ export class MayorEconomy{
     const capital=money(Math.min(p.reserve,this.account(p.owner)));
     if(capital>0)this.move(p.owner,id,capital,'Capital de giro na inauguração');
     this.s.companies.push({id,plot:p.plot,kind:p.kind,investor:p.owner,sector:model.type,
-      workers:model.jobs,capacity:model.capacity,age:0,revenue:0,expenses:0,profit:0,active:true,
+      workers:model.jobs,capacity:model.capacity,age:0,revenue:0,expenses:0,profit:0,stock:0,active:true,
       initialLegacy:false});
     const investor=this.s.investors.find(i=>i.id===p.owner);
     this.s.plots[p.plot].model=model.model;
@@ -347,6 +347,18 @@ export class MayorEconomy{
    const received=Math.min(income,this.account('regional'));
    if(received&&this.move('regional',h.id,received,'Salários de empregos regionais e remessas externas'))h.income+=received;
   }
+  // Estoques reais: mercadorias só entram após pagamento a fornecedores regionais.
+  // O valor de estoque representa vendas possíveis (markup médio de 35%).
+  for(const c of active.filter(c=>c.sector==='retail')){
+   if(!Number.isFinite(c.stock))c.stock=0;
+   const capacity=Math.max(1400,CITY_MODELS[c.kind].jobs*120);
+   const shortage=Math.max(0,capacity-c.stock);
+   const procurement=Math.min(this.account(c.id),money(shortage/1.35),CITY_MODELS[c.kind].jobs*58);
+   if(procurement>0&&this.move(c.id,'regional',procurement,'Reposição de estoque: '+CITY_MODELS[c.kind].name)){
+    c.stock=Math.min(capacity,c.stock+money(procurement*1.35));
+    c.expenses+=procurement;
+   }
+  }
   // Consumo agregado com concorrência. Residentes sem lojas importam do comércio regional.
   for(const h of s.households){
    const cash=this.account(h.id);
@@ -356,19 +368,26 @@ export class MayorEconomy{
    const here=shops.filter(c=>Math.abs(this.district(c.plot)-h.district)<=1);
    const citySpend=here.length?money(spending*.82):0;
    const importSpend=spending-citySpend;
-   if(importSpend)this.move(h.id,'regional',importSpend,'Compra de produtos importados / serviços regionais');
+   // Vendas locais divididas pela oferta real; nenhuma loja vende estoque inexistente.
+   let sold=0;
    if(here.length){
-    const size=here.reduce((a,c)=>a+Math.max(1,CITY_MODELS[c.kind].jobs),0);
-    let remaining=citySpend;
+    const weights=here.map(c=>Math.max(1,CITY_MODELS[c.kind].jobs)*clamp(
+      1-(here.filter(other=>other.kind===c.kind).length-1)*.12,.35,1));
+    const weightSum=weights.reduce((a,b)=>a+b,0);
+    const planned=here.map((c,i)=>i===here.length-1?citySpend:
+     money(citySpend*weights[i]/weightSum));
     for(let i=0;i<here.length;i++){
-     const c=here[i],share=i===here.length-1?remaining:
-      money(citySpend*Math.max(1,CITY_MODELS[c.kind].jobs)/size);
-     const amount=Math.min(remaining,share);remaining-=amount;
+     const c=here[i],allocation=i===here.length-1?Math.max(0,citySpend-sold):planned[i];
+     const amount=Math.min(Math.max(0,citySpend-sold),allocation,
+      c.sector==='retail'?Math.max(0,c.stock||0):citySpend);
      if(amount&&this.move(h.id,c.id,amount,'Consumo de famílias na empresa '+CITY_MODELS[c.kind].name)){
-      c.revenue+=amount;
+      c.revenue+=amount;sold+=amount;
+      if(c.sector==='retail')c.stock-=amount;
      }
     }
    }
+   const external=spending-sold;
+   if(external)this.move(h.id,'regional',external,'Consumo regional quando comércio local não atende à demanda');
    h.expenses+=spending;
   }
   // Turismo e exportações têm origem regional documentada, limitadas por capacidade.
