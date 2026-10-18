@@ -55,7 +55,7 @@ if(requestTestCredit==='1milhao'&&!state.creditoTeste1MV73){
 // O saldo nunca e recalculado a partir do desenho do mapa. Backup de patrimonio antes das operacoes.
 try{if(!localStorage.getItem(KEY+'_snapshot_v63'))localStorage.setItem(KEY+'_snapshot_v63',JSON.stringify(state))}catch{}
 const colors=['#e3e1d4','#f4a261','#f28482','#8ecae6','#a8dadc','#b8a0d9','#f6d365','#91c788','#fafafa','#5e7083'];
-const save=()=>{try{const prior=localStorage.getItem(KEY);if(prior)localStorage.setItem(KEY+'_previous',prior);localStorage.setItem(KEY,JSON.stringify(state))}catch{}};const fmt=n=>Math.round(n).toLocaleString('pt-BR');const rarityNames=['Comum','Incomum','Raro','Épico','Lendário'];
+const save=()=>{try{const prior=localStorage.getItem(KEY);if(prior)localStorage.setItem(KEY+'_previous',prior);localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){status.textContent='Erro ao salvar progresso no navegador.';return false}};const fmt=n=>Math.round(n).toLocaleString('pt-BR');const rarityNames=['Comum','Incomum','Raro','Épico','Lendário'];
 const rarityColors=['#c2c7c7','#4bdd78','#45a8ff','#b06aff','#ffd04a'];
 const rarityIndex=i=>{const n=(i*37+11)%100;return n<2?4:n<10?3:n<25?2:n<50?1:0};
 const area=i=>{const r=rarityIndex(i),n=(i*17+7)%100;return r===4?1200+n*8:r===3?650+n*3:r===2?420+n*3:r===1?220+n*2:120+n};
@@ -71,6 +71,35 @@ function zone(i){
  return {grade:'D',name:'Expansão urbana',factor:1};
 }
 const cost=i=>Math.round(baseCost(i)*zone(i).factor/100)*100;
+
+const BUILD_MODELS=[
+ {id:'house_popular',type:'casa',name:'Casa Popular',base:7000,min:0,zones:null,desc:'1 pavimento · telhado simples'},
+ {id:'house_padrao',type:'casa',name:'Casa Padrão',base:10000,min:0,zones:null,desc:'Garagem · varanda familiar'},
+ {id:'house_premium',type:'casa',name:'Casa Premium',base:16000,min:1,zones:['A','B','C'],desc:'2 pavimentos · terraço e vidro'},
+ {id:'house_luxo',type:'casa',name:'Casa de Luxo',base:28000,min:2,zones:['A','B'],desc:'Residência nobre · piscina'},
+ {id:'predio_compacto',type:'predio',name:'Residencial Compacto',base:18000,min:0,zones:null,desc:'3 pavimentos · entrada compacta'},
+ {id:'predio_urbano',type:'predio',name:'Residencial Urbano',base:26000,min:1,zones:null,desc:'5 pavimentos · fachada urbana'},
+ {id:'predio_premium',type:'predio',name:'Prédio Premium',base:38000,min:1,zones:['A','B','C'],desc:'6 pavimentos · varandas'},
+ {id:'torre_nobre',type:'predio',name:'Torre Nobre',base:55000,min:2,zones:['A','B','C'],desc:'8 pavimentos · alto padrão'},
+ {id:'torre_luxo',type:'predio',name:'Torre de Luxo',base:85000,min:2,zones:['A','B'],desc:'10 pavimentos · terraço panorâmico'}
+];
+const BUILD_BY_ID=Object.fromEntries(BUILD_MODELS.map(m=>[m.id,m]));
+const BUILD_RARITY_PRICE=[1,1.08,1.18,1.30,1.50];
+const normalizeBuilding=id=>id==='casa'?'house_padrao':id==='predio'?'predio_urbano':id;
+const buildingDefinition=id=>BUILD_BY_ID[normalizeBuilding(id)]||null;
+const buildingPrice=(i,id)=>{
+ const model=buildingDefinition(id);
+ return model?Math.round(model.base*BUILD_RARITY_PRICE[rarityIndex(i)]/100)*100:0;
+};
+function buildingRestriction(i,id){
+ const model=buildingDefinition(id);
+ if(!model)return 'Modelo indisponível.';
+ if(rarityIndex(i)<model.min)return 'Exige terreno '+rarityNames[model.min]+' ou superior.';
+ if(model.zones&&!model.zones.includes(zone(i).grade))return 'Disponível apenas nas zonas '+model.zones.join('/')+'.';
+ return '';
+}
+const buildingLabel=id=>buildingDefinition(id)?.name||'Construção existente';
+
 const zoneDescription=i=>zone(i).grade+' — '+zone(i).name+' · '+Math.round(zone(i).factor*100)+'% do valor-base';
 // Planta-mestra v6: cinco bairros de 200 lotes, parque central e orla paisagistica.
 // Todos os IDs continuam estaveis; a economia permanece no armazenamento existente.
