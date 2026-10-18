@@ -72,6 +72,9 @@ export function mountMayorUI(engine,ctx){
   const active=s.companies.filter(c=>c.active);
   return header('Investidores que decidem sozinhos')+
    '<p>Os agentes avaliam impostos, demanda, capital, concorrência e zoneamento. Não há lucros garantidos.</p>'+
+   header('Empresas em atividade')+
+   (active.slice(0,20).map(c=>'<div class="mayorItem"><b>'+esc(CITY_MODELS[c.kind].name)+' · lote #'+(c.plot+1)+'</b><small>Receita '+fmt(c.revenue)+' IU$ · Lucro '+fmt(c.profit)+' IU$ · Empregos '+c.workers+(c.sector==='retail'?' · Estoque '+fmt(c.stock||0)+' IU$':'')+'</small></div>').join('')||'<p>Nenhuma empresa ainda.</p>')+
+   header('Capital dos investidores')+
    s.investors.map(i=>{
     const owned=s.plots.filter(p=>p.holder===i.id).length;
     const companies=active.filter(c=>c.investor===i.id).length;
@@ -218,7 +221,7 @@ export function mountMayorUI(engine,ctx){
    lot.holder==='free'?'Lote disponível para investidores':
    'Propriedade de '+(holder?.name||lot.holder);
   const detail=work?' · Construção: '+CITY_MODELS[work.kind].name+' · '+work.status+' · '+Math.round(work.elapsed/work.days*100)+'%':
-   company?' · '+CITY_MODELS[company.kind].name+(company.active?' em operação':' fechada'):
+   company?' · '+CITY_MODELS[company.kind].name+(company.active?' em operação':' fechada')+' · receita '+fmt(company.revenue)+' IU$'+(company.sector==='retail'?' · estoque '+fmt(company.stock||0)+' IU$':''):
    lot.model?' · Construção existente':'';
   lotBox.hidden=false;
   lotBox.innerHTML='<button type="button" id="mayorLotClose" aria-label="Fechar">✕</button><b>📍 Lote #'+
