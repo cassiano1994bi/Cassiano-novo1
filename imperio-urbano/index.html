@@ -73,6 +73,7 @@ header small{font-size:11px}
 <button id="myLots">🏠 Meus terrenos</button>
 <button id="parksJump" type="button">🌳 Parques</button>
 <button id="landscapeView" type="button">↔️ Tela horizontal</button>
+<button id="seaView" type="button">🌅 Olhar para o mar</button>
 </div></div><div id="maptools" aria-label="Destaques imobiliários"><button class="map-toggle" id="mapToggle" type="button" aria-expanded="false">💠 Terrenos e filtros ▾</button><div class="map-contents"><div id="graphicNotice">🧱 Preparando modelos 3D</div>
 <select id="rarityFilter" aria-label="Filtrar terrenos">
 <option value="all">🗺️ Todos os terrenos</option>
@@ -2675,7 +2676,12 @@ function renderState(){
   }
  }
 }
-let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}function resize(){const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);if(typeof ResizeObserver!=='undefined')new ResizeObserver(resize).observe(stage);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
+let yaw=.7,pitch=.83,distance=720,target=new THREE.Vector3(65,0,95);function updateCam(){pitch=THREE.MathUtils.clamp(pitch,.08,1.56);distance=THREE.MathUtils.clamp(distance,18,1700);camera.position.set(target.x+distance*Math.sin(pitch)*Math.sin(yaw),distance*Math.cos(pitch),target.z+distance*Math.sin(pitch)*Math.cos(yaw));camera.lookAt(target)}document.getElementById('seaView').onclick=()=>{
+ target.set(95,15,-310);yaw=0;pitch=1.38;distance=480;
+ updateCam();setQuickMenu(false);setPanelExpanded(false);
+ showViewToast('🌅 Vista do mar: o sol e a lua aparecem sobre o horizonte.');
+};
+function resize(){const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}window.addEventListener('resize',resize);if(typeof ResizeObserver!=='undefined')new ResizeObserver(resize).observe(stage);resize();updateCam();let touches=new Map(),gesture=null,wasGesture=false,down=null;
 const canvas=renderer.domElement;
 const measure=()=>{const p=[...touches.values()];if(p.length<2)return null;const a=p[0],b=p[1];return {mx:(a.x+b.x)/2,my:(a.y+b.y)/2,span:Math.max(12,Math.hypot(a.x-b.x,a.y-b.y)),angle:Math.atan2(b.y-a.y,b.x-a.x)}};
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===1){if(!wasGesture)down={x:e.clientX,y:e.clientY,moved:false}}else{wasGesture=true;down=null;gesture=measure()}});
