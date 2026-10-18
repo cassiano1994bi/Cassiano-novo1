@@ -1074,6 +1074,104 @@ for(let i=0;i<78;i++){
  if(i%5===0)ps('rock',x,.01,zz,.34+(i%3)*.13,.14,.30);
 }
 
+// v9.4 — Arquitetura da faixa costeira (estrutura real e não imagem 2D):
+// cinco quiosques abertos, pergolados, floreiras e postes com lanternas.
+function tropicalKiosk(x,z,style){
+ const roofTone=style%2?'kioskRoof':'kioskWood';
+ // Deck levemente elevado e tábuas marcadas.
+ pb('kioskTile',x,.19,z,9.4,.32,8.3);
+ for(let j=0;j<13;j++)pb('kioskLightWood',x-4.2+j*.70,.39,z, .045,.022,7.9);
+ for(const xx of [-3.35,3.35])for(const zz of [-2.95,2.95]){
+  pb('kioskWood',x+xx,1.95,z+zz,.28,3.10,.28);
+  pb('kioskCounter',x+xx,3.55,z+zz,.37,.27,.37);
+ }
+ // Fachada traseira, ripas, beiral e cobertura de duas águas.
+ pb('kioskWood',x,1.53,z+2.95,6.95,2.48,.20);
+ for(let j=0;j<12;j++){
+  const xx=x-3.0+j*.55;
+  pb('kioskLightWood',xx,1.75,z+3.08,.18,2.65,.16);
+ }
+ pb('kioskCounter',x,1.09,z-2.90,6.28,.19,.83);
+ pb('kioskWood',x,.62,z-2.89,6.07,.92,.23);
+ pb('kioskLightWood',x,2.61,z-2.95,7.10,.26,.24);
+ pb('kioskWood',x,4.45,z,7.75,.23,.36);
+ for(const side of [-1,1]){
+  pb(roofTone,x+side*1.85,3.83,z,4.09,.23,7.55,0,-side*.32);
+  pb('kioskWood',x+side*3.65,2.95,z,.20,.28,7.52);
+  pb('kioskWood',x+side*3.80,2.40,z,.18,1.02,7.50);
+ }
+ for(const xx of [-2.4,0,2.4])pb('kioskWood',x+xx,3.42,z,.14,.12,7.5);
+ // Balcão, prateleiras, copos e lanternas com brilho noturno.
+ for(const side of [-2.1,0,2.1]){
+  pc('kioskCounter',x+side,1.33,z-2.85,.16,.25);
+  pb('kioskGlass',x+side,1.55,z-2.85,.27,.20,.25);
+  pc('kioskWood',x+side,2.84,z-2.8,.09,.34);
+  ps('lamp',x+side,2.58,z-2.8,.24,.30,.24);
+ }
+ for(const xx of [-2.55,2.55]){
+  pb('kioskWood',x+xx,1.73,z-2.96,.26,1.10,.26);
+  pb('kioskCounter',x+xx,2.28,z-2.96,.31,.23,.32);
+ }
+ // Mesas e bancos virados para a praia.
+ for(let i=0;i<3;i++){
+  const xx=x+(i-1)*2.25;
+  pc('kioskWood',xx,.64,z-4.42,.22,1.1);
+  pc('kioskCounter',xx,1.23,z-4.42,.82,.17);
+  pc('kioskWood',xx,.42,z-5.32,.24,.62);
+  pc('kioskCounter',xx,.75,z-5.32,.50,.14);
+ }
+ for(const side of [-1,1]){
+  parkFlowerBed(x+side*4.03,z+.7,1.15,3.45,style);
+  ps('tree2',x+side*4.08,.93,z+2.50,.61,.62,.66);
+ }
+ parkBulbSpots.push({x,z:z-2.9});
+}
+for(const [i,x] of [-254,-82,90,260,422].entries()){
+ tropicalKiosk(x,lakeNear(x)+12.3,i);
+}
+// Lanternas de ferro ao longo do calçadão (acesas durante o ciclo noturno).
+function coastalLantern(x,z){
+ pb('rock',x,.37,z,.84,.25,.84);
+ pb('metal',x,2.22,z,.13,3.85,.13);
+ pb('metal',x,4.12,z,.75,.14,.75);
+ pb('metal',x,4.75,z,.55,.14,.55);
+ for(const side of [-1,1]){
+  pb('metal',x+side*.26,4.44,z,.06,.56,.06);
+  pb('metal',x,4.44,z+side*.26,.06,.56,.06);
+ }
+ pb('lamp',x,4.44,z,.50,.42,.50);
+ pn('metal',x,4.95,z,.43,.35);
+ parkBulbSpots.push({x,z});
+}
+for(let x=-337;x<=470;x+=51)coastalLantern(x,-36.10);
+// Pequenos canteiros floridos e trechos de jardim na faixa verde,
+// sem invadir vias nem qualquer um dos lotes negociáveis.
+for(let x=-322,i=0;x<=459;x+=49,i++){
+ parkFlowerBed(x,-25.45,3.65,1.72,i);
+ for(const side of [-1,1]){
+  ps('tree1',x+side*2.20,.61,-25.45,.40,.51,.43);
+ }
+}
+function seasidePergola(x,z){
+ for(const xx of [-3,3])for(const zz of [-2.2,2.2])
+  pb('kioskWood',x+xx,1.76,z+zz,.21,2.9,.21);
+ for(let j=0;j<11;j++)
+  pb('kioskLightWood',x-3.1+j*.62,3.27,z,.20,.22,5.35);
+ for(const zz of [-2.2,2.2])pb('kioskWood',x,3.16,z+zz,6.55,.25,.22);
+ pb('kioskTile',x,.21,z,7.4,.22,5.5);
+ parkBench(x-1.50,z-.75);parkBench(x+1.50,z+.74);
+ for(const xx of [-3.25,3.25])parkFlowerBed(x+xx,z,1.2,2.60,3);
+}
+for(const x of [-360,-183,-4,184,352])seasidePergola(x,lakeNear(x)+14.1);
+// Apoios dos decks sobre a água com peças de madeira e lanternas.
+for(const x of [-228,242]){
+ const z=lakeNear(x)-17;
+ for(const dx of [-1.85,1.85]){
+  pb('kioskWood',x+dx,.78,z,.16,1.1,.18);
+  ps('lamp',x+dx,1.42,z,.23,.27,.23);
+ }
+ parkBulbSpots.push({x,z});
+}
 // Toldo segmentado com leve curvatura, bainha ondulada e faixas de tecido.
 function makeBeachParasolGeometry(){
  const p=[],co=[],ind=[];
