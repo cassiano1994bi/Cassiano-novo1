@@ -364,6 +364,10 @@ updateMapHighlights();
 const buildingUnitBox=new THREE.BoxGeometry(1,1,1);
 const buildingShrubGeometry=new THREE.IcosahedronGeometry(1,1);
 const buildingMaterialCache=new Map();
+const daylightWindowColor=new THREE.Color(0x7cbbd1);
+const nightWindowColor=new THREE.Color(0xffd38c);
+const nightFogColor=new THREE.Color(0x08182e);
+const dayFogColor=new THREE.Color(0xa5c9df);
 function buildingMat(color,rough=.8,metal=.02,glow=0){
  const key=color+'_'+rough+'_'+metal+'_'+glow;
  if(!buildingMaterialCache.has(key))buildingMaterialCache.set(key,
@@ -371,6 +375,9 @@ function buildingMat(color,rough=.8,metal=.02,glow=0){
    emissive:glow?new THREE.Color(color).multiplyScalar(glow):0x000000}));
  return buildingMaterialCache.get(key);
 }
+const litWindowMaterial=buildingMat('#7cbbd1',.23,.08);
+const unlitWindowMaterial=buildingMat('#4e7e9a',.32,.08);
+const porchLampMaterial=buildingMat('#e4d8a9',.33,.03);
 function house(id,kind){
  const model=buildingDefinition(kind)||BUILD_BY_ID.house_padrao;
  const {x,z}=lots[id],group=new THREE.Group();
@@ -403,21 +410,22 @@ function house(id,kind){
  }
  function frontWindow(px,py,pz,w=1.28,h=1.30){
   add(w+.20,h+.20,.13,px,py,pz,charcoal);
-  add(w,h,.16,px,py,pz+.10,glass);
+  add(w,h,.16,px,py,pz+.10,Math.abs(Math.round(px*13+py*9))%4===0?unlitWindowMaterial:litWindowMaterial);
   add(.075,h,.20,px,py,pz+.21,whiteMat);
   add(w,.07,.20,px,py,pz+.21,whiteMat);
   add(w+.35,.15,.36,px,py-h/2-.12,pz+.20,sandStone);
  }
  function sideWindow(px,py,pz,w=1.12,h=1.3){
   add(.14,h+.17,w+.18,px,py,pz,charcoal);
-  add(.18,h,w,px+.08,py,pz,glass);
+  add(.18,h,w,px+.08,py,pz,Math.abs(Math.round(py*7+pz*11))%3===0?unlitWindowMaterial:litWindowMaterial);
   add(.2,h,.07,px+.20,py,pz,whiteMat);
  }
  function entry(px,pz,height=2.22){
   add(1.60,height,.14,px,height/2+.18,pz,charcoal);
   add(1.36,height-.23,.18,px,height/2+.18,pz+.12,wood);
   add(.07,.15,.20,px+.46,1.20,pz+.25,gold);
-  add(.46,.15,.18,px,height+0.23,pz+.17,warm);
+  add(.46,.15,.18,px,height+0.23,pz+.17,porchLampMaterial);
+  for(const side of [-.98,.98])add(.20,.26,.23,px+side,1.95,pz+.28,porchLampMaterial);
   add(1.9,.12,1.08,px,.12,pz+.75,paving);
  }
  function flatRoof(w,d,height,x=0,z=0,material=slate){
