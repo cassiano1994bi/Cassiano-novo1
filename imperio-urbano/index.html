@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v8.0</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}#maptools{position:absolute;left:8px;top:8px;z-index:4;width:min(52%,228px);background:#132a41eF;border:1px solid #63829b;border-radius:12px;padding:8px;box-shadow:0 3px 16px #07152266;font-size:12px}#maptools select,#maptools button{width:100%;min-height:34px;margin-bottom:5px;padding:6px 7px;border:1px solid #65849a;border-radius:8px;color:#fff;background:#254762;font-size:12px}#maptools button.active{border-color:#f4ce62;color:#ffe29b;background:#374e53}#maptools summary{cursor:pointer;list-style-position:inside;font-weight:700;color:#dceaff;padding:3px 0}#maptools .legend-row{display:flex;align-items:center;gap:5px;margin:5px 0;color:#dfeaf2;line-height:1.35}#maptools .legend-swatch{width:12px;height:12px;border:2px solid;border-radius:3px;flex-shrink:0}#maptools .legend-gem{min-width:17px;text-align:center;font-weight:800;color:#ffd968}#maptools .legend-note{font-size:11px;line-height:1.35;color:#aabfd3;padding-top:5px;border-top:1px solid #465e70}#maptools option{color:#fff;background:#223a52}.build-dialog{max-height:calc(100% - 6px);overflow-y:auto}.build-models{display:grid;grid-template-columns:1fr;gap:7px;margin:10px 0}.build-model{width:100%;padding:10px;border:1px solid #58768d;border-radius:10px;background:#27445d;color:#eaf5fd;text-align:left;line-height:1.3}.build-model strong{display:block;font-size:14px}.build-model small{display:block;margin-top:3px;color:#c3d1dc;font-size:12px}.build-model.chosen{border-color:#51ebb4;background:#285469;box-shadow:inset 0 0 0 1px #51ebb4}.build-model.locked{opacity:.60;border-style:dashed;cursor:not-allowed}.build-model .model-price{color:#a7f0c7;font-weight:800;margin-top:4px}.build-model.locked .model-price{color:#bac6d0}.build-choice-intro{font-size:12px;color:#d1dfee;margin:8px 0}.build-status{font-size:12px;color:#ffe3aa;margin-bottom:8px}.build-bottom button:disabled{opacity:.5;cursor:not-allowed}#maptools{width:auto;max-width:min(70%,280px)}#maptools .map-contents{display:none}#maptools.open .map-contents{display:block}#maptools .map-toggle{width:auto;margin:0;background:#254762;padding:8px 11px;font-weight:700}#maptools.open{width:min(70%,260px)}#maptools.open .map-toggle{margin-bottom:7px}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v8.0</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><button id="myLots">🏠 Meus terrenos</button><div id="maptools" aria-label="Destaques imobiliários"><button class="map-toggle" id="mapToggle" type="button" aria-expanded="false">💠 Terrenos e filtros ▾</button><div class="map-contents">
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D v8.1</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:80px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 290px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}#maptools{position:absolute;left:8px;top:8px;z-index:4;width:min(52%,228px);background:#132a41eF;border:1px solid #63829b;border-radius:12px;padding:8px;box-shadow:0 3px 16px #07152266;font-size:12px}#maptools select,#maptools button{width:100%;min-height:34px;margin-bottom:5px;padding:6px 7px;border:1px solid #65849a;border-radius:8px;color:#fff;background:#254762;font-size:12px}#maptools button.active{border-color:#f4ce62;color:#ffe29b;background:#374e53}#maptools summary{cursor:pointer;list-style-position:inside;font-weight:700;color:#dceaff;padding:3px 0}#maptools .legend-row{display:flex;align-items:center;gap:5px;margin:5px 0;color:#dfeaf2;line-height:1.35}#maptools .legend-swatch{width:12px;height:12px;border:2px solid;border-radius:3px;flex-shrink:0}#maptools .legend-gem{min-width:17px;text-align:center;font-weight:800;color:#ffd968}#maptools .legend-note{font-size:11px;line-height:1.35;color:#aabfd3;padding-top:5px;border-top:1px solid #465e70}#maptools option{color:#fff;background:#223a52}.build-dialog{max-height:calc(100% - 6px);overflow-y:auto}.build-models{display:grid;grid-template-columns:1fr;gap:7px;margin:10px 0}.build-model{width:100%;padding:10px;border:1px solid #58768d;border-radius:10px;background:#27445d;color:#eaf5fd;text-align:left;line-height:1.3}.build-model strong{display:block;font-size:14px}.build-model small{display:block;margin-top:3px;color:#c3d1dc;font-size:12px}.build-model.chosen{border-color:#51ebb4;background:#285469;box-shadow:inset 0 0 0 1px #51ebb4}.build-model.locked{opacity:.60;border-style:dashed;cursor:not-allowed}.build-model .model-price{color:#a7f0c7;font-weight:800;margin-top:4px}.build-model.locked .model-price{color:#bac6d0}.build-choice-intro{font-size:12px;color:#d1dfee;margin:8px 0}.build-status{font-size:12px;color:#ffe3aa;margin-bottom:8px}.build-bottom button:disabled{opacity:.5;cursor:not-allowed}#maptools{width:auto;max-width:min(70%,280px)}#maptools .map-contents{display:none}#maptools.open .map-contents{display:block}#maptools .map-toggle{width:auto;margin:0;background:#254762;padding:8px 11px;font-weight:700}#maptools.open{width:min(70%,260px)}#maptools.open .map-toggle{margin-bottom:7px}.build-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom));background:#071929ed;touch-action:pan-y;overscroll-behavior:contain}.build-dialog{width:min(100%,440px);height:min(90dvh,760px);min-height:0;max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;background:#19314a;border:1px solid #5786a8;border-radius:16px;touch-action:pan-y}.build-dialog-head{padding:12px 14px 9px;flex:none;background:#19314a;border-bottom:1px solid #3b576f}.build-dialog-head h3{margin:0;font-size:17px}.build-back{float:right;padding:7px 10px;border:1px solid #7790a4;border-radius:9px;background:#2a435b;color:#fff;font-size:12px}.build-dialog-body{padding:12px 14px;min-height:0;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}.build-dialog-body h4{margin:2px 0 8px;font-size:14px}.build-dialog-footer{flex:none;background:#162d45;border-top:1px solid #4b6880;padding:10px 14px 12px}.build-dialog-footer .build-status{min-height:30px;margin:0 0 8px;line-height:1.3}.build-dialog-footer .build-bottom{display:flex;gap:8px;flex-wrap:nowrap}.build-dialog-footer .build-bottom button{min-width:0;flex:1;padding:12px 8px;font-size:13px}.build-dialog-footer .build-bottom .cancel{background:#c9d4df}.build-dialog-footer .build-bottom button:disabled{opacity:.5}.build-models{margin-bottom:12px}.build-choice-intro{clear:both}</style></head><body><header><div><h1>🏙️ IMPÉRIO URBANO 3D <span style="font-size:12px;color:#69e6a6">v8.1</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><button id="resetview">⌖ Cidade inteira</button><button id="myLots">🏠 Meus terrenos</button><div id="maptools" aria-label="Destaques imobiliários"><button class="map-toggle" id="mapToggle" type="button" aria-expanded="false">💠 Terrenos e filtros ▾</button><div class="map-contents">
 <select id="rarityFilter" aria-label="Filtrar terrenos">
 <option value="all">🗺️ Todos os terrenos</option>
 <option value="premium">💎 Só premium (A e B)</option>
@@ -264,7 +264,7 @@ for(let bi=0;bi<250;bi++){
   plot.userData.id=id;lots[id]={plot,x:xx,z:zz,building:null};
  }
 }
-// Sinalização v8.0: 5 batches de bordas, 3 batches de diamantes e brilhos lendários.
+// Sinalização v8.1: 5 batches de bordas, 3 batches de diamantes e brilhos lendários.
 // Só 9 draw calls extras em vez de milhares de objetos individuais.
 const rarityBuckets=Array.from({length:5},()=>[]),zoneBuckets={A:[],B:[],C:[]};
 for(let i=0;i<lots.length;i++){
@@ -463,74 +463,122 @@ function house(id,kind){
 // Construir precisa de confirmacao claramente visivel no celular.
 // A janela fica sobre a cena 3D, nao escondida abaixo do painel.
 
+
+let activeBuildDialog=false;
 function beginConstruction(id,type){
  const prop=state.lots[id];
- if(prop.owner!=='me'||prop.building){status.textContent='Selecione um terreno seu e vazio.';return}
+ if(activeBuildDialog)return;
+ if(!prop||prop.owner!=='me'||prop.building){
+  status.textContent='Selecione um terreno seu, sem construção, para começar outra obra.';return;
+ }
  const models=BUILD_MODELS.filter(m=>m.type===type);
- const overlay=document.createElement('div');overlay.className='build-overlay';overlay.setAttribute('role','dialog');
- overlay.setAttribute('aria-modal','true');
- const dialog=document.createElement('div');dialog.className='build-dialog';overlay.append(dialog);
- const title=document.createElement('h3');title.textContent=(type==='casa'?'🏠 Casas':'🏢 Prédios')+' · Terreno #'+String(id+1).padStart(3,'0');
- const intro=document.createElement('p');intro.textContent=rarityNames[rarityIndex(id)]+' · Zona '+zone(id).grade+' · Escolha um modelo.';
+ if(!models.length){status.textContent='Nenhum modelo disponível para este tipo.';return;}
+ activeBuildDialog=true;
+ const overlay=document.createElement('div');
+ overlay.className='build-overlay';overlay.setAttribute('role','presentation');
+ const dialog=document.createElement('div');
+ dialog.className='build-dialog';dialog.setAttribute('role','dialog');
+ dialog.setAttribute('aria-modal','true');
+ dialog.setAttribute('aria-label','Escolher construção do terreno #'+String(id+1).padStart(3,'0'));
+ overlay.append(dialog);
+ const head=document.createElement('div');head.className='build-dialog-head';
+ const title=document.createElement('h3');
+ title.textContent=(type==='casa'?'🏠 Casas':'🏢 Prédios')+' · Terreno #'+String(id+1).padStart(3,'0');
+ const closeTop=document.createElement('button');closeTop.className='build-back';
+ closeTop.type='button';closeTop.textContent='✕ Fechar';closeTop.setAttribute('aria-label','Voltar sem construir');
+ const intro=document.createElement('p');intro.className='build-choice-intro';
+ intro.textContent='Terreno '+rarityNames[rarityIndex(id)]+' · Zona '+zone(id).grade+' · '+fmt(state.balance)+' IU$ disponíveis';
+ head.append(title,closeTop,intro);
+ const scroller=document.createElement('div');scroller.className='build-dialog-body';
+ const label=document.createElement('h4');label.textContent='Escolha o modelo';
  const choices=document.createElement('div');choices.className='build-models';
- const note=document.createElement('p');note.className='build-status';
- const colorsLabel=document.createElement('p');colorsLabel.textContent='🎨 Escolha a cor';
+ const colorsLabel=document.createElement('h4');colorsLabel.textContent='🎨 Cor da construção';
  const palette=document.createElement('div');palette.className='build-palette';
- const bottom=document.createElement('div');bottom.className='build-bottom';
- const cancel=document.createElement('button');cancel.type='button';cancel.className='cancel';cancel.textContent='Cancelar';cancel.onclick=()=>overlay.remove();
+ scroller.append(label,choices,colorsLabel,palette);
+ const bottom=document.createElement('div');bottom.className='build-dialog-footer';
+ const note=document.createElement('p');note.className='build-status';
+ const row=document.createElement('div');row.className='build-bottom';
+ const cancel=document.createElement('button');cancel.className='cancel';cancel.type='button';
+ cancel.textContent='← Voltar';
  const confirm=document.createElement('button');confirm.type='button';
+ row.append(cancel,confirm);bottom.append(note,row);
+ dialog.append(head,scroller,bottom);
+ let closed=false,charging=false;
+ function exit(){
+  if(closed)return;
+  closed=true;activeBuildDialog=false;overlay.remove();
+  document.removeEventListener('keydown',onKey);
+ }
+ function onKey(e){if(e.key==='Escape'){e.preventDefault();exit();}}
+ closeTop.onclick=exit;cancel.onclick=exit;
+ overlay.onclick=e=>{if(e.target===overlay)exit()};
+ document.addEventListener('keydown',onKey);
  let color=colors.includes(prop.color)?prop.color:colors[0];
  let selectedModel=models.find(m=>!buildingRestriction(id,m.id)&&state.balance>=buildingPrice(id,m.id))?.id||
   models.find(m=>!buildingRestriction(id,m.id))?.id||null;
  function paintColors(){
   palette.replaceChildren();
-  colors.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='swatch'+(color===c?' active':'');
-   b.style.backgroundColor=c;b.setAttribute('aria-label','Cor '+c);b.onclick=()=>{color=c;paintColors()};palette.append(b)});
+  colors.forEach(c=>{
+   const b=document.createElement('button');b.type='button';
+   b.className='swatch'+(color===c?' active':'');
+   b.style.backgroundColor=c;b.setAttribute('aria-label','Cor '+c);
+   b.onclick=()=>{color=c;paintColors()};
+   palette.append(b);
+  });
  }
  function paintChoices(){
   choices.replaceChildren();
   models.forEach(m=>{
    const reason=buildingRestriction(id,m.id),price=buildingPrice(id,m.id);
-   const b=document.createElement('button');b.type='button';b.disabled=!!reason;
-   b.className='build-model'+(reason?' locked':'')+(m.id===selectedModel?' chosen':'');
+   const btn=document.createElement('button');btn.type='button';
+   btn.className='build-model'+(reason?' locked':'')+(m.id===selectedModel?' chosen':'');
+   btn.disabled=!!reason;
    const name=document.createElement('strong');name.textContent=(reason?'🔒 ':'')+m.name;
    const detail=document.createElement('small');detail.textContent=m.desc;
    const priceLabel=document.createElement('small');priceLabel.className='model-price';
    priceLabel.textContent=fmt(price)+' IU$'+(reason?' · '+reason:'');
-   b.append(name,detail,priceLabel);
-   if(!reason)b.onclick=()=>{selectedModel=m.id;paintChoices()};
-   choices.append(b);
+   btn.append(name,detail,priceLabel);
+   if(!reason)btn.onclick=()=>{selectedModel=m.id;paintChoices()};
+   choices.append(btn);
   });
-  const selected=BUILD_BY_ID[selectedModel],price=selected?buildingPrice(id,selected.id):0;
-  const why=selected?buildingRestriction(id,selected.id):'Sem modelos disponíveis';
-  confirm.disabled=!selected||!!why||state.balance<price;
-  confirm.textContent=confirm.disabled?'Construção indisponível':'✓ Construir '+selected.name+' · '+fmt(price)+' IU$';
-  note.textContent=why||((state.balance<price)?'Saldo insuficiente: faltam '+fmt(price-state.balance)+' IU$.':
-   'Custo ajustado à raridade '+rarityNames[rarityIndex(id)]+' · Saldo: '+fmt(state.balance)+' IU$');
+  const model=BUILD_BY_ID[selectedModel],price=model?buildingPrice(id,model.id):0;
+  const reason=model?buildingRestriction(id,model.id):'Sem modelos disponíveis';
+  const lacking=state.balance<price;
+  confirm.disabled=!model||!!reason||lacking||charging;
+  confirm.textContent=confirm.disabled?'Construção indisponível':'✓ Confirmar '+fmt(price)+' IU$';
+  note.textContent=reason||(
+   lacking?'Saldo insuficiente: faltam '+fmt(price-state.balance)+' IU$.':
+   'Selecionado: '+model.name+' · '+fmt(price)+' IU$ · Terreno #'+String(id+1).padStart(3,'0'));
  }
  confirm.onclick=()=>{
-  if(confirm.disabled)return;
-  const m=BUILD_BY_ID[selectedModel],current=state.lots[id],price=buildingPrice(id,m?.id);
-  const reason=buildingRestriction(id,m?.id);
-  if(!m||m.type!==type||reason||current.owner!=='me'||current.building||state.balance<price){
-   status.textContent=reason||'Não foi possível construir. Confira seu saldo e terreno.';paintChoices();return;
+  if(confirm.disabled||closed||charging)return;
+  const m=BUILD_BY_ID[selectedModel],current=state.lots[id];
+  const reason=buildingRestriction(id,m?.id),price=buildingPrice(id,m?.id);
+  if(!m||m.type!==type||reason||!current||current.owner!=='me'||current.building||state.balance<price){
+   note.textContent=reason||'Não foi possível construir. Confira o saldo e o terreno.';
+   paintChoices();return;
   }
-  confirm.disabled=true;
+  charging=true;confirm.disabled=true;cancel.disabled=true;closeTop.disabled=true;
   const previous={balance:state.balance,building:current.building,color:current.color,meta:current.buildingMeta};
   state.balance-=price;current.building=m.id;current.color=color;
   current.buildingMeta={model:m.id,category:m.type,costPaid:price,rarityAtBuild:rarityNames[rarityIndex(id)],
    zoneAtBuild:zone(id).grade,builtAt:new Date().toISOString()};
   if(!save()){
    state.balance=previous.balance;current.building=previous.building;current.color=previous.color;
-   current.buildingMeta=previous.meta;confirm.disabled=false;status.textContent='Falha ao salvar. Saldo preservado.';return;
+   current.buildingMeta=previous.meta;
+   charging=false;cancel.disabled=false;closeTop.disabled=false;
+   note.textContent='Erro ao salvar. O saldo foi restaurado. Tente novamente.';
+   paintChoices();return;
   }
-  overlay.remove();selected=id;renderState();
+  exit();
+  selected=id;
+  renderState();
   status.textContent='✅ '+m.name+' construída no terreno #'+String(id+1).padStart(3,'0')+' por '+fmt(price)+' IU$.';
   target.set(lots[id].x,0,lots[id].z);distance=105;updateCam();
  };
- bottom.append(cancel,confirm);
- dialog.append(title,intro,choices,note,colorsLabel,palette,bottom);
- stage.append(overlay);paintColors();paintChoices();
+ // Fora do #stage: o mapa usa touch-action:none, o diálogo PRECISA permitir rolagem.
+ document.body.append(overlay);
+ paintColors();paintChoices();
 }
 function renderState(){
  document.getElementById('balance').textContent=fmt(state.balance)+' IU$';
