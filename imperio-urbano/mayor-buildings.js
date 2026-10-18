@@ -2,6 +2,13 @@
  * A frente aponta para +Z; o mapa aplica a orientação do lote.
  * Sem texturas externas nem imagens estáticas.
  */
+const commercialLights=new Set();let commercialNight=0,lastCommercialNight=-1;
+export function setCommercialNight(level){
+ commercialNight=Math.max(0,Math.min(1,level));
+ if(Math.abs(commercialNight-lastCommercialNight)<.012)return;
+ lastCommercialNight=commercialNight;
+ for(const m of commercialLights)m.emissiveIntensity=(m.userData.lightType==='sign'?.9:.48)*commercialNight;
+}
 export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
  const g=new THREE.Group();g.position.set(x,.28,z);g.rotation.y=north?Math.PI:0;
  g.userData.kind='municipal:'+kind;
@@ -15,17 +22,19 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   color:c,roughness:n==='glass'?.24:.85,metalness:n==='steel'?.38:0,
   emissive:n==='light'?0xb66a1b:0x000000,emissiveIntensity:n==='light'?0.65:0
  });
+ const storefront=['mercado','padaria','farmacia','restaurante','lojas','hotel','industria','logistica'].includes(kind)||!!brandKey;
+ if(storefront){materials.storeGlass=new THREE.MeshStandardMaterial({color:0x9acbd0,roughness:.22,metalness:.04,emissive:0xffc96e,emissiveIntensity:.48*commercialNight});materials.storeGlass.userData.lightType='window';commercialLights.add(materials.storeGlass)}
  function box(mat,w,h,d,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),materials[mat]);o.position.set(x,y,z);o.receiveShadow=true;g.add(o);return o}
  function facade(width,depth,height,color='concrete'){
   box('gray',11,.14,11,0,.07,0);
   box(color,width,height,depth,0,height/2+.18,0);
   box('roof',width+.45,.28,depth+.45,0,height+.31,0);
  }
- function entry(){box('dark',2.1,2.6,.16,0,1.45,4.12);box('glass',1.85,2.25,.19,0,1.45,4.25);
+ function entry(){box('dark',2.1,2.6,.16,0,1.45,4.12);box(storefront?'storeGlass':'glass',1.85,2.25,.19,0,1.45,4.25);
   box('gray',2.8,.15,1.1,0,.12,4.66);}
  function glazing(y,cols=3,front=3.93){for(let i=0;i<cols;i++){
   const xx=(i-(cols-1)/2)*2.2;
-  box('dark',1.54,1.5,.13,xx,y,front);box('glass',1.36,1.32,.15,xx,y,front+.08);
+  box('dark',1.54,1.5,.13,xx,y,front);box(storefront?'storeGlass':'glass',1.36,1.32,.15,xx,y,front+.08);
  }}
  const brands={
   mercado:{name:'MERCADO VIVA',tag:'perto de você',bg:'#176b4d',mark:'#f5c84c',glyph:'V'},
@@ -53,7 +62,7 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
   c.fillStyle='#e2eee9';c.font='24px system-ui';c.fillText(brand.tag,146,108);
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   texture.anisotropy=2;
-  const material=new THREE.MeshStandardMaterial({map:texture,roughness:.72,metalness:.02,side:THREE.DoubleSide});
+  const material=new THREE.MeshStandardMaterial({map:texture,emissive:0xffffff,emissiveMap:texture,emissiveIntensity:.9*commercialNight,roughness:.72,metalness:.02,side:THREE.DoubleSide});material.userData.lightType='sign';commercialLights.add(material);
   brandTextures.set(kind,material);return material;
  }
  function signage(mat,kind){

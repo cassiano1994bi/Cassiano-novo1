@@ -1,4 +1,4 @@
-import {PUBLIC_WORKS,CITY_MODELS} from './mayor-economy.js?v=10.3';
+import {PUBLIC_WORKS,CITY_MODELS} from './mayor-economy.js?v=11.9';
 const fmt=n=>Math.round(n||0).toLocaleString('pt-BR');
 const pct=n=>(Number(n)||0).toFixed(1)+'%';
 const ZONES={residential:'Residencial',mixed:'Mista',commercial:'Comercial',industrial:'Industrial',tourism:'Turística',environmental:'Proteção ambiental'};
@@ -205,7 +205,7 @@ export function mountMayorUI(engine,ctx){
  }
  function updateHeadline(){
   const d=engine.snapshot();
-  toolbar.textContent='🏦 '+fmt(d.treasury)+' IU$ · 👥 '+fmt(d.population)+' · 🏢 '+d.companies+
+  toolbar.textContent='🏦 '+fmt(d.treasury)+' IU$ · 👥 '+fmt(d.population)+' · 🚗 '+fmt(d.vehicles)+' · 🏢 '+d.companies+
    ' · Dia '+(d.day+1)+' / M'+d.month;
   byId('mayorPause').textContent=d.paused?'▶️':'⏸';
   byId('mayorPause').setAttribute('aria-label',d.paused?'Retomar simulação':'Pausar simulação');

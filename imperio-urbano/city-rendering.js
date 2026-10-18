@@ -141,3 +141,55 @@ export function createNaturalCity(THREE, scene, renderer) {
  function atmosphere(camera,seconds,day,hour,sunPosition,moonPosition){sky.position.copy(camera.position);skyUniforms.uTime.value=seconds;skyUniforms.uDay.value=day;skyUniforms.uDusk.value=Math.max(0,1-Math.abs(hour-18)/2.1,1-Math.abs(hour-6)/2.1);if(sunPosition)skyUniforms.uSunDir.value.copy(sunPosition).sub(camera.position).normalize();if(moonPosition)skyUniforms.uMoonDir.value.copy(moonPosition).sub(camera.position).normalize();}
  return {surface,tree,finishTrees,streets,atmosphere};
 }
+
+// Pedestres leves em instâncias: circulação nas calçadas sem criar um objeto por pessoa.
+export function createCitizenSimulation(THREE,scene){
+ const mobile=matchMedia('(max-width: 700px)').matches;
+ const cap=mobile?42:72,people=Array.from({length:cap},(_,i)=>({phase:(i*.61803398875)%1,speed:.65+(i%5)*.12,block:i*17%250,seed:i}));
+ const torso=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.23,.75,6),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.88}),cap);
+ const head=new THREE.InstancedMesh(new THREE.SphereGeometry(.18,7,5),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9}),cap);
+ const leg=new THREE.InstancedMesh(new THREE.CylinderGeometry(.065,.075,.4,5),new THREE.MeshStandardMaterial({color:0x263440,roughness:.95}),cap*2);
+ const outfits=[0x344b68,0x8b5540,0x526e51,0xb4a17a,0x586274,0x875e78,0x3f777a];
+ const skin=[0xe0b28b,0xb87c57,0x855a43,0xf0c8a5,0x9b694f];
+ for(let i=0;i<cap;i++){
+  torso.setColorAt(i,new THREE.Color(outfits[i%outfits.length]));head.setColorAt(i,new THREE.Color(skin[i%skin.length]));
+  leg.setColorAt(i*2,new THREE.Color(i%3===0?0x3b414c:0x27333e));leg.setColorAt(i*2+1,new THREE.Color(i%3===0?0x3b414c:0x27333e));
+ }
+ for(const mesh of [torso,head,leg]){mesh.count=0;mesh.frustumCulled=false;mesh.castShadow=false;mesh.receiveShadow=false;scene.add(mesh)}
+ const dummy=new THREE.Object3D(),candidates=[];
+ for(let d=0;d<5;d++)for(let c=0;c<5;c++)for(let r=0;r<10;r++)candidates.push({x:-332+d*165+c*31,z:10+r*29});
+ let lastX=Infinity,lastZ=Infinity,active=0;
+ function selectBlocks(x,z){
+  if(Math.hypot(x-lastX,z-lastZ)<48)return;
+  lastX=x;lastZ=z;
+  const near=candidates.map((b,i)=>({b,i,d:(b.x-x)**2+(b.z-z)**2})).sort((a,b)=>a.d-b.d).slice(0,45);
+  for(const p of people){
+   const q=near[(p.seed*19)%near.length];p.cx=q.b.x;p.cz=q.b.z;p.phase=(p.phase+(p.seed%9)*.071)%1;
+   const a=[p.cx-14.4,p.cz-13.4],b=[p.cx,p.cz-13.4],door=[p.cx,p.cz-7.2],c=[p.cx+14.4,p.cz-13.4],d=[p.cx+14.4,p.cz+13.4],e=[p.cx,p.cz+13.4],f=[p.cx-14.4,p.cz+13.4],g=[p.cx-14.4,p.cz];
+   p.route=[[a,b],[b,door],[door,door],[door,b],[b,c],[c,[p.cx+14.4,p.cz]],[ [p.cx+14.4,p.cz],d],[d,e],[e,f],[f,g],[g,a]];
+   p.routeLength=p.route.reduce((sum,[v,w],n)=>sum+(n===2?p.speed*3:Math.hypot(w[0]-v[0],w[1]-v[1])),0);
+  }
+ }
+ function update(dt,x,z,population){
+  selectBlocks(x,z);
+  active=Math.min(cap,Math.max(population>0?10:0,Math.ceil(population/(mobile?38:30))));
+  torso.count=head.count=active;leg.count=active*2;
+  for(let i=0;i<active;i++){
+   const p=people[i],routeLength=p.routeLength,dist=p.phase*routeLength;
+   let cursor=dist,px=p.cx,pz=p.cz,yaw=0;
+   for(let legIndex=0;legIndex<p.route.length;legIndex++){
+    const [from,to]=p.route[legIndex],hold=legIndex===2?p.speed*3:0,length=hold||Math.hypot(to[0]-from[0],to[1]-from[1]);
+    if(cursor<=length){const t=hold?0:cursor/Math.max(.001,length);px=from[0]+(to[0]-from[0])*t;pz=from[1]+(to[1]-from[1])*t;yaw=Math.atan2(to[0]-from[0],to[1]-from[1]);break}cursor-=length;
+   }
+   p.phase=(p.phase+p.speed*dt/Math.max(1,routeLength))%1;
+   const stride=Math.sin(p.phase*routeLength*1.4);
+   dummy.position.set(px,.72,pz);dummy.rotation.set(0,yaw,0);dummy.scale.set(1,1,1);dummy.updateMatrix();torso.setMatrixAt(i,dummy.matrix);
+   dummy.position.set(px,1.22,pz);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();head.setMatrixAt(i,dummy.matrix);
+   for(let side=0;side<2;side++){
+    dummy.position.set(px+(side?-.1:.1),.27,pz);dummy.rotation.set(0,yaw,(side?1:-1)*stride*.30);dummy.scale.set(1,1,1);dummy.updateMatrix();leg.setMatrixAt(i*2+side,dummy.matrix);
+   }
+  }
+  torso.instanceMatrix.needsUpdate=head.instanceMatrix.needsUpdate=leg.instanceMatrix.needsUpdate=true;
+ }
+ return {update,get count(){return active}};
+}

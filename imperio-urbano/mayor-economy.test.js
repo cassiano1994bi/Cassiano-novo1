@@ -16,6 +16,8 @@ export function runMayorEconomyTests(){
  }
  function reloadExpected(game){
   const state=JSON.parse(JSON.stringify(game.s));
+  if(!Number.isFinite(state.migrationRemainder))state.migrationRemainder=0;
+  if(!Number.isFinite(state.monthlyMigration))state.monthlyMigration=0;
   for(const inv of state.investors){
    if(!Number.isFinite(inv.debt))inv.debt=0;
    if(inv.id==='investor:2'){inv.name='Coca-Cola Brasil';inv.brand='cocacola';inv.interest='industry'}
@@ -164,6 +166,19 @@ export function runMayorEconomyTests(){
   assert(market?.kind==='logistica','Mercado Livre não chegou como centro logístico');
   assert(g.total()===g.s.initialTotal,'Investimentos criaram dinheiro');
   return population.toLocaleString('pt-BR')+' moradores; Coca-Cola e Mercado Livre instalados';
+ });
+ scenario('População cresce diariamente e frota acompanha na proporção 1:5',()=>{
+  const {game:g}=make();const before=g.s.households.reduce((sum,h)=>sum+h.population,0);
+  g.tickDay();const after=g.snapshot().population;
+  assert(after>before,'Nenhum morador novo entrou no primeiro dia');
+  assert(g.snapshot().vehicles===Math.floor(after/5),'Frota não acompanha 1 carro por 5 moradores');
+  const first=g.snapshot().vehicles;for(let day=0;day<45;day++)g.tickDay();
+  assert(g.snapshot().population>after&&g.snapshot().vehicles>first,'Crescimento diário ou frota parou');
+  const large=make().game;large.s.households[0].population+=100000;
+  for(let day=0;day<30;day++)large.tickDay();
+  assert(large.snapshot().population>101000,'A migração encontrou teto artificial');
+  return after.toLocaleString('pt-BR')+' → '+large.snapshot().population.toLocaleString('pt-BR')+
+   ' moradores; frota '+large.snapshot().vehicles.toLocaleString('pt-BR');
  });
  scenario('Município sem imóveis antigos continua investível',()=>{
   const g=new MayorEconomy({storage:{getItem(){return null},setItem(){}},now:1000});
