@@ -209,21 +209,8 @@ const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorag
 // O jogo ainda e local; nao existe conta remota nem autenticacao de jogadores.
 // Credito aditivo, uma unica vez por perfil salvo neste navegador.
 // Preserve todos os terrenos, construcoes, anuncios e saldo existente.
-let testCreditApplied=false;
-const requestTestCredit=new URLSearchParams(window.location.search).get('credito_teste');
-if(requestTestCredit==='1milhao'&&!state.creditoTeste1MV73){
- try{
-  const snapshotKey=KEY+'_antes_credito_teste_1m_v73';
-  if(!localStorage.getItem(snapshotKey))localStorage.setItem(snapshotKey,JSON.stringify(state));
- }catch{}
- const previousBalance=Number(state.balance);
- if(Number.isSafeInteger(previousBalance)&&previousBalance>=0&&previousBalance<=Number.MAX_SAFE_INTEGER-1000000){
-  state.balance=previousBalance+1000000;
-  state.creditoTeste1MV73=true;
-  try{localStorage.setItem(KEY,JSON.stringify(state));testCreditApplied=true}
-  catch(err){state.balance=previousBalance;state.creditoTeste1MV73=false;status.textContent='Não foi possível salvar o crédito de teste. Verifique o armazenamento do navegador.'}
- }
-}
+// Modo prefeito: o saldo privado histórico permanece preservado, mas não financia o Tesouro.
+const testCreditApplied=false;
 // O saldo nunca e recalculado a partir do desenho do mapa. Backup de patrimonio antes das operacoes.
 try{if(!localStorage.getItem(KEY+'_snapshot_v63'))localStorage.setItem(KEY+'_snapshot_v63',JSON.stringify(state))}catch{}
 const colors=['#e3e1d4','#f4a261','#f28482','#8ecae6','#a8dadc','#b8a0d9','#f6d365','#91c788','#fafafa','#5e7083'];
