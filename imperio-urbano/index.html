@@ -1021,6 +1021,9 @@ function updateCityTime(force=false){
  renderer.toneMappingExposure=.82+.42*daylight;
  litWindowMaterial.color.copy(daylightWindowColor).lerp(nightWindowColor,night);
  litWindowMaterial.emissive.setHex(0xffb35e);litWindowMaterial.emissiveIntensity=2.5*night;
+ // Janelas dos prédios civicos também acendem à noite.
+ glass.color.copy(daylightWindowColor).lerp(nightWindowColor,night);
+ glass.emissive.setHex(0xffb35e);glass.emissiveIntensity=1.6*night;
  unlitWindowMaterial.emissive.setHex(0x647d98);unlitWindowMaterial.emissiveIntensity=.16*night;
  porchLampMaterial.emissive.setHex(0xffc16b);porchLampMaterial.emissiveIntensity=3.2*night;
  streetBulbMat.emissiveIntensity=3.2*night;
