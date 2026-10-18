@@ -296,6 +296,84 @@ const nightParkColor=new THREE.Color(0x678865),dayParkColor=new THREE.Color(0x82
 const sun=new THREE.DirectionalLight(0xffefce,2.0);sun.position.set(-170,280,130);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-650;sun.shadow.camera.right=650;
 sun.shadow.camera.top=550;sun.shadow.camera.bottom=-550;sun.shadow.bias=-.0003;scene.add(sun);
+// Sol e Lua sobre o mar, em 3D; acompanham os 5 minutos de dia virtual.
+// Ficam ao fundo do lago e não são letreiros nem objetos negociáveis.
+function makeSkyGlowTexture(isMoon=false){
+ const cv=document.createElement('canvas');cv.width=cv.height=256;
+ const ctx=cv.getContext('2d');
+ const gradient=ctx.createRadialGradient(128,128,7,128,128,126);
+ if(isMoon){
+  gradient.addColorStop(0,'rgba(231,242,255,.60)');
+  gradient.addColorStop(.13,'rgba(184,215,248,.36)');
+  gradient.addColorStop(.43,'rgba(134,183,242,.085)');
+  gradient.addColorStop(1,'rgba(134,183,242,0)');
+ }else{
+  gradient.addColorStop(0,'rgba(255,251,220,.88)');
+  gradient.addColorStop(.13,'rgba(255,218,135,.54)');
+  gradient.addColorStop(.43,'rgba(255,161,72,.15)');
+  gradient.addColorStop(1,'rgba(255,161,72,0)');
+ }
+ ctx.fillStyle=gradient;ctx.fillRect(0,0,256,256);
+ const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;
+ return t;
+}
+function makeMoonDiskTexture(){
+ const c=document.createElement('canvas');c.width=c.height=256;
+ const g=c.getContext('2d');
+ const gradient=g.createRadialGradient(94,86,12,128,128,119);
+ gradient.addColorStop(0,'#f7f7e8');gradient.addColorStop(.63,'#dae6ed');
+ gradient.addColorStop(1,'#93aec3');
+ g.beginPath();g.arc(128,128,114,0,Math.PI*2);g.fillStyle=gradient;g.fill();
+ let seed=17;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+ for(let i=0;i<42;i++){
+  const a=rand()*Math.PI*2,r=Math.sqrt(rand())*94,x=128+Math.sin(a)*r,y=128+Math.cos(a)*r;
+  const cr=2+rand()*12;
+  g.beginPath();g.arc(x,y,cr,0,Math.PI*2);
+  g.fillStyle='rgba(92,117,137,'+(.035+rand()*.095)+')';g.fill();
+ }
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+ return t;
+}
+const celestialSun=new THREE.Mesh(
+ new THREE.SphereGeometry(16,24,12),
+ new THREE.MeshBasicMaterial({color:0xfff2bd,toneMapped:false,depthWrite:false})
+);
+const celestialSunHalo=new THREE.Sprite(new THREE.SpriteMaterial({
+ map:makeSkyGlowTexture(false),color:0xffffff,transparent:true,
+ blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,toneMapped:false
+}));
+celestialSunHalo.scale.set(146,146,1);
+const celestialMoon=new THREE.Sprite(new THREE.SpriteMaterial({
+ map:makeMoonDiskTexture(),color:0xffffff,transparent:true,
+ depthWrite:false,depthTest:true,toneMapped:false
+}));
+celestialMoon.scale.set(26,26,1);
+const celestialMoonHalo=new THREE.Sprite(new THREE.SpriteMaterial({
+ map:makeSkyGlowTexture(true),transparent:true,
+ blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,toneMapped:false
+}));
+celestialMoonHalo.scale.set(104,104,1);
+for(const o of [celestialSun,celestialSunHalo,celestialMoon,celestialMoonHalo]){
+ o.frustumCulled=false;scene.add(o);
+}
+function updateCelestialBodies(hour,daylight){
+ const solarAngle=(hour-6)*Math.PI/12;
+ const solarHeight=Math.max(0,Math.sin(solarAngle));
+ const sunX=100-245*Math.cos(solarAngle);
+ celestialSun.position.set(sunX,44+185*solarHeight,-615);
+ celestialSunHalo.position.copy(celestialSun.position);
+ celestialSun.visible=daylight>.10;
+ celestialSunHalo.visible=daylight>.10;
+ celestialSunHalo.material.opacity=.5+.5*solarHeight;
+ const moonPhase=((hour-18+24)%24)/12;
+ const moonAngle=moonPhase*Math.PI;
+ const moonX=70+240*Math.cos(moonAngle);
+ celestialMoon.position.set(moonX,44+132*Math.max(0,Math.sin(moonAngle)),-610);
+ celestialMoonHalo.position.copy(celestialMoon.position);
+ celestialMoon.visible=daylight<.62;
+ celestialMoonHalo.visible=daylight<.62;
+ celestialMoonHalo.material.opacity=Math.min(1,1-daylight)*.82;
+}
 // Texturas procedurais leves, geradas no navegador (sem downloads ou imagens externas).
 // Repetem microdetalhes de grama, asfalto, areia e ondas mantendo os materiais low-poly.
 function makeUrbanTexture(kind){
@@ -2695,6 +2773,7 @@ function updateCityTime(force=false){
  park.color.copy(nightParkColor).lerp(dayParkColor,daylight);
  const sunAngle=(hour-6)*Math.PI/12;
  sun.position.set(-170*Math.cos(sunAngle),24+260*Math.max(0,Math.sin(sunAngle)),130*Math.sin(sunAngle));
+ updateCelestialBodies(previewMode==='day'?12:previewMode==='night'?0:hour,daylight);
  // Sombras suaves continuam visíveis sob a luz da lua.
  if(sun.castShadow!==(daylight>.18))sun.castShadow=daylight>.18;
  renderer.toneMappingExposure=1.33+.02*daylight;
