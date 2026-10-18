@@ -135,6 +135,15 @@ export function runMayorEconomyTests(){
   assert(JSON.stringify(restored.s)===copyState,'Persistência perdeu dados de anos');
   return g.s.companies.length+' empresas após '+g.s.day+' dias';
  });
+ scenario('Construção privada continua depois dos primeiros meses',()=>{
+  const {game:g}=make();g.setTax('service',1);g.setTax('permit',0);
+  g.runDays(300);
+  const completed=g.s.projects.filter(p=>p.status==='complete').length;
+  assert(completed>30,'Investimentos pararam cedo: '+completed+' obras concluídas');
+  assert(g.s.investors.some(i=>i.debt>0),'Crédito de expansão não foi acionado');
+  assert(g.total()===g.s.initialTotal,'Crédito criou dinheiro em vez de transferir reservas');
+  return completed+' construções concluídas em 300 dias; caixa preservado';
+ });
  scenario('Município sem imóveis antigos continua investível',()=>{
   const g=new MayorEconomy({storage:{getItem(){return null},setItem(){}},now:1000});
   assert(g.s.plots.every(p=>p.holder==='free'),'Lotes vazios tratados como patrimônio antigo');

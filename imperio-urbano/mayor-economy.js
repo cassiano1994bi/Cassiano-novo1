@@ -39,7 +39,9 @@ export class MayorEconomy{
   let data=null;
   try{const raw=this.storage?.getItem(MUNICIPAL_SAVE_KEY);if(raw)data=JSON.parse(raw)}catch{}
   if(data?.version===1&&data.accounts&&Array.isArray(data.plots)&&data.plots.length===1000){
-   this.state=data;this.reconcileLegacy();this.ensurePublicSites();this.validate();return;
+   this.state=data;this.reconcileLegacy();this.ensurePublicSites();
+   for(const inv of this.state.investors)if(!Number.isFinite(inv.debt))inv.debt=0;
+   this.validate();return;
   }
   this.state=this.fresh(now);
   this.persist();
@@ -71,7 +73,7 @@ export class MayorEconomy{
    const id='investor:'+i;s.accounts[id]=0;
    this.move('regional',id,255000+(i%4)*65000,'Capital privado de investidores regionais');
    s.investors.push({id,name:INVESTOR_NAMES[i],profile:['conservador','moderado','arrojado'][i%3],
-    interest:['residential','retail','industry','tourism'][i%4],history:[],assets:[],failed:0});
+    interest:['residential','retail','industry','tourism'][i%4],history:[],assets:[],failed:0,debt:0});
   }
   // Construções já existentes aparecem no mapa, mas não são apropriadas pelo prefeito.
   let oldSeed=0;
@@ -243,6 +245,12 @@ export class MayorEconomy{
   return money((7800+(plot%13)*280)*premium);
  }
  tryInvestment(inv){
+  // Crédito rotativo, vindo do fundo regional e limitado por investidor.
+  // O empréstimo é contabilizado como transferência; não cria dinheiro.
+  if(this.account(inv.id)<165000&&this.account('regional')>12000000&&(inv.debt||0)<520000){
+   const credit=Math.min(210000,520000-(inv.debt||0),this.account('regional')-10000000);
+   if(credit>0&&this.move('regional',inv.id,credit,'Crédito de expansão para '+inv.name))inv.debt=(inv.debt||0)+credit;
+  }
   const opportunities=this.listOpportunities(inv);
   const offer=opportunities[0];
   if(!offer||offer.score<.53){inv.failed++;return false}
@@ -473,7 +481,14 @@ export class MayorEconomy{
    c.profit=c.revenue-c.expenses;
    // Distribuir apenas caixa acima da reserva de giro; receitas e tributos ficam na empresa.
    const reserve=CITY_MODELS[c.kind].cost*.2;
-   const dividend=money(Math.min(Math.max(0,c.profit)*.35,Math.max(0,this.account(c.id)-reserve)));
+   let dividend=money(Math.min(Math.max(0,c.profit)*.35,Math.max(0,this.account(c.id)-reserve)));
+   const investor=s.investors.find(i=>i.id===c.investor);
+   if(investor?.debt>0&&dividend){
+    const repayment=money(Math.min(investor.debt,dividend*.55));
+    if(repayment&&this.move(c.id,'regional',repayment,'Amortização de crédito de '+investor.name)){
+     investor.debt-=repayment;dividend-=repayment;
+    }
+   }
    if(c.investor&&dividend)this.move(c.id,c.investor,dividend,'Dividendos de '+CITY_MODELS[c.kind].name);
    if(this.account(c.id)<150&&c.age>12&&c.sector!=='residential'){
     c.active=false;c.workers=0;
@@ -536,9 +551,9 @@ export class MayorEconomy{
   this.buildProgress();
   this.progressWorks();
   this.operateCompanies();
-  if(s.day%3===1){
+  if(s.day%2===1){
    const order=[...s.investors].sort((a,b)=>this.random()-.5);
-   for(const inv of order.slice(0,2))this.tryInvestment(inv);
+   for(const inv of order.slice(0,4))this.tryInvestment(inv);
   }
   if(s.day%30===0)this.monthEnd();
   this.updateChallenge();
