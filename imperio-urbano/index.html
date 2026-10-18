@@ -1248,6 +1248,7 @@ function updateCityTime(force=false){
  const mm=totalMinutes%60;
  const clockString=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
  const naturalLevel=smoothTime(5.2,7.3,hour)*(1-smoothTime(17.4,19.6,hour));
+ waterTexture.offset.x=(elapsed/60000)*.018;
  const daylight=previewNight?0:naturalLevel;
  const night=1-daylight;
  clockLabel.textContent=(previewNight?'🌙 Prévia':'🕒 Dia '+dayNum)+' · '+clockString;
@@ -1286,8 +1287,7 @@ function updateCityTime(force=false){
  reflectionMat.opacity=.37*night;
  waterMat.color.setHex(0x205576);
  waterMat.color.lerp(new THREE.Color(0x288fb6),daylight);
- waterTexture.offset.x=(elapsed/60000)*.018;
-}
+ }
 nightButton.onclick=()=>{
  previewNight=!previewNight;
  nightButton.textContent=previewNight?'☀️ Voltar ao automático':'🌙 Ver noite';
