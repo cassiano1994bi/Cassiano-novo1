@@ -292,14 +292,26 @@ function lakeRibbon(z1,z2,m,y){
  const obj=new THREE.Mesh(g,m);obj.receiveShadow=true;scene.add(obj);
 }
 const waterMat=water.clone(),beachMat=sand.clone();waterMat.side=THREE.DoubleSide;beachMat.side=THREE.DoubleSide;
-lakeRibbon(x=>bankNear(x)+12,x=>bankNear(x)-2,beachMat,-.14);
+// Faixa de areia mais larga, acompanhando o contorno real da água.
+lakeRibbon(x=>bankNear(x)+19,x=>bankNear(x)-2,beachMat,-.14);
+const dampSand=sand.clone();dampSand.color.setHex(0xb7b6a1);
+dampSand.side=THREE.DoubleSide;
+lakeRibbon(x=>bankNear(x)+2.5,x=>bankNear(x)-1.6,dampSand,-.115);
+const surfFoamMat=new THREE.MeshBasicMaterial({
+ color:0xf4fcf4,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide
+});
+lakeRibbon(x=>bankNear(x)-.38,x=>bankNear(x)-1.68,surfFoamMat,-.075);
 lakeRibbon(x=>bankNear(x)-1,x=>bankFar(x)+1,waterMat,-.24);
 lakeRibbon(x=>bankFar(x)+1,x=>bankFar(x)-9,beachMat,-.14);
 for(const [x,z,rx,rz,n] of [[-160,-240,44,22,1],[125,-255,58,26,2],[387,-225,36,18,3]]){
  surface(x,z,rx+5,rz+4,sand,-.12,n);surface(x,z,rx,rz,park,-.06,n);grove(x,z,rx*.68,rz*.6,17,n);
 }
 grove(-510,-75,50,135,65,3);grove(660,-30,80,230,100,5);grove(100,405,530,68,110,1);
-path([[-356,-34],[485,-34]],3.8,walk,.13);
+path([[-356,-34],[485,-34]],4.5,walk,.13);
+const bikePathMat=mat(0xba8d7a),bikeLineMat=mat(0xe6dcc3);
+path([[-356,-29.65],[485,-29.65]],1.20,bikePathMat,.145);
+path([[-356,-30.35],[485,-30.35]],.09,bikeLineMat,.165);
+path([[-356,-28.95],[485,-28.95]],.09,bikeLineMat,.165);
 path([[-356,-37],[485,-37]],.18,white,.18);
 for(let i=0;i<46;i++){
  const x=-340+i*18.1;tree(x,-20+(i%2)*.9,.68,i%4);
@@ -320,6 +332,11 @@ for(let i=0;i<27;i++){
  const x=-330+i*29.6;
  const z=Math.min(-40.6,lakeNear(x)+18.4);
  palmTrees.push({x,z,h:5.2+(i%4)*.45});
+}
+// Segunda fileira de coqueiros diretamente na areia, sem bloquear o calçadão.
+for(let i=0;i<25;i++){
+ const x=-329+i*33.1+((i%3)-1)*1.6;
+ palmTrees.push({x,z:lakeNear(x)+8.0+(i%2)*2.1,h:4.6+(i%5)*.45});
 }
 const palmStemMat=mat(0x946c48);
 const palmLeafMat=mat(0x376f4e);
@@ -711,6 +728,79 @@ function parkLayout(block,kind){
  }
 }
 for(let n=0;n<publicParkBlocks.length;n++)parkLayout(publicParkBlocks[n],n);
+// Praia utilizável entre o calçadão e a água: sombrinhas, cadeiras,
+ // quadras de areia, quiosques, duchas, salva-vidas e áreas de descanso.
+ // Tudo é cenário público, sem marcações ou textos flutuantes.
+parkPalette.umbrellaCoral=mat(0xe49f87);
+parkPalette.umbrellaCream=mat(0xf3e2be);
+parkPalette.umbrellaBlue=mat(0x6cacc1);
+parkPalette.beachTeak=mat(0x9b7c58);
+parkPalette.beachFabric=mat(0xf7e7cd);
+parkPalette.beachFabricBlue=mat(0x6fa9be);
+function beachUmbrella(x,z,tone){
+ pc('beachTeak',x,1.42,z,.082,2.55);
+ pn(tone,x,2.85,z,1.65,.76);
+ pc('beachTeak',x,2.42,z,.16,.12);
+}
+function beachLounger(x,z,tone='beachFabric',yaw=0){
+ pb('beachTeak',x,.23,z,.92,.12,2.22,yaw);
+ pb(tone,x,.34,z,.78,.12,1.76,yaw);
+ pb(tone,x,.71,z-.77,.78,.80,.12,yaw,-.43);
+ for(const dx of [-.35,.35])for(const dz of [-.82,.82])
+  pb('beachTeak',x+dx,.18,z+dz,.09,.28,.09);
+}
+function beachShower(x,z){
+ pc('metal',x,1.47,z,.09,2.72);
+ pb('metal',x+.39,2.86,z,.90,.10,.09);
+ pc('white',x+.80,2.81,z,.18,.15);
+ pc('stone',x,.14,z,.90,.14);
+}
+function beachLifeguard(x,z){
+ for(const dx of [-1,1])for(const dz of [-.75,.75])
+  pb('wood',x+dx,1.25,z+dz,.15,2.3,.15);
+ pb('beachTeak',x,2.36,z,2.9,.20,2.35);
+ pb('umbrellaCream',x,3.66,z,3.25,.18,2.65);
+ for(const dx of [-1.25,1.25])pb('wood',x+dx,3.0,z,.14,1.34,.16);
+ for(let k=0;k<5;k++)pb('wood',x-1.55,1.15+k*.39,z+.94,.69,.10,.13);
+ ps('umbrellaCoral',x,4.08,z,.28,.17,.28);
+}
+function beachCourt(cx,cz){
+ pb('sand',cx,.02,cz,11.5,.07,6.3);
+ for(const zSide of [-2.75,2.75])pb('white',cx,.25,cz+zSide,10.8,.05,.10);
+ for(const xSide of [-5.2,5.2])pb('white',cx+xSide,.25,cz,.10,.05,5.55);
+ for(const side of [-1,1])pc('metal',cx+side*5.6,1.50,cz,.09,2.67);
+ pb('white',cx,2.65,cz,.07,2.12,5.42);
+ for(let k=0;k<6;k++)pb('white',cx,1.71,cz-2.4+k*.95,.07,.04,.14);
+}
+const beachClusterCenters=[-300,-135,33,200,371];
+for(let ci=0;ci<beachClusterCenters.length;ci++){
+ const center=beachClusterCenters[ci];
+ for(let j=0;j<3;j++){
+  const xx=center+(j-1)*8.3,zz=lakeNear(xx)+7+(j%2)*2;
+  beachUmbrella(xx,zz,['umbrellaCream','umbrellaCoral','umbrellaBlue'][(ci+j)%3]);
+  beachLounger(xx-2.05,zz+2.0,j%2?'beachFabricBlue':'beachFabric',.13);
+  beachLounger(xx+2.05,zz+2.0,j%2?'beachFabric':'beachFabricBlue',-.13);
+  for(const tx of [-3.25,3.25])ps('rock',xx+tx,.20,zz-3.0,.28,.22,.40);
+ }
+}
+for(const x of [-170,152]){
+ const z=lakeNear(x)+14;
+ beachCourt(x,z);
+}
+for(const x of [-227,270])beachLifeguard(x,lakeNear(x)+16.2);
+for(const x of [-316,-160,5,172,342,460])beachShower(x,lakeNear(x)+19.9);
+for(const x of [-287,-130,38,205,365]){
+ const z=lakeNear(x)+18.2;
+ parkPergola(x,z,5.2,2.3);
+ parkBench(x-2,z+.95);
+ parkBench(x+2,z+.95);
+}
+// Pedras suaves e pequenas dunas apenas nas bordas da areia.
+for(let i=0;i<78;i++){
+ const x=-344+i*10.35,zz=lakeNear(x)+1.5+((i*7)%4)*.52;
+ if(i%5===0)ps('rock',x,.01,zz,.34+(i%3)*.13,.14,.30);
+}
+
 const parkShapeGeometry={
  box:new THREE.BoxGeometry(1,1,1),
  cyl:new THREE.CylinderGeometry(1,1,1,10),
@@ -1006,7 +1096,7 @@ function updateMapHighlights(){
  for(const grade of ['A','B','C']){
   const mesh=zoneGems[grade];let n=0;
   for(const i of zoneBuckets[grade]){
-   if(!lotMatches(i))continue;
+   if(!lotMatches(i)||isPublicParkLot(i))continue;
    const {x,z}=lots[i];
    instanceAt(mesh,n++,x+4.2,1.05,z-4.2,grade==='A'?.84:.62,grade==='A'?1.18:.93,grade==='A'?.84:.62);
   }
@@ -1685,6 +1775,7 @@ function updateCityTime(force=false){
  streetPoolMat.opacity=.97*night;
  buildingGlowMat.opacity=.87*night;
  reflectionMat.opacity=.37*night;
+ surfFoamMat.opacity=.36+.42*daylight;
  waterMat.color.setHex(0x205576);
  waterMat.color.lerp(new THREE.Color(0x288fb6),daylight);
  }
