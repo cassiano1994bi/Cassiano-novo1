@@ -324,6 +324,46 @@ for(let x=-330;x<=474;x+=34){
   reflection.renderOrder=1;scene.add(reflection);reflections.push(reflection);
  }
 }
+// Trafego leve na malha viaria publica: carros nao ocupam lotes privados.
+const trafficHeadlights=new THREE.MeshStandardMaterial({color:0xf0e6c9,emissive:0xffd37b,emissiveIntensity:0,roughness:.42});
+const trafficTailLights=new THREE.MeshStandardMaterial({color:0xb64935,emissive:0xff4e29,emissiveIntensity:0,roughness:.54});
+const carBodyColors=[0x9a3d36,0xb8c1c8,0x283e50,0xe2e1da,0x6d879d,0xd8a15e,0x48665b,0xbec5cb];
+const cars=[];
+for(let i=0;i<8;i++){
+ const group=new THREE.Group(),heading=i%2===0?1:-1;
+ const body=mat(carBodyColors[i]);const windscreen=mat(0x6893a5);const tire=mat(0x232a33);
+ box(3.3,.68,1.6,0,.67,0,body,group);
+ box(2.0,.58,1.28,-.3,1.27,0,windscreen,group);
+ box(2.08,.11,1.34,-.3,1.59,0,body,group);
+ for(const xx of [-1.15,1.15])for(const zz of [-.80,.80]){
+  box(.52,.47,.22,xx,.37,zz,tire,group);
+ }
+ for(const zSide of [-.53,.53]){
+  box(.08,.24,.30,1.68,.82,zSide,trafficHeadlights,group);
+  box(.08,.17,.30,-1.68,.81,zSide,trafficTailLights,group);
+ }
+ const lane=i<4?-7:286;
+ const z=lane+(heading>0?2.0:-2.0);
+ group.rotation.y=heading>0?0:Math.PI;
+ const fraction=((i*109+36)%797)/797;
+ const x=minX+fraction*(maxX-minX);
+ group.position.set(x,.13,z);
+ scene.add(group);
+ cars.push({group,heading,speed:8.0+(i%4)*2.3});
+}
+let previousTrafficTick=0;
+function animateTraffic(t){
+ if(!previousTrafficTick){previousTrafficTick=t;return}
+ const dt=Math.min(.05,Math.max(0,(t-previousTrafficTick)/1000));
+ previousTrafficTick=t;
+ const span=maxX-minX+25;
+ for(const car of cars){
+  const pos=car.group.position;
+  pos.x+=car.heading*car.speed*dt;
+  if(pos.x>maxX+12)pos.x-=span;
+  if(pos.x<minX-12)pos.x+=span;
+ }
+}
 const rarityBuckets=Array.from({length:5},()=>[]),zoneBuckets={A:[],B:[],C:[]};
 for(let i=0;i<lots.length;i++){
  rarityBuckets[rarityIndex(i)].push(i);
@@ -982,6 +1022,8 @@ function updateCityTime(force=false){
  unlitWindowMaterial.emissive.setHex(0x647d98);unlitWindowMaterial.emissiveIntensity=.16*night;
  porchLampMaterial.emissive.setHex(0xffc16b);porchLampMaterial.emissiveIntensity=3.2*night;
  streetBulbMat.emissiveIntensity=3.2*night;
+ trafficHeadlights.emissiveIntensity=2.7*night;
+ trafficTailLights.emissiveIntensity=1.9*night;
  streetBulbMat.color.setHex(night>.3?0xffd69a:0xc8ced0);
  streetPoolMat.opacity=.19*night;
  reflectionMat.opacity=.25*night;
@@ -1004,6 +1046,7 @@ let lastClockUpdate=-1000;
 function animate(t){
  requestAnimationFrame(animate);
  legendaryGlow.emissiveIntensity=.65+.36*Math.sin(t*.0025);
+ animateTraffic(t);
  if(t-lastClockUpdate>700){
   lastClockUpdate=t;
   updateCityTime();
