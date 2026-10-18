@@ -97,7 +97,8 @@ export class MayorEconomy{
  account(id){return money(this.s.accounts[id]||0)}
  move(from,to,amount,reason){
   const s=this.s;amount=money(amount);
-  if(!amount||!from||!to||from===to||typeof reason!=='string')return false;
+  if(amount===0)return true;
+  if(!from||!to||from===to||typeof reason!=='string')return false;
   if(!Object.prototype.hasOwnProperty.call(s.accounts,from)||!Object.prototype.hasOwnProperty.call(s.accounts,to))return false;
   if(s.accounts[from]<amount)return false;
   s.accounts[from]-=amount;s.accounts[to]+=amount;
@@ -210,7 +211,7 @@ export class MayorEconomy{
     const rivalry=competition*.075;
     const costPenalty=required/capital*.11;
     const score=services*.24+attractiveness*.33+tourismBonus+housingBonus+retailBonus+
-      industrialBonus+investorPreference-taxPenalty-rivalry-costPenalty+
+      industrialBonus+investorPreference-taxPenalty-rivalry-costPenalty+s.cycle*.38+
       (i%5===0?.03:0)+(district===0&&model.type==='residential'?.11:0);
     scored.push({plot:i,kind,score,land,license,build:model.cost,reserve,required,district});
    }
@@ -342,14 +343,14 @@ export class MayorEconomy{
   }
   // Trabalho regional e rendas de visitantes: dinheiro transferido do fundo regional.
   for(const h of s.households){
-   const income=money(h.population*(1.3+climate.service*.017));
+   const income=money(h.population*(1.3+climate.service*.017)*clamp(1+s.cycle*.55,.5,1.35));
    const received=Math.min(income,this.account('regional'));
    if(received&&this.move('regional',h.id,received,'Salários de empregos regionais e remessas externas'))h.income+=received;
   }
   // Consumo agregado com concorrência. Residentes sem lojas importam do comércio regional.
   for(const h of s.households){
    const cash=this.account(h.id);
-   const spending=Math.min(cash,money(h.population*(1.4+climate.satisfaction*.013)));
+   const spending=Math.min(cash,money(h.population*(1.4+climate.satisfaction*.013)*clamp(1+s.cycle,.28,1.4)));
    if(spending<=0)continue;
    const shops=active.filter(c=>c.sector==='retail'||c.sector==='tourism');
    const here=shops.filter(c=>Math.abs(this.district(c.plot)-h.district)<=1);
@@ -374,7 +375,7 @@ export class MayorEconomy{
   for(const c of active){
    const model=CITY_MODELS[c.kind],regional=this.account('regional');
    if((c.sector==='industry'||c.sector==='tourism')&&regional){
-    const external=money((model.jobs*13)*(climate.satisfaction/65)*(.6+this.random()*.6));
+    const external=money((model.jobs*13)*(climate.satisfaction/65)*(.6+this.random()*.6)*clamp(1+s.cycle,.18,1.45));
     const val=Math.min(external,regional);
     if(val&&this.move('regional',c.id,val,'Exportações / turismo de fora de Nova Jundiaí'))c.revenue+=val;
    }
