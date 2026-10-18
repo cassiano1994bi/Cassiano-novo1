@@ -1153,15 +1153,84 @@ const daylightWindowColor=new THREE.Color(0x7cbbd1);
 const nightWindowColor=new THREE.Color(0xffd38c);
 const nightFogColor=new THREE.Color(0x1b304b);
 const dayFogColor=new THREE.Color(0xa5c9df);
-function buildingMat(color,rough=.8,metal=.02,glow=0){
- const key=color+'_'+rough+'_'+metal+'_'+glow;
+// Texturas arquitetonicas embutidas, leves e aplicadas MESMO sem baixar GLB.
+// Cinco acabamentos PBR reutilizados em casas, predios e edificios publicos.
+function makeFacadeTexture(kind){
+ const canvas=document.createElement('canvas');
+ canvas.width=canvas.height=128;
+ const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#f4f3ef';ctx.fillRect(0,0,128,128);
+ let seed=({stucco:1963,wood:846,brick:374,roof:933,glass:217})[kind]||123;
+ const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+ if(kind==='stucco'){
+  for(let i=0;i<3100;i++){
+   const v=Math.floor(115+random()*120);
+   ctx.fillStyle='rgba('+v+','+v+','+v+','+(0.025+random()*.06)+')';
+   ctx.fillRect(random()*128,random()*128,.5+random()*1.5,.5+random()*1.5);
+  }
+  ctx.strokeStyle='rgba(125,126,121,.10)';
+  for(let x=0;x<=128;x+=42){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,128);ctx.stroke();}
+ }else if(kind==='brick'){
+  ctx.fillStyle='#e3d0bf';ctx.fillRect(0,0,128,128);
+  for(let row=0;row<12;row++){
+   const y=row*11.4,offset=row%2?-9:0;
+   for(let x=-27+offset;x<150;x+=27){
+    const c=200+Math.round(random()*35);
+    ctx.fillStyle='rgb('+c+','+(c-8)+','+(c-15)+')';
+    ctx.fillRect(x+1,y+1,24,9.4);
+    ctx.fillStyle='rgba(66,54,48,.1)';
+    ctx.fillRect(x+2,y+8.6,21,1.1);
+   }
+  }
+ }else if(kind==='wood'){
+  ctx.fillStyle='#dfcab0';ctx.fillRect(0,0,128,128);
+  for(let x=0;x<128;x+=11){
+   ctx.fillStyle='rgba(82,61,42,.16)';ctx.fillRect(x,0,1.7,128);
+   for(let y=0;y<128;y+=16){
+    ctx.fillStyle='rgba(66,53,36,'+(.02+random()*.12)+')';
+    ctx.fillRect(x+2+random()*4,y+random()*6,2+random()*3,2+random()*17);
+   }
+  }
+ }else if(kind==='roof'){
+  ctx.fillStyle='#d4c4ae';ctx.fillRect(0,0,128,128);
+  for(let row=0;row<15;row++){
+   const y=row*9,offset=row%2?7:0;
+   ctx.strokeStyle='rgba(64,50,45,.34)';
+   ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(128,y);ctx.stroke();
+   for(let x=offset;x<128;x+=14){
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+9);ctx.stroke();
+    ctx.fillStyle='rgba(255,245,229,'+(.07+random()*.15)+')';
+    ctx.fillRect(x+2,y+1,9,3);
+   }
+  }
+ }else if(kind==='glass'){
+  const g=ctx.createLinearGradient(0,0,128,128);
+  g.addColorStop(0,'#c8e2e6');
+  g.addColorStop(.3,'#8db9c6');
+  g.addColorStop(.52,'#cee4e7');
+  g.addColorStop(.69,'#7d9fae');
+  g.addColorStop(1,'#9cc9d0');
+  ctx.fillStyle=g;ctx.fillRect(0,0,128,128);
+  ctx.fillStyle='rgba(255,255,255,.18)';
+  ctx.beginPath();ctx.moveTo(0,70);ctx.lineTo(70,0);ctx.lineTo(103,0);ctx.lineTo(0,106);ctx.fill();
+ }
+ const tex=new THREE.CanvasTexture(canvas);
+ tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+ return tex;
+}
+const facadeTextures=Object.fromEntries(['stucco','wood','brick','roof','glass'].map(k=>[k,makeFacadeTexture(k)]));
+function buildingMat(color,rough=.8,metal=.02,glow=0,finish=''){
+ const key=color+'_'+rough+'_'+metal+'_'+glow+'_'+finish;
  if(!buildingMaterialCache.has(key))buildingMaterialCache.set(key,
-  new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,
-   emissive:glow?new THREE.Color(color).multiplyScalar(glow):0x000000}));
+  new THREE.MeshStandardMaterial({
+   color,roughness:rough,metalness:metal,
+   ...(facadeTextures[finish]?{map:facadeTextures[finish]}:{}),
+   emissive:glow?new THREE.Color(color).multiplyScalar(glow):0x000000
+  }));
  return buildingMaterialCache.get(key);
 }
-const litWindowMaterial=buildingMat('#7cbbd1',.23,.08);
-const unlitWindowMaterial=buildingMat('#4e7e9a',.32,.08);
+const litWindowMaterial=buildingMat('#7cbbd1',.23,.08,0,'glass');
+const unlitWindowMaterial=buildingMat('#4e7e9a',.32,.08,0,'glass');
 const porchLampMaterial=buildingMat('#e4d8a9',.33,.03);
 // Comércio público não negociável na faixa da orla: cafés e quiosques iluminados.
 // Não ocupam nenhum dos 1.000 lotes nem substituem imóveis dos jogadores.
@@ -1421,14 +1490,14 @@ function house(id,kind){
  // Os dois inferiores ficam voltados para a rua sul (+Z); nunca para o fundo do vizinho.
  group.rotation.y=(id%4<2)?Math.PI:0;
  scene.add(group);
- const facade=buildingMat(state.lots[id].color||'#e3e1d4',.81);
- const stucco=buildingMat('#ede7db'),whiteMat=buildingMat('#f6f2e8');
+ const facade=buildingMat(state.lots[id].color||'#e3e1d4',.81,.02,0,'stucco');
+ const stucco=buildingMat('#ede7db',.86,.01,0,'stucco'),whiteMat=buildingMat('#f6f2e8',.84,.01,0,'stucco');
  const sandStone=buildingMat('#c3b7a5'),stoneDark=buildingMat('#888c89');
  const charcoal=buildingMat('#3c4851',.59),bronze=buildingMat('#ab885b',.44,.34);
- const slate=buildingMat('#555f68'),terracotta=buildingMat('#a65d45'),tileDark=buildingMat('#5c4b46');
- const wood=buildingMat('#966342'),woodLight=buildingMat('#c4905c'),brick=buildingMat('#a9715b');
- const glass=buildingMat('#75b8ce',.17,.40),glassBlue=buildingMat('#4e8ba9',.21,.34);
- const glassDark=buildingMat('#244b62',.19,.40),poolWater=buildingMat('#27b7d4',.16,.35);
+ const slate=buildingMat('#555f68',.78,.06,0,'roof'),terracotta=buildingMat('#a65d45',.85,.02,0,'roof'),tileDark=buildingMat('#5c4b46',.87,.01,0,'roof');
+ const wood=buildingMat('#966342',.8,.02,0,'wood'),woodLight=buildingMat('#c4905c',.78,.02,0,'wood'),brick=buildingMat('#a9715b',.89,.01,0,'brick');
+ const glass=buildingMat('#75b8ce',.17,.40,0,'glass'),glassBlue=buildingMat('#4e8ba9',.21,.34,0,'glass');
+ const glassDark=buildingMat('#244b62',.19,.40,0,'glass'),poolWater=buildingMat('#27b7d4',.16,.35);
  const hedge=buildingMat('#3c7650'),lawn=buildingMat('#79a568'),grass=buildingMat('#4e915b');
  const paving=buildingMat('#d0c7ba'),cream=buildingMat('#d8cec0'),gold=buildingMat('#c8ab74',.40,.30);
  const warm=buildingMat('#f6dfae',.35,.12,.15);
