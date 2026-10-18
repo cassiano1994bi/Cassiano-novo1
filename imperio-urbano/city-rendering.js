@@ -85,7 +85,7 @@ export function createNaturalCity(THREE, scene, renderer) {
    if(b.col<4)for(const dz of [-7,0,7])paint.push({x:b.x+15.5,y:.158,z:b.z+dz,sx:.10,sy:.008,sz:2.8});
    if(b.row<9)for(const dx of [-8,0,8])paint.push({x:b.x+dx,y:.158,z:b.z+14.5,sx:2.8,sy:.008,sz:.10});
    for(let j=0;j<5;j++)drains.push({x:b.x+12.95+j*.08,y:.33,z:b.z+11.4,sx:.035,sy:.014,sz:.48});
-   if(b.col<4&&b.row<9){
+   if(b.col<4&&b.row<9&&(b.di+b.row+b.col)%5===0){
     const vx=b.x+stepX/2,hz=b.z+stepZ/2;
     for(const a of [-1,1])for(const q of [-1,1]){
      ramps.push({x:vx+a*2.02,y:.235,z:hz+q*5,sx:1.35,sy:.11,sz:1.35});

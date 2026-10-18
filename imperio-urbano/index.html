@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D · Prefeito v11.3</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:auto;min-height:80px;padding:10px 14px;display:flex;align-items:center;gap:8px;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 317px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots,#parksJump{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}#parksJump{top:111px;border-color:#71ba86;background:#1b4137}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}#maptools{position:absolute;left:8px;top:8px;z-index:4;width:min(52%,228px);background:#132a41eF;border:1px solid #63829b;border-radius:12px;padding:8px;box-shadow:0 3px 16px #07152266;font-size:12px}#maptools select,#maptools button{width:100%;min-height:34px;margin-bottom:5px;padding:6px 7px;border:1px solid #65849a;border-radius:8px;color:#fff;background:#254762;font-size:12px}#maptools button.active{border-color:#f4ce62;color:#ffe29b;background:#374e53}#maptools summary{cursor:pointer;list-style-position:inside;font-weight:700;color:#dceaff;padding:3px 0}#maptools .legend-row{display:flex;align-items:center;gap:5px;margin:5px 0;color:#dfeaf2;line-height:1.35}#maptools .legend-swatch{width:12px;height:12px;border:2px solid;border-radius:3px;flex-shrink:0}#maptools .legend-gem{min-width:17px;text-align:center;font-weight:800;color:#ffd968}#maptools .legend-note{font-size:11px;line-height:1.35;color:#aabfd3;padding-top:5px;border-top:1px solid #465e70}#maptools option{color:#fff;background:#223a52}.build-dialog{max-height:calc(100% - 6px);overflow-y:auto}.build-models{display:grid;grid-template-columns:1fr;gap:7px;margin:10px 0}.build-model{width:100%;padding:10px;border:1px solid #58768d;border-radius:10px;background:#27445d;color:#eaf5fd;text-align:left;line-height:1.3}.build-model strong{display:block;font-size:14px}.build-model small{display:block;margin-top:3px;color:#c3d1dc;font-size:12px}.build-model.chosen{border-color:#51ebb4;background:#285469;box-shadow:inset 0 0 0 1px #51ebb4}.build-model.locked{opacity:.60;border-style:dashed;cursor:not-allowed}.build-model .model-price{color:#a7f0c7;font-weight:800;margin-top:4px}.build-model.locked .model-price{color:#bac6d0}.build-choice-intro{font-size:12px;color:#d1dfee;margin:8px 0}.build-status{font-size:12px;color:#ffe3aa;margin-bottom:8px}.build-bottom button:disabled{opacity:.5;cursor:not-allowed}#maptools{width:auto;max-width:min(70%,280px)}#maptools .map-contents{display:none}#maptools.open .map-contents{display:block}#maptools .map-toggle{width:auto;margin:0;background:#254762;padding:8px 11px;font-weight:700}#maptools.open{width:min(70%,260px)}#maptools.open .map-toggle{margin-bottom:7px}.build-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom));background:#071929ed;touch-action:pan-y;overscroll-behavior:contain}.build-dialog{width:min(100%,440px);height:min(90dvh,760px);min-height:0;max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;background:#19314a;border:1px solid #5786a8;border-radius:16px;touch-action:pan-y}.build-dialog-head{padding:12px 14px 9px;flex:none;background:#19314a;border-bottom:1px solid #3b576f}.build-dialog-head h3{margin:0;font-size:17px}.build-back{float:right;padding:7px 10px;border:1px solid #7790a4;border-radius:9px;background:#2a435b;color:#fff;font-size:12px}.build-dialog-body{padding:12px 14px;min-height:0;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}.build-dialog-body h4{margin:2px 0 8px;font-size:14px}.build-dialog-footer{flex:none;background:#162d45;border-top:1px solid #4b6880;padding:10px 14px 12px}.build-dialog-footer .build-status{min-height:30px;margin:0 0 8px;line-height:1.3}.build-dialog-footer .build-bottom{display:flex;gap:8px;flex-wrap:nowrap}.build-dialog-footer .build-bottom button{min-width:0;flex:1;padding:12px 8px;font-size:13px}.build-dialog-footer .build-bottom .cancel{background:#c9d4df}.build-dialog-footer .build-bottom button:disabled{opacity:.5}.build-models{margin-bottom:12px}.build-choice-intro{clear:both}#clockBar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px;font-size:11px;color:#dbe9ff}#clockReadout{padding:4px 7px;background:#223b57;border:1px solid #536d85;border-radius:7px;white-space:nowrap}#nightModeButton{background:#284762;color:#f4f1df;border:1px solid #718ba3;border-radius:7px;padding:4px 8px;font-size:11px;min-height:27px}#nightModeButton.active{color:#ffe7a3;border-color:#ffd377;background:#34475c}#clockHelp{font-size:10px;opacity:.72}@media(max-width:390px){header{padding:9px 11px}#clockBar{gap:4px}#clockHelp{display:none}#nightModeButton{padding:4px 6px}h1{font-size:17px}}#nightModeButton{box-shadow:inset 0 0 0 1px #334e66}#clockReadout{font-variant-numeric:tabular-nums}#graphicsPackToggle{width:100%;padding:9px 10px;border-radius:9px;border:1px solid #5d96a0;background:#245665;color:#e5fffa;font-weight:650;margin-top:8px}#graphicsPackInfo{display:block;font-size:11px;line-height:1.4;color:#c4d8e1;margin:4px 2px 1px}#graphicNotice{font-size:10px;line-height:1.3;color:#a9e7d4;margin:5px 4px 0;white-space:nowrap}#graphicsFocus{background:#265c63!important;color:#e9fff6!important}
+<!doctype html><html lang="pt-BR"><head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Império Urbano 3D · Prefeito v11.4</title><style>*{box-sizing:border-box}body{margin:0;background:#101e30;color:#fff;font:15px system-ui,sans-serif}header{height:auto;min-height:80px;padding:10px 14px;display:flex;align-items:center;gap:8px;justify-content:space-between;background:#172c45}h1{font-size:19px;margin:0}small{color:#bed0e4}strong{color:#69e6a6}#stage{height:calc(100dvh - 317px);min-height:320px;position:relative;touch-action:none;overflow:hidden}canvas{display:block;touch-action:none}#hint{position:absolute;bottom:12px;left:10px;right:10px;text-align:center;pointer-events:none;background:#14283dc9;padding:8px;border-radius:12px;font-size:12px}#resetview,#myLots,#parksJump{position:absolute;right:10px;background:#1b3048;color:white;border:1px solid #6985a0;border-radius:10px;padding:10px;z-index:2}#resetview{top:12px}#myLots{top:61px}#parksJump{top:111px;border-color:#71ba86;background:#1b4137}.build-overlay{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:12px;background:#071929e8}.build-dialog{width:min(100%,380px);max-height:100%;overflow:auto;border:1px solid #5786a8;border-radius:16px;background:#19314a;padding:16px;box-shadow:0 16px 40px #0008}.build-dialog h3{margin:0 0 8px;font-size:19px}.build-dialog p{margin:7px 0;color:#d6e5ef;font-size:13px}.build-palette{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px}.build-bottom{display:flex;gap:8px;flex-wrap:wrap}.build-bottom button{flex:1;min-width:125px;border:0;border-radius:10px;padding:12px;color:#11253a;font-weight:750;background:#57dda0}.build-bottom .cancel{background:#c9d4df}#panel{min-height:190px;padding:12px 16px;overflow:auto;background:#172c45}#panel h2{margin:0 0 8px;font-size:18px}#desc{color:#cad8e7;font-size:14px;margin-bottom:10px}button{cursor:pointer;font:inherit}#actions{display:flex;gap:8px;flex-wrap:wrap}#actions button{border:0;border-radius:9px;background:#30c979;padding:11px;color:#102537;font-weight:700}#actions button.alt{background:#ffbe65}input[type=number]{width:105px;padding:10px;border-radius:9px;border:1px solid #7390a7;background:#213b54;color:white}#status{font-size:12px;color:#f9cf77;margin-top:8px}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#101e30;z-index:3;text-align:center;padding:25px}#stats{font-size:12px;color:#c6e4ff;margin-top:4px}#palette{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0} .swatch{width:35px;height:35px;border:3px solid #ffffff66;border-radius:10px;padding:0;min-width:35px} .swatch.active{border-color:#fff;outline:2px solid #ffdb6c} #palette label{font-size:13px;color:#d9e5ef;margin-right:4px}#maptools{position:absolute;left:8px;top:8px;z-index:4;width:min(52%,228px);background:#132a41eF;border:1px solid #63829b;border-radius:12px;padding:8px;box-shadow:0 3px 16px #07152266;font-size:12px}#maptools select,#maptools button{width:100%;min-height:34px;margin-bottom:5px;padding:6px 7px;border:1px solid #65849a;border-radius:8px;color:#fff;background:#254762;font-size:12px}#maptools button.active{border-color:#f4ce62;color:#ffe29b;background:#374e53}#maptools summary{cursor:pointer;list-style-position:inside;font-weight:700;color:#dceaff;padding:3px 0}#maptools .legend-row{display:flex;align-items:center;gap:5px;margin:5px 0;color:#dfeaf2;line-height:1.35}#maptools .legend-swatch{width:12px;height:12px;border:2px solid;border-radius:3px;flex-shrink:0}#maptools .legend-gem{min-width:17px;text-align:center;font-weight:800;color:#ffd968}#maptools .legend-note{font-size:11px;line-height:1.35;color:#aabfd3;padding-top:5px;border-top:1px solid #465e70}#maptools option{color:#fff;background:#223a52}.build-dialog{max-height:calc(100% - 6px);overflow-y:auto}.build-models{display:grid;grid-template-columns:1fr;gap:7px;margin:10px 0}.build-model{width:100%;padding:10px;border:1px solid #58768d;border-radius:10px;background:#27445d;color:#eaf5fd;text-align:left;line-height:1.3}.build-model strong{display:block;font-size:14px}.build-model small{display:block;margin-top:3px;color:#c3d1dc;font-size:12px}.build-model.chosen{border-color:#51ebb4;background:#285469;box-shadow:inset 0 0 0 1px #51ebb4}.build-model.locked{opacity:.60;border-style:dashed;cursor:not-allowed}.build-model .model-price{color:#a7f0c7;font-weight:800;margin-top:4px}.build-model.locked .model-price{color:#bac6d0}.build-choice-intro{font-size:12px;color:#d1dfee;margin:8px 0}.build-status{font-size:12px;color:#ffe3aa;margin-bottom:8px}.build-bottom button:disabled{opacity:.5;cursor:not-allowed}#maptools{width:auto;max-width:min(70%,280px)}#maptools .map-contents{display:none}#maptools.open .map-contents{display:block}#maptools .map-toggle{width:auto;margin:0;background:#254762;padding:8px 11px;font-weight:700}#maptools.open{width:min(70%,260px)}#maptools.open .map-toggle{margin-bottom:7px}.build-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:10px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom));background:#071929ed;touch-action:pan-y;overscroll-behavior:contain}.build-dialog{width:min(100%,440px);height:min(90dvh,760px);min-height:0;max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;background:#19314a;border:1px solid #5786a8;border-radius:16px;touch-action:pan-y}.build-dialog-head{padding:12px 14px 9px;flex:none;background:#19314a;border-bottom:1px solid #3b576f}.build-dialog-head h3{margin:0;font-size:17px}.build-back{float:right;padding:7px 10px;border:1px solid #7790a4;border-radius:9px;background:#2a435b;color:#fff;font-size:12px}.build-dialog-body{padding:12px 14px;min-height:0;flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}.build-dialog-body h4{margin:2px 0 8px;font-size:14px}.build-dialog-footer{flex:none;background:#162d45;border-top:1px solid #4b6880;padding:10px 14px 12px}.build-dialog-footer .build-status{min-height:30px;margin:0 0 8px;line-height:1.3}.build-dialog-footer .build-bottom{display:flex;gap:8px;flex-wrap:nowrap}.build-dialog-footer .build-bottom button{min-width:0;flex:1;padding:12px 8px;font-size:13px}.build-dialog-footer .build-bottom .cancel{background:#c9d4df}.build-dialog-footer .build-bottom button:disabled{opacity:.5}.build-models{margin-bottom:12px}.build-choice-intro{clear:both}#clockBar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px;font-size:11px;color:#dbe9ff}#clockReadout{padding:4px 7px;background:#223b57;border:1px solid #536d85;border-radius:7px;white-space:nowrap}#nightModeButton{background:#284762;color:#f4f1df;border:1px solid #718ba3;border-radius:7px;padding:4px 8px;font-size:11px;min-height:27px}#nightModeButton.active{color:#ffe7a3;border-color:#ffd377;background:#34475c}#clockHelp{font-size:10px;opacity:.72}@media(max-width:390px){header{padding:9px 11px}#clockBar{gap:4px}#clockHelp{display:none}#nightModeButton{padding:4px 6px}h1{font-size:17px}}#nightModeButton{box-shadow:inset 0 0 0 1px #334e66}#clockReadout{font-variant-numeric:tabular-nums}#graphicsPackToggle{width:100%;padding:9px 10px;border-radius:9px;border:1px solid #5d96a0;background:#245665;color:#e5fffa;font-weight:650;margin-top:8px}#graphicsPackInfo{display:block;font-size:11px;line-height:1.4;color:#c4d8e1;margin:4px 2px 1px}#graphicNotice{font-size:10px;line-height:1.3;color:#a9e7d4;margin:5px 4px 0;white-space:nowrap}#graphicsFocus{background:#265c63!important;color:#e9fff6!important}
 
 /* v9.4 — interface compacta com mapa em primeiro plano, retrato e paisagem */
 html,body{height:100%;width:100%;overflow:hidden}
@@ -148,7 +148,7 @@ header>div:first-child>small{display:none}
 #mayorLotInfo{bottom:66px}#viewToast{z-index:12;top:110px}
 @media(max-width:480px){header h1{font-size:12px!important}header>div:first-child{gap:4px}#mayorHeadline{order:6;flex-basis:100%;font-size:11px}#mayorToolbar{gap:4px}#mayorToolbar button{flex:1;padding:8px 5px}#mayorDrawer{top:98px;max-height:calc(100% - 108px)}#mayorMission{font-size:11px;width:max-content;bottom:10px}#mayorLotInfo{bottom:62px}}
 @media(orientation:landscape) and (max-height:670px){#mayorDrawer{top:48px;max-height:calc(100% - 54px)}#mayorMission{left:auto;right:8px;transform:none;max-width:40%;font-size:10px}#mayorToolbar button{min-height:36px}}
-</style><script>(()=>{const current='11.3';let shown=false;async function check(){try{const r=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();if(v.version===current||shown)return;shown=true;const b=document.createElement('button');b.type='button';b.textContent='✨ Nova versão '+v.version+' — atualizar';b.style='position:fixed;z-index:99999;top:8px;left:50%;transform:translateX(-50%);padding:12px 18px;border:2px solid #a6e7ce;border-radius:14px;background:#123c36;color:white;font:700 15px system-ui;box-shadow:0 5px 24px #0008';b.onclick=()=>location.reload();document.body.append(b)}catch{}}check();setInterval(check,45000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()})})()</script></head><body><header><div><h1>🏛️ IMPÉRIO URBANO · PREFEITO <span style="font-size:12px;color:#69e6a6">v11.3</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div><div id="clockBar"><span id="clockReadout" aria-live="off">☀️ Dia 1 · 08:00</span><button type="button" id="nightModeButton" aria-pressed="false">🌙 Ver noite</button><span id="clockHelp">1 dia = 5 min</span></div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="mayorHUD" aria-label="Prefeitura e economia"></div><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><div id="quicktools" aria-label="Ferramentas da cidade">
+</style><script>(()=>{const current='11.4';let shown=false;async function check(){try{const r=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();if(v.version===current||shown)return;shown=true;const b=document.createElement('button');b.type='button';b.textContent='✨ Nova versão '+v.version+' — atualizar';b.style='position:fixed;z-index:99999;top:8px;left:50%;transform:translateX(-50%);padding:12px 18px;border:2px solid #a6e7ce;border-radius:14px;background:#123c36;color:white;font:700 15px system-ui;box-shadow:0 5px 24px #0008';b.onclick=()=>location.reload();document.body.append(b)}catch{}}check();setInterval(check,45000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()})})()</script></head><body><header><div><h1>🏛️ IMPÉRIO URBANO · PREFEITO <span style="font-size:12px;color:#69e6a6">v11.4</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div><div id="clockBar"><span id="clockReadout" aria-live="off">☀️ Dia 1 · 08:00</span><button type="button" id="nightModeButton" aria-pressed="false">🌙 Ver noite</button><span id="clockHelp">1 dia = 5 min</span></div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="mayorHUD" aria-label="Prefeitura e economia"></div><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><div id="quicktools" aria-label="Ferramentas da cidade">
 <button id="quickToggle" type="button" aria-expanded="false" aria-controls="quickItems">☰ Menu</button>
 <div id="quickItems" hidden>
 <button id="resetview">⌖ Cidade inteira</button>
@@ -213,10 +213,10 @@ header>div:first-child>small{display:none}
 })();
 </script><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
-import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=11.3';
-import {mountMayorUI} from './mayor-ui.js?v=11.3';
-import {makeMunicipalBuilding} from './mayor-buildings.js?v=11.3';
-import {createNaturalCity} from './city-rendering.js?v=11.3';
+import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=11.4';
+import {mountMayorUI} from './mayor-ui.js?v=11.4';
+import {makeMunicipalBuilding} from './mayor-buildings.js?v=11.4';
+import {createNaturalCity} from './city-rendering.js?v=11.4';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 // A versao nova nao altera nenhum saldo existente e nao concede bonus retroativos.
@@ -358,7 +358,7 @@ const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
 let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'})}catch(error){
  console.warn('WebGL indisponível; ativando mapa municipal 2D.',error);
- const {startCityMap2D}=await import('./mayor-map2d.js?v=11.3');
+ const {startCityMap2D}=await import('./mayor-map2d.js?v=11.4');
  startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS)});
 }
 if(renderer){
@@ -902,8 +902,8 @@ for(let di=0;di<4;di++){
 path([[minX,47],[-373,47]],5.5,road,.09);
 box(35,.10,29,-389,.005,65,walk);
 // Sinalizacao horizontal das avenidas: faixas pintadas no asfalto, sem objetos soltos.
-const roadStripeMaterial=new THREE.MeshBasicMaterial({color:0xe8d8a9,toneMapped:true});
-const roadWhiteMaterial=new THREE.MeshBasicMaterial({color:0xe6e4da,toneMapped:true});
+const roadStripeMaterial=new THREE.MeshStandardMaterial({color:0xaaa99f,roughness:.98});
+const roadWhiteMaterial=new THREE.MeshStandardMaterial({color:0xb7b5ac,roughness:.98});
 const stripeCoords=[];
 for(const z of [-7,286]){
  for(let x=minX+6;x<=maxX-5;x+=15.7)stripeCoords.push({x,z,axis:'x'});
@@ -912,6 +912,18 @@ for(let di=0;di<4;di++){
  const x=(blockPoint(di,0,4)[0]+blockPoint(di+1,0,0)[0])/2;
  for(let z=6;z<=279;z+=16)stripeCoords.push({x,z,axis:'z'});
 }
+// Marcas simples nas ruas locais ajudam a leitura sem pintar cada rua inteira.
+for(let di=0;di<5;di++){
+ const left=blockPoint(di,0,0)[0],right=blockPoint(di,0,4)[0];
+ for(let row=0;row<9;row++){
+  const z=10+row*stepZ+stepZ/2;
+  for(let x=left-12;x<right+12;x+=10.5)stripeCoords.push({x,z,axis:'x',length:3.1});
+ }
+ for(let col=0;col<4;col++){
+  const x=left+col*stepX+stepX/2;
+  for(let z=-2;z<280;z+=10.5)stripeCoords.push({x,z,axis:'z',length:3.1});
+ }
+}
 const stripeGeometry=new THREE.BoxGeometry(1,.022,1);
 const stripeMesh=new THREE.InstancedMesh(stripeGeometry,roadStripeMaterial,stripeCoords.length);
 const stripeDummy=new THREE.Object3D();
@@ -919,7 +931,8 @@ for(let i=0;i<stripeCoords.length;i++){
  const p=stripeCoords[i];
  stripeDummy.position.set(p.x,.17,p.z);
  stripeDummy.rotation.set(0,0,0);
- stripeDummy.scale.set(p.axis==='x'?6.3:.15,1,p.axis==='z'?6.3:.15);
+ const length=p.length||6.3;
+ stripeDummy.scale.set(p.axis==='x'?length:.15,1,p.axis==='z'?length:.15);
  stripeDummy.updateMatrix();stripeMesh.setMatrixAt(i,stripeDummy.matrix);
 }
 stripeMesh.instanceMatrix.needsUpdate=true;
@@ -930,7 +943,8 @@ for(let di=0;di<5;di++){
  const left=blockPoint(di,0,0)[0];
  for(let col=0;col<4;col++)for(let row=0;row<9;row++){
   const vx=left+col*stepX+stepX/2,hz=10+row*stepZ+stepZ/2;
-  for(const side of [-1,1])for(let k=-2;k<=2;k++){
+  if((di+row+col)%5!==0)continue;
+  for(const side of [-1,1])for(let k=-1;k<=1;k++){
    // Zebras completas em cada aproximação da esquina: eixo indica o sentido da faixa.
    crossingPositions.push({x:vx,z:hz+side*5+k*.64,axis:'x'});
    crossingPositions.push({x:vx+side*5+k*.64,z:hz,axis:'z'});
@@ -943,11 +957,12 @@ for(const x of connectorXs)for(const z of [-7,140.5,286])for(const side of [-1,1
  crossingPositions.push({x:x+side*6+k*.76,z,axis:'z',length:8.2});
  crossingPositions.push({x,z:z+side*6+k*.76,axis:'x',length:8.2});
 }
-const crossMesh=new THREE.InstancedMesh(stripeGeometry,roadWhiteMaterial,crossingPositions.length);
+const crossStripeGeometry=new THREE.BoxGeometry(1,.014,1);
+const crossMesh=new THREE.InstancedMesh(crossStripeGeometry,roadWhiteMaterial,crossingPositions.length);
 for(let i=0;i<crossingPositions.length;i++){
  const p=crossingPositions[i];
- const length=p.length||4.3;
- stripeDummy.position.set(p.x,.187,p.z);stripeDummy.scale.set(p.axis==='x'?length:.34,1,p.axis==='x'?.34:length);
+ const length=p.length||3.25;
+ stripeDummy.position.set(p.x,.174,p.z);stripeDummy.scale.set(p.axis==='x'?length:.22,1,p.axis==='x'?.22:length);
  stripeDummy.updateMatrix();crossMesh.setMatrixAt(i,stripeDummy.matrix);
 }
 crossMesh.instanceMatrix.needsUpdate=true;crossMesh.frustumCulled=false;scene.add(crossMesh);
@@ -959,16 +974,16 @@ for(const x of connectorXs)for(const z of [-7,140.5,286]){
 }
 function addInstances(geometry,material,items){
  const mesh=new THREE.InstancedMesh(geometry,material,items.length);
- for(let i=0;i<items.length;i++){const p=items[i];stripeDummy.position.set(p.x,p.y,p.z);stripeDummy.scale.set(p.sx,p.sy,p.sz);stripeDummy.updateMatrix();mesh.setMatrixAt(i,stripeDummy.matrix)}
+ for(let i=0;i<items.length;i++){const p=items[i];stripeDummy.position.set(p.x,p.y,p.z);stripeDummy.rotation.set(p.rx||0,p.ry||0,p.rz||0);stripeDummy.scale.set(p.sx,p.sy,p.sz);stripeDummy.updateMatrix();mesh.setMatrixAt(i,stripeDummy.matrix)}
  mesh.instanceMatrix.needsUpdate=true;mesh.frustumCulled=false;scene.add(mesh);return mesh;
 }
 const signalPoles=addInstances(new THREE.CylinderGeometry(.7,1,1,7),new THREE.MeshStandardMaterial({color:0x30383b,roughness:.8}),trafficLamps);
 const signalCases=[],signalRed=[],signalAmber=[],signalGreen=[];
 for(const p of trafficLamps){
  signalCases.push({x:p.x,y:4.2,z:p.z-.1,sx:.55,sy:1.35,sz:.48});
- signalRed.push({x:p.x,y:4.62,z:p.z-.37,sx:.18,sy:.18,sz:.1});
- signalAmber.push({x:p.x,y:4.2,z:p.z-.37,sx:.18,sy:.18,sz:.1});
- signalGreen.push({x:p.x,y:3.78,z:p.z-.37,sx:.18,sy:.18,sz:.1});
+  signalRed.push({x:p.x,y:4.62,z:p.z-.37,sx:.15,sy:.15,sz:.09});
+ signalAmber.push({x:p.x,y:4.2,z:p.z-.37,sx:.15,sy:.15,sz:.09});
+ signalGreen.push({x:p.x,y:3.78,z:p.z-.37,sx:.15,sy:.15,sz:.09});
 }
 addInstances(stripeGeometry,new THREE.MeshStandardMaterial({color:0x252a2d,roughness:.7}),signalCases);
 const redLampMaterial=new THREE.MeshStandardMaterial({color:0xff342d,emissive:0xa71911,emissiveIntensity:1.6});
@@ -989,6 +1004,25 @@ for(const x of connectorXs)for(const z of [-7,140.5,286])for(const side of [-1,1
  stopLines.push({x:x+side*4.65,y:.177,z,sx:.24,sy:.018,sz:8.2});
 }
 addInstances(stripeGeometry,roadWhiteMaterial,stopLines).castShadow=false;
+// Setas discretas e placas PARE, compartilhando malhas instanciadas para preservar desempenho.
+const arrowShape=new THREE.Shape();
+arrowShape.moveTo(0,1.5);arrowShape.lineTo(-.58,.48);arrowShape.lineTo(-.22,.48);arrowShape.lineTo(-.22,-1.25);arrowShape.lineTo(.22,-1.25);arrowShape.lineTo(.22,.48);arrowShape.lineTo(.58,.48);arrowShape.closePath();
+const arrowGeometry=new THREE.ShapeGeometry(arrowShape);arrowGeometry.rotateX(-Math.PI/2);
+const arrows=[];
+for(const x of connectorXs)for(const z of [-7,140.5,286]){
+ arrows.push({x,y:.184,z:z-11,ry:Math.PI,sx:.82,sy:1,sz:.82},{x,y:.184,z:z+11,ry:0,sx:.82,sy:1,sz:.82});
+}
+const arrowMesh=addInstances(arrowGeometry,roadWhiteMaterial,arrows);arrowMesh.castShadow=false;
+const pareCanvas=document.createElement('canvas');pareCanvas.width=256;pareCanvas.height=256;
+const pareCtx=pareCanvas.getContext('2d');
+pareCtx.clearRect(0,0,256,256);pareCtx.translate(128,128);pareCtx.rotate(Math.PI/8);
+pareCtx.fillStyle='#c93632';pareCtx.strokeStyle='#f4eee2';pareCtx.lineWidth=13;pareCtx.beginPath();
+for(let i=0;i<8;i++){const a=i*Math.PI/4;const x=Math.cos(a)*91,y=Math.sin(a)*91;i?pareCtx.lineTo(x,y):pareCtx.moveTo(x,y)}
+pareCtx.closePath();pareCtx.fill();pareCtx.stroke();pareCtx.rotate(-Math.PI/8);pareCtx.fillStyle='#fff';pareCtx.font='bold 48px system-ui';pareCtx.textAlign='center';pareCtx.textBaseline='middle';pareCtx.fillText('PARE',0,2);
+const pareTexture=new THREE.CanvasTexture(pareCanvas);pareTexture.colorSpace=THREE.SRGBColorSpace;
+const pareMaterial=new THREE.MeshStandardMaterial({map:pareTexture,roughness:.75,side:THREE.DoubleSide});
+const parePositions=trafficLamps.map(p=>({x:p.x,y:2.75,z:p.z-.28,sx:1.35,sy:1.35,sz:.14}));
+addInstances(new THREE.PlaneGeometry(1,1),pareMaterial,parePositions).castShadow=false;
 const commercial=new THREE.Group();commercial.position.set(-405,0,61);scene.add(commercial);
 for(let i=0;i<5;i++){
  const x=(i%3)*12,z=Math.floor(i/3)*13,h=11+(i%3)*5;
@@ -2383,7 +2417,7 @@ function house(id,kind){
   for(let k=0;k<7;k++)add(.13,.13,d+.25,x-w/2+k*w/6,top,z,woodLight);
  }
  function lawnAndPath(){
-  add(11.3,.06,10.6,0,.00,0,lawn);
+  add(11.4,.06,10.6,0,.00,0,lawn);
   add(1.55,.095,3.0,-.7,.07,4.0,paving);
   // Jardim organizado ao longo da fachada.
   for(const px of [-3.9,3.9])for(const pz of [3.1,4.4])planted(px,pz,.52);
