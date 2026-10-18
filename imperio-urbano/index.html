@@ -60,6 +60,78 @@ function zone(i){
  return {grade:'D',name:'Expansão urbana',factor:1};
 }
 const cost=i=>Math.round(baseCost(i)*zone(i).factor/100)*100;
+// Urbanismo v8.5: 10 quadras reservadas como parques PUBLICOS.
+// Os 1.000 IDs continuam estáveis; nenhum lote comprado ou anunciado é alterado.
+// Duas praças inteiras por bairro, ocupando quatro lotes vazios por quadra.
+const PUBLIC_PARK_KEY='publicParkBlocksV85';
+const PARK_THEMES=[
+ 'Jardim das Águas','Parque Botânico','Parque das Crianças','Praça das Fontes',
+ 'Bosque das Artes','Parque Esportivo','Jardim Japonês','Parque da Família',
+ 'Bosque Ecológico','Praça do Mirante'
+];
+const parkTargets=[];
+for(let district=0;district<5;district++){
+ parkTargets.push({district,row:1,col:2},{district,row:6,col:2});
+}
+const parkBlockLots=block=>[block*4,block*4+1,block*4+2,block*4+3];
+const canReserveParkBlock=block=>parkBlockLots(block).every(i=>{
+ const lot=state.lots[i];
+ return lot&&lot.owner==='free'&&!lot.building&&!lot.price;
+});
+function chooseParkBlocks(){
+ const used=new Set(),chosen=[];
+ for(const goal of parkTargets){
+  const possibilities=[];
+  for(let row=0;row<10;row++)for(let col=0;col<5;col++){
+   const block=goal.district*50+row*5+col;
+   if(used.has(block)||!canReserveParkBlock(block))continue;
+   if(chosen.some(prev=>Math.floor(prev/50)===goal.district&&Math.abs(Math.floor((prev%50)/5)-row)<2))continue;
+   const score=Math.abs(row-goal.row)*5+Math.abs(col-goal.col)*2+
+     (row===0?9:0)+(col===0||col===4?1:0);
+   possibilities.push({block,score});
+  }
+  possibilities.sort((a,b)=>a.score-b.score||a.block-b.block);
+  if(possibilities.length){
+   used.add(possibilities[0].block);
+   chosen.push(possibilities[0].block);
+  }
+ }
+ return chosen;
+}
+let publicParkBlocks=Array.isArray(state[PUBLIC_PARK_KEY])?state[PUBLIC_PARK_KEY]
+ .filter((block,index,arr)=>Number.isInteger(block)&&block>=0&&block<250&&arr.indexOf(block)===index):null;
+if(publicParkBlocks===null){
+ const previous=JSON.stringify(state);
+ const proposed=chooseParkBlocks();
+ if(proposed.length){
+  const newState=JSON.parse(previous);
+  for(const block of proposed)for(const id of parkBlockLots(block)){
+   newState.lots[id].owner='park';
+   newState.lots[id].parkReserved=true;
+  }
+  newState[PUBLIC_PARK_KEY]=proposed;
+  try{
+   const backupKey=KEY+'_before_public_parks_v85';
+   if(!localStorage.getItem(backupKey))localStorage.setItem(backupKey,previous);
+   localStorage.setItem(KEY,JSON.stringify(newState));
+   state=newState;
+   publicParkBlocks=proposed;
+  }catch(error){
+   publicParkBlocks=[];
+   status.textContent='Não foi possível salvar a reserva dos parques; seu patrimônio foi mantido.';
+  }
+ }else{
+  publicParkBlocks=[];
+ }
+}
+// A versão salva é a referência permanente: parques nunca mudam de lugar após compras.
+const PUBLIC_PARK_IDS=new Set(publicParkBlocks.flatMap(block=>parkBlockLots(block)));
+const isPublicParkLot=id=>PUBLIC_PARK_IDS.has(id);
+const publicParkName=block=>{
+ const n=publicParkBlocks.indexOf(block);
+ return n>=0?PARK_THEMES[n]:'Parque público';
+};
+
 
 const BUILD_MODELS=[
  {id:'house_popular',type:'casa',name:'Casa Popular',base:7000,min:0,desc:'1 pavimento · telhado colonial · jardim frontal'},
