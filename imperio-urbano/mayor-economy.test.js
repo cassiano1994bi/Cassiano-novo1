@@ -112,5 +112,26 @@ export function runMayorEconomyTests(){
   assert(!g.s.projects.some((a,i)=>g.s.projects.some((b,j)=>i!==j&&a.plot===b.plot)),'Lote duplicado');
   return g.s.ledger.length+' transações recentes conferidas';
  });
+ scenario('Estoque comercial e mercadorias contabilizadas',()=>{
+  const {game:g}=make();g.setTax('service',1);g.runDays(85);
+  const shops=g.s.companies.filter(c=>c.sector==='retail');
+  assert(shops.length>0,'Nenhum comércio foi aberto');
+  assert(shops.every(c=>Number.isFinite(c.stock)&&c.stock>=0),'Estoque inválido');
+  assert(g.s.ledger.some(t=>t.reason.startsWith('Reposição de estoque')),'Nenhuma compra de mercadorias');
+  assert(g.total()===g.s.initialTotal,'Compras geraram dinheiro');
+  return shops.length+' comércios, estoque e pagamentos registrados';
+ });
+ scenario('Auditoria plurianual de 720 dias',()=>{
+  const {game:g,storage,legacy,parkIds}=make();
+  for(let day=0;day<720;day++)g.tickDay();
+  assert(g.s.day===720,'Simulação não chegou ao dia 720');
+  assert(g.s.plots.length===1000,'Lotes perdidos');
+  assert(g.total()===g.s.initialTotal,'Dinheiro duplicado em longo prazo');
+  assert(!g.s.companies.some(c=>c.stock<0),'Estoque ficou negativo');
+  const copyState=JSON.stringify(g.s);
+  const restored=new MayorEconomy({storage,legacyLots:legacy,parkIds,now:5000});
+  assert(JSON.stringify(restored.s)===copyState,'Persistência perdeu dados de anos');
+  return g.s.companies.length+' empresas após '+g.s.day+' dias';
+ });
  return {passed:cases.filter(c=>c.ok).length,total:cases.length,cases};
 }
