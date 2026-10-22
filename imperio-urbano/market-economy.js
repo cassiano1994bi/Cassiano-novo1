@@ -37,7 +37,7 @@ export function listingIsValid(price, appraisal) {
 function completeNpcPurchase(state, lot, price, appraisal, lotId, description) {
   const buyerFee=Math.ceil(price*MARKET_SIDE_FEE_RATE),sellerFee=Math.floor(price*MARKET_SIDE_FEE_RATE),fee=buyerFee+sellerFee,total=price+buyerFee;
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
-  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+price-sellerFee);state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+fee);
+  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP*10,state.marketReserve+price-sellerFee);state.marketCommunityPool=Math.min(WALLET_CAP*10,state.marketCommunityPool+fee);
   lot.owner='me';lot.price=0;
   addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price-sellerFee,description});
   return {ok:true,price,fee,buyerFee,sellerFee,total};
@@ -63,7 +63,7 @@ export function submitOffer(state, lot, offer, appraisal, lotId) {
   initializeMarketState(state);
   if (!lot || lot.owner !== 'npc') return {ok:false,reason:'Este imóvel não está disponível para negociação.'};
   if (!listingIsValid(offer, appraisal)) return {ok:false,reason:'A proposta precisa estar entre IU$ 1.000 e o limite de preço do imóvel.'};
-  const fee=Math.ceil(offer*MARKET_TAX_RATE),total=offer+fee;
+  const fee=Math.ceil(offer*MARKET_SIDE_FEE_RATE),total=offer+fee;
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
   const listed=Number.isSafeInteger(lot.price)&&lot.price>0?lot.price:appraisal;
   const acceptAt=Math.min(maximumPropertyPrice(appraisal),Math.max(Math.round(appraisal*.92/100)*100,Math.round(listed*.94/100)*100));
@@ -83,13 +83,13 @@ export function acceptCounteroffer(state, offerId, lot, appraisal) {
   const offer=state.marketOffers.find(item=>item.id===offerId&&item.status==='countered');
   if(!offer)return {ok:false,reason:'Esta contraproposta não está mais ativa.'};
   if(!lot||lot.owner!=='npc'||offer.lotId<0)return {ok:false,reason:'O proprietário ou imóvel mudou.'};
-  const price=offer.counter,fee=Math.ceil(price*MARKET_TAX_RATE),total=price+fee;
+  const price=offer.counter,buyerFee=Math.ceil(price*MARKET_SIDE_FEE_RATE),sellerFee=Math.floor(price*MARKET_SIDE_FEE_RATE),fee=buyerFee+sellerFee,total=price+buyerFee;
   if(!listingIsValid(price,appraisal))return {ok:false,reason:'A contraproposta ultrapassa o limite de avaliação.'};
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente para aceitar a contraproposta.'};
-  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+price);
+  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP*10,state.marketReserve+price-sellerFee);state.marketCommunityPool=Math.min(WALLET_CAP*10,state.marketCommunityPool+fee);
   lot.owner='me';lot.price=0;offer.status='accepted';
-  addHistory(state,{type:'purchase',lotId:offer.lotId,amount:price,fee,net:price,description:'Contraproposta aceita'});
-  return {ok:true,price,fee,total};
+  addHistory(state,{type:'purchase',lotId:offer.lotId,amount:price,fee,net:price-sellerFee,description:'Contraproposta aceita'});
+  return {ok:true,price,fee,buyerFee,sellerFee,total};
 }
 export function sellToInvestor(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
@@ -115,8 +115,8 @@ export function settlePropertyIncome(state, day, appraise) {
   }
   let net=Math.max(0,gross-upkeep);
   if(state.balance+net>WALLET_CAP)net=0;
-  state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+upkeep);
-  const payout=Math.min(net,state.marketCommunityPool);state.marketCommunityPool-=payout;state.balance+=payout;
+  const available=Math.max(0,state.marketCommunityPool-upkeep);
+  const payout=Math.min(net,available);state.marketCommunityPool-=payout;state.balance+=payout;
   state.marketLastRentDay=day;
   if(gross>upkeep&&payout)addHistory(state,{type:'income',lotId:null,amount:gross,fee:upkeep,net:payout,description:'Renda de imóveis construídos ('+days+' dias virtuais)'});
   return {days,gross,upkeep,net:payout};
