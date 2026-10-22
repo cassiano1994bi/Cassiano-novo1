@@ -115,8 +115,8 @@ export function settlePropertyIncome(state, day, appraise) {
   }
   let net=Math.max(0,gross-upkeep);
   if(state.balance+net>WALLET_CAP)net=0;
-  const paid=Math.min(net,state.marketCommunityPool);
-  state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+upkeep);\n  const payout=Math.min(paid,state.marketCommunityPool);state.marketCommunityPool-=payout;state.balance+=payout;
+  state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+upkeep);
+  const payout=Math.min(net,state.marketCommunityPool);state.marketCommunityPool-=payout;state.balance+=payout;
   state.marketLastRentDay=day;
   if(gross>upkeep&&paid)addHistory(state,{type:'income',lotId:null,amount:gross,fee:upkeep,net:paid,description:'Renda de imóveis construídos ('+days+' dias virtuais)'});
   return {days,gross,upkeep,net:payout};
