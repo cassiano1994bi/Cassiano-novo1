@@ -2,7 +2,7 @@
  * A frente aponta para +Z; o mapa aplica a orientação do lote.
  * Sem texturas externas nem imagens estáticas.
  */
-import {CITY_MODELS} from './mayor-economy.js?v=11.12';
+import {CITY_MODELS} from './mayor-economy.js?v=11.17';
 const commercialLights=new Set();let commercialNight=0,lastCommercialNight=-1;
 const brandTextures=new Map();
 export function setCommercialNight(level){
@@ -144,12 +144,22 @@ export function makeMunicipalBuilding(THREE,kind,x,z,north=false,brandKey=null){
    box('gray',8.4,.14,1.0,0,floor*2.65-1.0,4.62);
    box('glass',8.2,.83,.12,0,floor*2.65-.59,5.05)}
   entry();canopy('gold');signage('dark','hotel');box('gold',2.6,.34,.25,0,14.6,4.45);break;
- case 'industria':
-  facade(9.6,9.3,5.3,'steel');signage('dark',brandKey==='cocacola'?'cocacola':'industria');for(const xx of [-2.5,0,2.5]){
-   box('dark',1.9,2.9,.2,xx,1.9,4.77);
-   box('glass',1.4,.6,.21,xx,2.65,4.9)}
-  for(const xx of [-3.5,3.4])box('steel',.82,5.8,.82,xx,8.2,-3.1);
-  box('roof',9.8,.4,2.5,0,5.8,1.5);break;
+ case 'industria':{
+  const variant=Math.abs(Math.floor(x*17+z*31))%3;
+  const width=variant===1?8.9:variant===2?10.2:9.6,depth=variant===1?8.5:variant===2?9.8:9.3;
+  const height=variant===1?6.7:variant===2?5.8:5.3;
+  facade(width,depth,height,variant===1?'gray':variant===2?'brick':'steel');
+  signage('dark',brandKey==='cocacola'?'cocacola':'industria');
+  for(const xx of (variant===1?[-2.4,2.4]:[-2.5,0,2.5])){
+   box('dark',variant===1?2.2:1.9,variant===1?3.4:2.9,.2,xx,1.9,depth/2+.13);
+   box('storeGlass',variant===1?1.6:1.4,.72,.22,xx,2.65,depth/2+.26);
+  }
+  if(variant===0){for(const xx of [-3.5,3.4])box('steel',.82,5.8,.82,xx,8.2,-3.1);}
+  else if(variant===1){for(const xx of [-2.6,0,2.6]){box('steel',1.25,1.1,1.25,xx,height+.95,-2.8);box('dark',.78,.22,.78,xx,height+1.6,-2.8)}}
+  else {for(const xx of [-3.5,3.4])box('steel',.72,7.1,.72,xx,8.6,-3.0);box('roof',width+.15,.34,2.1,0,height+.72,-1.5);}
+  wraparoundWindows(width,depth,height);
+  break;
+ }
  case 'logistica':
   facade(9.6,9.5,4.1,'gray');
   for(const xx of [-3,0,3]){box('dark',2.6,2.6,.18,xx,1.47,4.84);
