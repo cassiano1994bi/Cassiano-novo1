@@ -148,7 +148,16 @@ header>div:first-child>small{display:none}
 #mayorLotInfo{bottom:66px}#viewToast{z-index:12;top:110px}
 @media(max-width:480px){header h1{font-size:12px!important}header>div:first-child{gap:4px}#mayorHeadline{order:6;flex-basis:100%;font-size:11px}#mayorToolbar{gap:4px}#mayorToolbar button{flex:1;padding:8px 5px}#mayorDrawer{top:98px;max-height:calc(100% - 108px)}#mayorMission{font-size:11px;width:max-content;bottom:10px}#mayorLotInfo{bottom:62px}}
 @media(orientation:landscape) and (max-height:670px){#mayorDrawer{top:48px;max-height:calc(100% - 54px)}#mayorMission{left:auto;right:8px;transform:none;max-width:40%;font-size:10px}#mayorToolbar button{min-height:36px}}
-</style><script>(()=>{const current='11.16';let shown=false;async function check(){try{const r=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();if(v.version===current||shown)return;shown=true;const b=document.createElement('button');b.type='button';b.textContent='✨ Nova versão '+v.version+' — atualizar';b.style='position:fixed;z-index:99999;top:8px;left:50%;transform:translateX(-50%);padding:12px 18px;border:2px solid #a6e7ce;border-radius:14px;background:#123c36;color:white;font:700 15px system-ui;box-shadow:0 5px 24px #0008';b.onclick=()=>location.reload();document.body.append(b)}catch{}}check();setInterval(check,45000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()})})()</script></head><body><header><div><h1>🏛️ IMPÉRIO URBANO · PREFEITO <span style="font-size:12px;color:#69e6a6">v11.16</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div><div id="clockBar"><span id="clockReadout" aria-live="off">☀️ Dia 1 · 08:00</span><button type="button" id="nightModeButton" aria-pressed="false">🌙 Ver noite</button><span id="clockHelp">1 dia = 5 min</span></div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="mayorHUD" aria-label="Prefeitura e economia"></div><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><div id="quicktools" aria-label="Ferramentas da cidade">
+</style>/* v11.17: mais mapa visível no celular, luz viária e diagnóstico de obras */
+#mayorMission{bottom:7px;padding:6px 10px;font-size:10px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 16px);opacity:.92}
+@media(max-width:480px){
+ #mayorHeadline{display:none!important}
+ #mayorToolbar{flex-wrap:nowrap;gap:4px}
+ #mayorToolbar button{flex:1;min-width:0;padding:7px 4px;font-size:10px}
+ #mayorDrawer{top:48px;max-height:calc(100% - 56px)}
+ #mayorMission{max-width:calc(100% - 16px);padding:5px 9px;font-size:9px}
+}
+<script>(()=>{const current='11.17';let shown=false;async function check(){try{const r=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();if(v.version===current||shown)return;shown=true;const b=document.createElement('button');b.type='button';b.textContent='✨ Nova versão '+v.version+' — atualizar';b.style='position:fixed;z-index:99999;top:8px;left:50%;transform:translateX(-50%);padding:12px 18px;border:2px solid #a6e7ce;border-radius:14px;background:#123c36;color:white;font:700 15px system-ui;box-shadow:0 5px 24px #0008';b.onclick=()=>location.reload();document.body.append(b)}catch{}}check();setInterval(check,45000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()})})()</script></head><body><header><div><h1>🏛️ IMPÉRIO URBANO · PREFEITO <span style="font-size:12px;color:#69e6a6">v11.16</span></h1><small>Nova Jundiaí · Cidade experimental</small><div id="stats">1.000 terrenos · 250 quadras · Orla Premium · A/B/C/D</div><div id="clockBar"><span id="clockReadout" aria-live="off">☀️ Dia 1 · 08:00</span><button type="button" id="nightModeButton" aria-pressed="false">🌙 Ver noite</button><span id="clockHelp">1 dia = 5 min</span></div></div><div style="text-align:right"><small>Saldo</small><div><strong id="balance">100.000 IU$</strong></div></div></header><div id="stage"><div id="mayorHUD" aria-label="Prefeitura e economia"></div><div id="loading">Carregando motor gráfico 3D…<br>É necessária conexão com a internet.</div><div id="quicktools" aria-label="Ferramentas da cidade">
 <button id="quickToggle" type="button" aria-expanded="false" aria-controls="quickItems">☰ Menu</button>
 <div id="quickItems" hidden>
 <button id="resetview">⌖ Cidade inteira</button>
@@ -371,7 +380,7 @@ const moonSky=new THREE.Color(0xa6bfe1);
 const daySky=new THREE.Color(0xc8d9ed);
 const moonSunColor=new THREE.Color(0xb8d7ff),daySunColor=new THREE.Color(0xffefce);
 const nightGroundColor=new THREE.Color(0x343b46),dayGroundColor=new THREE.Color(0x50544a);
-const nightRoadColor=new THREE.Color(0x474d52),dayRoadColor=new THREE.Color(0x666966);
+const nightRoadColor=new THREE.Color(0x59636a),dayRoadColor=new THREE.Color(0x666966);
 const nightParkColor=new THREE.Color(0x3e5045),dayParkColor=new THREE.Color(0x6b795e);
 const sun=new THREE.DirectionalLight(0xffe6c3,1.2);sun.position.set(-170,280,130);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-280;sun.shadow.camera.right=280;
@@ -1722,8 +1731,8 @@ for(let j=0;j<lampPositions.length;j++){
 for(const obj of [poleInstances,bulbInstances,glowInstances]){
  obj.instanceMatrix.needsUpdate=true;obj.frustumCulled=false;scene.add(obj);
 }
-const nearbyStreetLights=Array.from({length:5},()=>{
- const light=new THREE.PointLight(0xffc376,0,16,2.0);
+const nearbyStreetLights=Array.from({length:12},()=>{
+ const light=new THREE.PointLight(0xffc376,0,24,1.7);
  light.castShadow=false;scene.add(light);return light;
 });
 function updateNearbyStreetLights(level){
@@ -1736,7 +1745,7 @@ function updateNearbyStreetLights(level){
   const found=closest[i];
   if(!found){light.intensity=0;return}
   light.position.set(found.p.x,poleHeight+.21,found.p.z);
-  light.intensity=1.15*level;
+  light.intensity=2.0*level;
  });
 }
 // Reflexos simples na água da orla, ativados apenas quando anoitece.
