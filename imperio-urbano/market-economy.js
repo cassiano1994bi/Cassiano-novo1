@@ -1,7 +1,8 @@
 export const IU_PER_BRL = 1000;
 export const WALLET_CAP = 100_000_000;
 export const PROPERTY_PRICE_MULTIPLE_CAP = 10;
-export const MARKET_TAX_RATE = 0.05;
+export const MARKET_TAX_RATE = 0.10;
+export const MARKET_SIDE_FEE_RATE = 0.05;
 export const INITIAL_MARKET_RESERVE = 25_000_000;
 export const MAX_UNCLAIMED_RENT_DAYS = 30;
 export const BASE_PROPERTY_YIELD = 0.049;
@@ -19,6 +20,7 @@ export function maximumPropertyPrice(appraisal) {
 export function initializeMarketState(state) {
   if (!state || typeof state !== 'object') throw new TypeError('Estado imobiliário inválido.');
   if (!Number.isFinite(state.marketReserve) || state.marketReserve < 0) state.marketReserve = INITIAL_MARKET_RESERVE;
+  if (!Number.isFinite(state.marketCommunityPool) || state.marketCommunityPool < 0) state.marketCommunityPool = 0;
   if (!Array.isArray(state.marketHistory)) state.marketHistory = [];
   if (!Array.isArray(state.marketOffers)) state.marketOffers = [];
   if (!Number.isFinite(state.marketLastRentDay) || state.marketLastRentDay < 0) state.marketLastRentDay = 0;
@@ -33,12 +35,12 @@ export function listingIsValid(price, appraisal) {
   return Number.isSafeInteger(price) && price >= 1000 && price <= maximumPropertyPrice(appraisal);
 }
 function completeNpcPurchase(state, lot, price, appraisal, lotId, description) {
-  const fee=Math.ceil(price*MARKET_TAX_RATE),total=price+fee;
+  const buyerFee=Math.ceil(price*MARKET_SIDE_FEE_RATE),sellerFee=Math.floor(price*MARKET_SIDE_FEE_RATE),fee=buyerFee+sellerFee,total=price+buyerFee;
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
-  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+total);
+  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+price-sellerFee);state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+fee);
   lot.owner='me';lot.price=0;
-  addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price,description});
-  return {ok:true,price,fee,total};
+  addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price-sellerFee,description});
+  return {ok:true,price,fee,buyerFee,sellerFee,total};
 }
 export function buyListedProperty(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
@@ -50,11 +52,12 @@ export function buySystemPlot(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
   if (!lot || lot.owner !== 'free') return {ok:false,reason:'Este terreno não está disponível.'};
   if (!listingIsValid(price, appraisal)) return {ok:false,reason:'Preço fora do limite permitido para esta avaliação.'};
-  const fee=Math.ceil(price*MARKET_TAX_RATE),total=price+fee;
+  const buyerFee=Math.ceil(price*MARKET_SIDE_FEE_RATE),sellerFee=Math.floor(price*MARKET_SIDE_FEE_RATE),fee=buyerFee+sellerFee,total=price+buyerFee;
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
-  state.balance-=total; state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+total); lot.owner='me'; lot.price=0;
-  addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price,description:'Compra de terreno novo'});
-  return {ok:true,price,fee,total};
+  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+price-sellerFee);state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+fee);
+  lot.owner='me';lot.price=0;
+  addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price-sellerFee,description:'Compra de terreno novo'});
+  return {ok:true,price,fee,buyerFee,sellerFee,total};
 }
 export function submitOffer(state, lot, offer, appraisal, lotId) {
   initializeMarketState(state);
@@ -92,12 +95,12 @@ export function sellToInvestor(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
   if(!lot||lot.owner!=='me')return {ok:false,reason:'Você não é o proprietário deste imóvel.'};
   if(!listingIsValid(price,appraisal))return {ok:false,reason:'Preço fora do limite permitido para esta avaliação.'};
-  const fee=Math.ceil(price*MARKET_TAX_RATE),net=price-fee;
-  if(state.marketReserve<net)return {ok:false,reason:'A reserva de investidores não tem saldo para esta compra agora.'};
+  const buyerFee=Math.ceil(price*MARKET_SIDE_FEE_RATE),sellerFee=Math.floor(price*MARKET_SIDE_FEE_RATE),fee=buyerFee+sellerFee,net=price-sellerFee,total=price+buyerFee;
+  if(state.marketReserve<total)return {ok:false,reason:'A reserva de investidores não tem saldo para esta compra agora.'};
   if(state.balance+net>WALLET_CAP)return {ok:false,reason:'A venda ultrapassaria o limite de IU$ da carteira.'};
-  state.balance+=net;state.marketReserve-=net;lot.owner='npc';lot.price=0;
+  state.balance+=net;state.marketReserve-=total;state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+fee);lot.owner='npc';lot.price=0;
   addHistory(state,{type:'sale',lotId,amount:price,fee,net,description:'Venda para investidor'});
-  return {ok:true,price,fee,net};
+  return {ok:true,price,fee,buyerFee,sellerFee,net};
 }
 export function settlePropertyIncome(state, day, appraise) {
   initializeMarketState(state);
@@ -112,11 +115,11 @@ export function settlePropertyIncome(state, day, appraise) {
   }
   let net=Math.max(0,gross-upkeep);
   if(state.balance+net>WALLET_CAP)net=0;
-  const paid=Math.min(net,state.marketReserve);
-  state.marketReserve-=paid;state.balance+=paid;
+  const paid=Math.min(net,state.marketCommunityPool);
+  state.marketCommunityPool=Math.min(WALLET_CAP,state.marketCommunityPool+upkeep);\n  const payout=Math.min(paid,state.marketCommunityPool);state.marketCommunityPool-=payout;state.balance+=payout;
   state.marketLastRentDay=day;
   if(gross>upkeep&&paid)addHistory(state,{type:'income',lotId:null,amount:gross,fee:upkeep,net:paid,description:'Renda de imóveis construídos ('+days+' dias virtuais)'});
-  return {days,gross,upkeep,net:paid};
+  return {days,gross,upkeep,net:payout};
 }
 export function awardCollectionBonus(state,lotId,appraise) {
   initializeMarketState(state);
@@ -124,8 +127,8 @@ export function awardCollectionBonus(state,lotId,appraise) {
   const owned=state.lots.slice(start,start+20).filter(lot=>lot?.owner==='me');
   if(owned.length<3||state.marketCollections[row])return 0;
   const bonus=Math.min(50000,Math.max(1000,Math.round(appraise(lotId)*.02/100)*100));
-  if(state.balance+bonus>WALLET_CAP||state.marketReserve<bonus)return 0;
-  state.marketReserve-=bonus;state.balance+=bonus;state.marketCollections[row]=true;
+  if(state.balance+bonus>WALLET_CAP||state.marketCommunityPool<bonus)return 0;
+  state.marketCommunityPool-=bonus;state.balance+=bonus;state.marketCollections[row]=true;
   addHistory(state,{type:'collection',lotId,amount:bonus,fee:0,net:bonus,description:'Bônus por completar uma coleção de rua'});
   return bonus;
 }
