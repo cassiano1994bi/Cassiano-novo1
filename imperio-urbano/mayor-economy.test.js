@@ -41,7 +41,18 @@ export function runMayorEconomyTests(){
   }
   const sectors=new Set(active().map(p=>CITY_MODELS[p.kind].type));
   assert(sectors.has('residential')&&sectors.has('retail')&&sectors.has('industry'),'Obras não acompanharam moradia, comércio e emprego');
+  assert(active().filter(p=>CITY_MODELS[p.kind].type==='residential').length>=Math.floor(active().length*.40),'A fila caiu abaixo da reserva mínima de moradias');
   return CITY_MODEL_COUNT+' tipos; '+DAILY_CONSTRUCTION_TARGET+' obras simultâneas nos 45 dias';
+ });
+ scenario('Fila explica bloqueio quando investidores não têm capital',()=>{
+  const {game:g}=make();
+  for(const inv of g.s.investors){g.s.accounts[inv.id]=0;inv.debt=10000000;}
+  g.s.accounts.regional=1000000;
+  g.fillConstructionPipeline();
+  const status=g.snapshot().constructionStatus;
+  assert(status.code==='funding','Bloqueio financeiro não identificado: '+status.code);
+  assert(status.message.includes('falta de capital'),'Mensagem não explica o bloqueio financeiro');
+  return status.message;
  });
  scenario('Cidade em crescimento',()=>{
   const {game:g}=make();g.setTax('service',1);
