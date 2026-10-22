@@ -38,7 +38,7 @@ export function startCityMap2D({stage,legacyLots,parkIds,marketState=null,market
  const refresh=()=>{draw();ui?.refresh(true)};
  let marketPanel=null,marketTitle=null,marketDetails=null,marketActions=null,marketStatus=null;
  function showMarketLot(id){
-  selected=id;const lot=legacyLots[id];if(!lot)return;
+  const lot=legacyLots[id];if(!lot)return;
   marketPanel.hidden=false;
   marketTitle.textContent='📍 Terreno #'+String(id+1).padStart(3,'0');
   const value=marketAppraise?marketAppraise(id,lot):0;
