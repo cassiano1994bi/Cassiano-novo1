@@ -1,4 +1,4 @@
-import {PUBLIC_WORKS,CITY_MODELS,DAILY_CONSTRUCTION_TARGET} from './mayor-economy.js?v=11.13';
+import {PUBLIC_WORKS,CITY_MODELS,DAILY_CONSTRUCTION_TARGET} from './mayor-economy.js?v=11.14';
 const fmt=n=>Math.round(n||0).toLocaleString('pt-BR');
 const pct=n=>(Number(n)||0).toFixed(1)+'%';
 const ZONES={residential:'Residencial',mixed:'Mista',commercial:'Comercial',industrial:'Industrial',tourism:'Turística',environmental:'Proteção ambiental'};
