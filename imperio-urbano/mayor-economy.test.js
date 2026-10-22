@@ -1,4 +1,4 @@
-import {MayorEconomy,CITY_MODELS,CITY_MODEL_COUNT,DAILY_CONSTRUCTION_TARGET} from './mayor-economy.js';
+import {MayorEconomy,CITY_MODELS,CITY_MODEL_COUNT,DAILY_CONSTRUCTION_TARGET,PUBLIC_WORKS} from './mayor-economy.js';
 // Testes determinísticos: conservacao, conflitos de lote, tributacao, obras e persistencia.
 export function runMayorEconomyTests(){
  const cases=[];
@@ -94,6 +94,22 @@ export function runMayorEconomyTests(){
   assert(g.s.projects.length>low,'Crescimento não retomou');
   assert(g.s.allocations.health>=85,'Política pública não elevou serviços');
   return 'Investimentos após recuperação: '+(g.s.projects.length-low);
+ });
+ scenario('Tesouro bloqueia obra acima do saldo sem alterar o estado',()=>{
+  const {game:g}=make();
+  const cost=PUBLIC_WORKS.hospital.cost;
+  const keep=cost-1;
+  assert(g.move('treasury','regional',g.account('treasury')-keep,'Preparar caixa insuficiente para teste'),'Não foi possível preparar o saldo');
+  const beforeTreasury=g.account('treasury'),beforeLedger=g.s.ledger.length;
+  const beforeWorks=g.s.works.length,beforeJournal=g.s.journal.length,beforeTotal=g.total();
+  const result=g.startWork('hospital');
+  assert(!result.ok&&result.reason.includes('sem recursos'),'Obra excedendo o saldo foi autorizada');
+  assert(g.account('treasury')===beforeTreasury,'Tentativa recusada alterou o saldo');
+  assert(g.s.ledger.length===beforeLedger,'Tentativa recusada criou lançamento financeiro');
+  assert(g.s.works.length===beforeWorks&&g.s.journal.length===beforeJournal,'Tentativa recusada alterou obras ou jornal');
+  assert(g.total()===beforeTotal,'Tentativa recusada criou ou removeu dinheiro');
+  g.validate();
+  return 'Saldo insuficiente recusado sem mudança no caixa';
  });
  scenario('Tesouro e transações rastreáveis',()=>{
   const {game:g}=make();
