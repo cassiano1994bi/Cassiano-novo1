@@ -3349,6 +3349,7 @@ function animate(t){
  renderer.render(scene,camera);
 }
 animate(0);
+}
 }else{
  const {startCityMap2D}=await import('./mayor-map2d.js?v=12.1');
  startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS),marketState:state,marketAppraise:appraiseMarketProperty,marketCost:cost,saveMarket:save});
