@@ -370,7 +370,7 @@ let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'})}catch(error){
  console.warn('WebGL indisponível; ativando mapa municipal 2D.',error);
  const {startCityMap2D}=await import('./mayor-map2d.js?v=12.0');
- startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS)});
+ startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS),marketState:state,marketAppraise:appraiseMarketProperty,marketCost:cost,saveMarket:save});
 }
 if(renderer){
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;
