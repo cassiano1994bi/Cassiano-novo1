@@ -50,6 +50,9 @@ export const DAILY_CONSTRUCTION_TARGET=25;
 const REGIONAL_BUILD_RESERVE=1000000;
 const INVESTOR_CREDIT_LIMIT=10000000;
 const INVESTOR_CREDIT_STEP=450000;
+const PUBLIC_HOUSING_RESERVE=1500000;
+const PUBLIC_HOUSING_CREDIT_LIMIT=3000000;
+const PUBLIC_HOUSING_CREDIT_STEP=450000;
 export const CITY_MODEL_COUNT=Object.keys(CITY_MODELS).length;
 const RESIDENTIAL_MODELS=Object.keys(CITY_MODELS).filter(k=>CITY_MODELS[k].type==='residential');
 const RETAIL_MODELS=Object.keys(CITY_MODELS).filter(k=>CITY_MODELS[k].type==='retail');
@@ -353,6 +356,12 @@ export class MayorEconomy{
    const credit=Math.min(INVESTOR_CREDIT_STEP,INVESTOR_CREDIT_LIMIT-(inv.debt||0),this.account('regional')-REGIONAL_BUILD_RESERVE);
    if(credit>0&&this.move('regional',inv.id,credit,'Crédito de expansão para '+inv.name))inv.debt=(inv.debt||0)+credit;
   }
+  // Empréstimo habitacional municipal: só para moradias, com reserva do Tesouro e saldo devedor próprio.
+  if(desiredType==='residential'&&this.account(inv.id)<300000&&this.account('treasury')>PUBLIC_HOUSING_RESERVE&&
+   (inv.publicDebt||0)<PUBLIC_HOUSING_CREDIT_LIMIT){
+   const credit=Math.min(PUBLIC_HOUSING_CREDIT_STEP,PUBLIC_HOUSING_CREDIT_LIMIT-(inv.publicDebt||0),this.account('treasury')-PUBLIC_HOUSING_RESERVE);
+   if(credit>0&&this.move('treasury',inv.id,credit,'Crédito habitacional reembolsável para '+inv.name))inv.publicDebt=(inv.publicDebt||0)+credit;
+  }
   const opportunities=this.listOpportunities(inv,desiredType);
   const offer=opportunities[0];
   if(!offer||(!priorityConstruction&&offer.score<.42)){inv.failed++;return false}
@@ -626,6 +635,12 @@ export class MayorEconomy{
      investor.debt-=repayment;dividend-=repayment;
     }
    }
+   if(investor?.publicDebt>0&&dividend){
+    const repayment=money(Math.min(investor.publicDebt,dividend*.55));
+    if(repayment&&this.move(c.id,'treasury',repayment,'Amortização de crédito habitacional de '+investor.name)){
+     investor.publicDebt-=repayment;dividend-=repayment;
+    }
+   }
    if(c.investor&&dividend)this.move(c.id,c.investor,dividend,'Dividendos de '+CITY_MODELS[c.kind].name);
    if(this.account(c.id)<150&&c.age>12&&c.sector!=='residential'){
     c.active=false;c.workers=0;
@@ -786,7 +801,7 @@ export class MayorEconomy{
    'Não há terrenos livres. Revise o zoneamento ou amplie a área urbana.'};
   if(pending)return {code:'manual',message:pending+' licença(s) aguardam aprovação para liberar os próximos lotes.'};
   const climate=this.economicClimate(),housingNeed=climate.capacity<climate.population*2.0;
-  let minCost=Infinity,compatible=false,residentialPlot=false;
+  let minCost=Infinity,minResidentialCost=Infinity,compatible=false,residentialPlot=false;
   for(const {i} of free){
    const options=this.modelOptions(this.zoneFor(i),housingNeed);
    if(options.length)compatible=true;
@@ -795,6 +810,7 @@ export class MayorEconomy{
     const model=CITY_MODELS[kind];
     const cost=this.landCost(i)+money(model.cost*s.rates.permit/100)+model.cost+money(model.cost*.20);
     minCost=Math.min(minCost,cost);
+    if(model.type==='residential')minResidentialCost=Math.min(minResidentialCost,cost);
    }
   }
   if(housingNeed&&!residentialPlot)return {code:'zoning',message:'Há moradores precisando de casas, mas nenhum lote livre está em zona residencial, mista ou compatível.'};
@@ -807,7 +823,14 @@ export class MayorEconomy{
     Math.min(INVESTOR_CREDIT_STEP,INVESTOR_CREDIT_LIMIT-debt,regional-REGIONAL_BUILD_RESERVE):0;
    return cash+credit>=minCost;
   });
-  if(!canFinance)return {code:'funding',message:'A fila parou por falta de capital dos investidores e crédito disponível; confira o caixa regional e as dívidas.'};
+  const publicFinance=s.investors.some(inv=>{
+   const cash=this.account(inv.id),debt=inv.publicDebt||0;
+   const credit=this.account('treasury')>PUBLIC_HOUSING_RESERVE&&debt<PUBLIC_HOUSING_CREDIT_LIMIT&&Number.isFinite(minResidentialCost)?
+    Math.min(PUBLIC_HOUSING_CREDIT_STEP,PUBLIC_HOUSING_CREDIT_LIMIT-debt,this.account('treasury')-PUBLIC_HOUSING_RESERVE):0;
+   return Number.isFinite(minResidentialCost)&&cash+credit>=minResidentialCost;
+  });
+  if(!canFinance&&!publicFinance)return {code:'funding',message:'A fila parou por falta de capital dos investidores e crédito disponível; confira o caixa regional, as dívidas e a reserva do Tesouro.'};
+  if(!canFinance&&publicFinance)return {code:'public-credit',message:'O caixa privado secou; o crédito habitacional reembolsável pode financiar novas residências sem baixar o Tesouro da reserva protegida.'};
   return {code:'retry',message:'Há terreno e capital compatíveis; os investidores vão reavaliar oportunidades no próximo ciclo.'};
  }
  snapshot(){
