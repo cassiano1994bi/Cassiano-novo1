@@ -222,10 +222,10 @@ header>div:first-child>small{display:none}
 })();
 </script><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
-import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=11.15';
-import {mountMayorUI} from './mayor-ui.js?v=11.15';
-import {makeMunicipalBuilding,setCommercialNight} from './mayor-buildings.js?v=11.15';
-import {createNaturalCity,createCitizenSimulation} from './city-rendering.js?v=11.15';
+import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=11.17';
+import {mountMayorUI} from './mayor-ui.js?v=11.17';
+import {makeMunicipalBuilding,setCommercialNight} from './mayor-buildings.js?v=11.17';
+import {createNaturalCity,createCitizenSimulation} from './city-rendering.js?v=11.17';
 const stage=document.getElementById('stage'),loading=document.getElementById('loading'),status=document.getElementById('status'),actions=document.getElementById('actions');
 const KEY='imperio_urbano_real3d_v10';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!Array.isArray(state.lots))state={balance:100000,lots:[]};if(state.lots.length<1000){for(let i=state.lots.length;i<1000;i++)state.lots.push({owner:i%19===0?'npc':'free',building:'',price:0,color:'#e3e1d4'});try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
 // A versao nova nao altera nenhum saldo existente e nao concede bonus retroativos.
@@ -367,7 +367,7 @@ const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
 let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'})}catch(error){
  console.warn('WebGL indisponível; ativando mapa municipal 2D.',error);
- const {startCityMap2D}=await import('./mayor-map2d.js?v=11.15');
+ const {startCityMap2D}=await import('./mayor-map2d.js?v=11.17');
  startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS)});
 }
 if(renderer){
