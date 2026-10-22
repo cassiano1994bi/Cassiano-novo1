@@ -370,7 +370,7 @@ const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
 let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'})}catch(error){
  console.warn('WebGL indisponível; ativando mapa municipal 2D.',error);
- const {startCityMap2D}=await import('./mayor-map2d.js?v=12.3');
+ const {startCityMap2D}=await import('./mayor-map2d.js?v=12.4');
  startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS),marketState:state,marketAppraise:appraiseMarketProperty,marketCost:cost,saveMarket:save});
 }
 if(renderer){
@@ -384,7 +384,7 @@ async function recoverWebGL(reason){
  console.warn('WebGL falhou durante a partida; ativando mapa 2D.',reason);
  renderer.domElement.remove();
  try{
-  const {startCityMap2D}=await import('./mayor-map2d.js?v=12.3');
+  const {startCityMap2D}=await import('./mayor-map2d.js?v=12.4');
   startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS),marketState:state,marketAppraise:appraiseMarketProperty,marketCost:cost,saveMarket:save});
   window.__imperioReady=true;
  }catch(error){
@@ -396,6 +396,22 @@ async function recoverWebGL(reason){
  }
 }
 renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();recoverWebGL('contexto WebGL perdido')},{once:true});
+let webglFrameChecked=false;
+function hasVisibleWebGLFrame(){
+ try{
+  const gl=renderer.getContext(),rect=renderer.domElement.getBoundingClientRect();
+  if(gl.isContextLost()||rect.width<100||rect.height<100)return false;
+  const colors=new Set(),pixel=new Uint8Array(4),fractions=[.15,.35,.5,.65,.85];
+  for(const fx of fractions)for(const fy of fractions){
+   const x=Math.max(0,Math.min(renderer.domElement.width-1,Math.floor(fx*renderer.domElement.width)));
+   const y=Math.max(0,Math.min(renderer.domElement.height-1,Math.floor((1-fy)*renderer.domElement.height)));
+   gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+   colors.add(pixel[0]+','+pixel[1]+','+pixel[2]);
+  }
+  return colors.size>=5;
+ }catch(error){console.warn('Não foi possível validar o quadro WebGL.',error);return false}
+}
+
 
 const hemisphereLight=new THREE.HemisphereLight(0xc7d9ee,0x505349,1.25);scene.add(hemisphereLight);
 const cityAmbientLight=new THREE.AmbientLight(0x9ba8b4,.18);scene.add(cityAmbientLight);
@@ -3366,12 +3382,12 @@ function animate(t){
   updateNearbyStreetLights(1-lastVisualLevel);
   updateNearbyBuildingLights(1-lastVisualLevel);
  }
- try{if(renderer.getContext().isContextLost()){recoverWebGL('contexto WebGL indisponível');return}renderer.render(scene,camera)}catch(error){recoverWebGL(error)}
+ try{if(renderer.getContext().isContextLost()){recoverWebGL('contexto WebGL indisponível');return}renderer.render(scene,camera);if(!webglFrameChecked&&t>1800){webglFrameChecked=true;if(!hasVisibleWebGLFrame())recoverWebGL('quadro 3D vazio no celular')}}catch(error){recoverWebGL(error)}
 }
 animate(0);
 }
 }else{
- const {startCityMap2D}=await import('./mayor-map2d.js?v=12.3');
+ const {startCityMap2D}=await import('./mayor-map2d.js?v=12.4');
  startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS),marketState:state,marketAppraise:appraiseMarketProperty,marketCost:cost,saveMarket:save});
 }
 </script></body></html>
