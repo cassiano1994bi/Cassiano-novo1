@@ -35,6 +35,7 @@ export function mountMayorUI(engine,ctx){
  }
  function workView(){
   const projects=s.works.filter(w=>w.status!=='complete');
+  const treasury=engine.account('treasury');
   return header('Obras públicas aprovadas')+
    (projects.length?projects.map(w=>'<div class="mayorItem"><b>'+esc(PUBLIC_WORKS[w.kind].name)+'</b>'+
     '<small>'+(Number.isInteger(w.plot)?'Lote #'+(w.plot+1)+' · ':'Serviço em rede · ')+esc(PHASES[w.status]||w.status)+' · '+w.elapsed+'/'+w.days+' dias · contrato '+fmt(w.cost)+' IU$</small><progress max="'+w.days+'" value="'+w.elapsed+'" aria-label="Progresso da obra"></progress>'+(Number.isInteger(w.plot)?button('Ver no mapa','focus',w.plot):'')+'</div>').join(''):
@@ -42,11 +43,17 @@ export function mountMayorUI(engine,ctx){
    header('Equipamentos públicos entregues')+
    (s.works.filter((w,i,a)=>w.status==='complete'&&Number.isInteger(w.plot)&&a.findIndex(x=>x.status==='complete'&&x.plot===w.plot)===i).map(w=>'<div class="mayorItem"><b>'+esc(PUBLIC_WORKS[w.kind].name)+'</b><small>Lote #'+(w.plot+1)+'</small>'+button('Ver no mapa','focus',w.plot)+'</div>').join('')||'<p>As entregas de escolas, saúde e guarda aparecerão aqui.</p>')+
    header('Investir em serviços da cidade')+
-   '<p>Cada projeto é pago pelo Tesouro e financiado antes de começar. Contratos geram salários e compras de materiais.</p>'+
-   Object.entries(PUBLIC_WORKS).map(([id,w])=>'<div class="mayorItem"><b>'+esc(w.name)+'</b><small>'+
-   fmt(w.cost)+' IU$ · '+w.days+' dias · melhoria '+w.benefit+' pontos</small>'+
-   button(s.works.some(x=>x.category===w.category&&x.status!=='complete')?'Obra em andamento':'Financiar obra', 'work',id,engine.account('treasury')<w.cost||s.works.some(x=>x.category===w.category&&x.status!=='complete'))+'</div>').join('');
- }
+   '<p>Cada projeto é pago pelo Tesouro e financiado antes de começar. O saldo restante é calculado antes da contratação, e nenhuma obra pode deixar o Tesouro negativo.</p>'+
+   '<p class="mayorInfo">Disponível no Tesouro: <b>'+fmt(treasury)+' IU$</b></p>'+
+   Object.entries(PUBLIC_WORKS).map(([id,w])=>{
+    const ongoing=s.works.some(x=>x.category===w.category&&x.status!=='complete');
+    const sufficient=treasury>=w.cost;
+    const balanceLine=sufficient?'Após contratar: '+fmt(treasury-w.cost)+' IU$':'Faltam '+fmt(w.cost-treasury)+' IU$ para contratar';
+    return '<div class="mayorItem"><b>'+esc(w.name)+'</b><small>'+
+     fmt(w.cost)+' IU$ · '+w.days+' dias · melhoria '+w.benefit+' pontos · '+balanceLine+'</small>'+
+     button(ongoing?'Obra em andamento':'Financiar obra','work',id,!sufficient||ongoing)+'</div>';
+   }).join('');
+  }
  function zoneView(){
   const types=Object.entries(ZONES);
   return header('Planejamento dos cinco bairros')+
