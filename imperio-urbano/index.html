@@ -221,7 +221,7 @@ header>div:first-child>small{display:none}
  },25000);
 })();
 </script><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script><script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+let THREE;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js')}catch(error){console.warn('Three.js indisponível; o jogo iniciará no mercado 2D.',error)}
 import {MayorEconomy,CITY_MODELS} from './mayor-economy.js?v=12.0';
 import {renderMarketPanel} from './market-ui.js?v=12.0';
 import {makeMunicipalBuilding,setCommercialNight} from './mayor-buildings.js?v=12.0';
@@ -364,6 +364,7 @@ const appraiseMarketProperty=(id,lot=state.lots[id])=>propertyValuation(cost(id)
 const zoneDescription=i=>zone(i).grade+' — '+zone(i).name+' · '+Math.round(zone(i).factor*100)+'% do valor-base';
 // Planta-mestra v6: cinco bairros de 200 lotes, parque central e orla paisagistica.
 // Todos os IDs continuam estaveis; a economia permanece no armazenamento existente.
+if(THREE){
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xa5c9df);scene.fog=new THREE.FogExp2(0xa5c9df,.00045);
 const camera=new THREE.PerspectiveCamera(50,1,.5,4500);
 let renderer;
@@ -3348,5 +3349,9 @@ function animate(t){
  renderer.render(scene,camera);
 }
 animate(0);
+}
+}else{
+ const {startCityMap2D}=await import('./mayor-map2d.js?v=12.1');
+ startCityMap2D({stage,legacyLots:state.lots,parkIds:Array.from(PUBLIC_PARK_IDS),marketState:state,marketAppraise:appraiseMarketProperty,marketCost:cost,saveMarket:save});
 }
 </script></body></html>
