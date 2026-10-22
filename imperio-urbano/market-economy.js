@@ -29,19 +29,19 @@ function addHistory(state, entry) {
 export function listingIsValid(price, appraisal) {
   return Number.isSafeInteger(price) && price >= 1000 && price <= maximumPropertyPrice(appraisal);
 }
+function completeNpcPurchase(state, lot, price, appraisal, lotId, description) {
+  const fee=Math.ceil(price*MARKET_TAX_RATE),total=price+fee;
+  if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
+  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+price);
+  lot.owner='me';lot.price=0;
+  addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price,description});
+  return {ok:true,price,fee,total};
+}
 export function buyListedProperty(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
-  if (!lot || !['npc'].includes(lot.owner) || !lot.price || lot.price !== price) return { ok:false, reason:'Este imóvel não está anunciado pelo proprietário.' };
-  if (!listingIsValid(price, appraisal)) return { ok:false, reason:'Preço fora do limite permitido para esta avaliação.' };
-  const fee = Math.ceil(price * MARKET_TAX_RATE);
-  const total = price + fee;
-  if (state.balance < total) return { ok:false, reason:'Saldo insuficiente incluindo a taxa de mercado.' };
-  if (state.balance - total > WALLET_CAP) return { ok:false, reason:'O saldo ultrapassaria o limite da carteira.' };
-  state.balance -= total;
-  state.marketReserve = Math.min(WALLET_CAP, state.marketReserve + price);
-  lot.owner = 'me'; lot.price = 0;
-  addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price,description:'Compra de imóvel anunciado'});
-  return {ok:true,price,fee,total};
+  if(!lot||lot.owner!=='npc'||!lot.price||lot.price!==price)return {ok:false,reason:'Este imóvel não está anunciado pelo proprietário.'};
+  if(!listingIsValid(price,appraisal))return {ok:false,reason:'Preço fora do limite permitido para esta avaliação.'};
+  return completeNpcPurchase(state,lot,price,appraisal,lotId,'Compra de imóvel anunciado');
 }
 export function buySystemPlot(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
@@ -63,8 +63,7 @@ export function submitOffer(state, lot, offer, appraisal, lotId) {
   const acceptAt=Math.min(maximumPropertyPrice(appraisal),Math.max(Math.round(appraisal*.92/100)*100,Math.round(listed*.94/100)*100));
   addHistory(state,{type:'offer',lotId,amount:offer,fee:0,net:0,description:'Proposta enviada ao proprietário'});
   if(offer>=acceptAt){
-    const result=buyListedProperty({...state, balance:state.balance},lot,lot.price||offer,appraisal,lotId);
-    if(!lot.price){lot.price=offer;return buyListedProperty(state,lot,offer,appraisal,lotId);}
+    const result=completeNpcPurchase(state,lot,offer,appraisal,lotId,'Proposta aceita pelo proprietário');
     return result.ok?{...result,accepted:true,message:'O proprietário aceitou sua proposta.'}:{...result,accepted:false,message:result.reason};
   }
   const counter=Math.min(maximumPropertyPrice(appraisal),Math.max(offer+1000,Math.round(Math.max(offer*1.12,acceptAt)*100/100)));
@@ -108,9 +107,9 @@ export function settlePropertyIncome(state, day, appraise) {
     gross+=Math.round(value*.049/365*days);
     upkeep+=Math.round(value*.01/365*days);
   }
-  const net=Math.max(0,gross-upkeep);
+  let net=Math.max(0,gross-upkeep);
   if(state.balance+net<=WALLET_CAP)state.balance+=net;
-  else gross=upkeep;
+  else {gross=upkeep;net=0;}
   state.marketLastRentDay=day;
   if(gross>upkeep)addHistory(state,{type:'income',lotId:null,amount:gross,fee:upkeep,net,description:'Renda de imóveis construídos ('+days+' dias virtuais)'});
   return {days,gross,upkeep,net};
