@@ -3,6 +3,9 @@ export const WALLET_CAP = 100_000_000;
 export const PROPERTY_PRICE_MULTIPLE_CAP = 10;
 export const MARKET_TAX_RATE = 0.05;
 export const INITIAL_MARKET_RESERVE = 25_000_000;
+export const MAX_UNCLAIMED_RENT_DAYS = 30;
+export const BASE_PROPERTY_YIELD = 0.049;
+export const PROPERTY_UPKEEP_RATE = 0.01;
 export const MAX_HISTORY = 100;
 
 export function propertyValuation(landValue, buildingValue = 0) {
@@ -32,7 +35,7 @@ export function listingIsValid(price, appraisal) {
 function completeNpcPurchase(state, lot, price, appraisal, lotId, description) {
   const fee=Math.ceil(price*MARKET_TAX_RATE),total=price+fee;
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
-  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+price);
+  state.balance-=total;state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+total);
   lot.owner='me';lot.price=0;
   addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price,description});
   return {ok:true,price,fee,total};
@@ -49,7 +52,7 @@ export function buySystemPlot(state, lot, price, appraisal, lotId) {
   if (!listingIsValid(price, appraisal)) return {ok:false,reason:'Preço fora do limite permitido para esta avaliação.'};
   const fee=Math.ceil(price*MARKET_TAX_RATE),total=price+fee;
   if(state.balance<total)return {ok:false,reason:'Saldo insuficiente incluindo a taxa de mercado.'};
-  state.balance-=total; lot.owner='me'; lot.price=0;
+  state.balance-=total; state.marketReserve=Math.min(WALLET_CAP,state.marketReserve+total); lot.owner='me'; lot.price=0;
   addHistory(state,{type:'purchase',lotId,amount:price,fee,net:price,description:'Compra de terreno novo'});
   return {ok:true,price,fee,total};
 }
@@ -89,30 +92,31 @@ export function sellToInvestor(state, lot, price, appraisal, lotId) {
   initializeMarketState(state);
   if(!lot||lot.owner!=='me')return {ok:false,reason:'Você não é o proprietário deste imóvel.'};
   if(!listingIsValid(price,appraisal))return {ok:false,reason:'Preço fora do limite permitido para esta avaliação.'};
-  if(state.marketReserve<price)return {ok:false,reason:'Os investidores estão sem reserva para esta compra no momento.'};
   const fee=Math.ceil(price*MARKET_TAX_RATE),net=price-fee;
+  if(state.marketReserve<net)return {ok:false,reason:'A reserva de investidores não tem saldo para esta compra agora.'};
   if(state.balance+net>WALLET_CAP)return {ok:false,reason:'A venda ultrapassaria o limite de IU$ da carteira.'};
-  state.balance+=net;state.marketReserve-=price;lot.owner='npc';lot.price=0;
+  state.balance+=net;state.marketReserve-=net;lot.owner='npc';lot.price=0;
   addHistory(state,{type:'sale',lotId,amount:price,fee,net,description:'Venda para investidor'});
   return {ok:true,price,fee,net};
 }
 export function settlePropertyIncome(state, day, appraise) {
   initializeMarketState(state);
   if(!Number.isSafeInteger(day)||day<=state.marketLastRentDay)return {days:0,gross:0,upkeep:0,net:0};
-  const days=Math.min(30,day-state.marketLastRentDay);
+  const days=Math.min(MAX_UNCLAIMED_RENT_DAYS,day-state.marketLastRentDay);
   let gross=0,upkeep=0;
   for(const [lotId,lot] of state.lots.entries()){
     if(lot?.owner!=='me'||!lot.building)continue;
     const value=appraise(Number(lotId),lot);
-    gross+=Math.round(value*.049/365*days);
-    upkeep+=Math.round(value*.01/365*days);
+    gross+=Math.floor(value*BASE_PROPERTY_YIELD/365*days);
+    upkeep+=Math.floor(value*PROPERTY_UPKEEP_RATE/365*days);
   }
   let net=Math.max(0,gross-upkeep);
-  if(state.balance+net<=WALLET_CAP)state.balance+=net;
-  else {gross=upkeep;net=0;}
+  if(state.balance+net>WALLET_CAP)net=0;
+  const paid=Math.min(net,state.marketReserve);
+  state.marketReserve-=paid;state.balance+=paid;
   state.marketLastRentDay=day;
-  if(gross>upkeep)addHistory(state,{type:'income',lotId:null,amount:gross,fee:upkeep,net,description:'Renda de imóveis construídos ('+days+' dias virtuais)'});
-  return {days,gross,upkeep,net};
+  if(gross>upkeep&&paid)addHistory(state,{type:'income',lotId:null,amount:gross,fee:upkeep,net:paid,description:'Renda de imóveis construídos ('+days+' dias virtuais)'});
+  return {days,gross,upkeep,net:paid};
 }
 export function awardCollectionBonus(state,lotId,appraise) {
   initializeMarketState(state);
@@ -120,8 +124,8 @@ export function awardCollectionBonus(state,lotId,appraise) {
   const owned=state.lots.slice(start,start+20).filter(lot=>lot?.owner==='me');
   if(owned.length<3||state.marketCollections[row])return 0;
   const bonus=Math.min(50000,Math.max(1000,Math.round(appraise(lotId)*.02/100)*100));
-  if(state.balance+bonus>WALLET_CAP)return 0;
-  state.balance+=bonus;state.marketCollections[row]=true;
+  if(state.balance+bonus>WALLET_CAP||state.marketReserve<bonus)return 0;
+  state.marketReserve-=bonus;state.balance+=bonus;state.marketCollections[row]=true;
   addHistory(state,{type:'collection',lotId,amount:bonus,fee:0,net:bonus,description:'Bônus por completar uma coleção de rua'});
   return bonus;
 }
