@@ -54,6 +54,21 @@ export function runMayorEconomyTests(){
   assert(status.message.includes('falta de capital'),'Mensagem não explica o bloqueio financeiro');
   return status.message;
  });
+ scenario('Crédito habitacional retoma obras sem criar dinheiro',()=>{
+  const {game:g}=make();
+  const total=g.total();
+  for(const id of Object.keys(g.s.accounts))g.s.accounts[id]=0;
+  for(const inv of g.s.investors){inv.debt=10000000;inv.publicDebt=0;}
+  g.s.accounts.regional=1000000;g.s.accounts.treasury=2500000;
+  g.s.accounts['family:0']=total-3500000;
+  const started=g.fillConstructionPipeline();
+  assert(started>0,'Crédito habitacional não retomou as obras');
+  assert(g.s.projects.some(p=>CITY_MODELS[p.kind].type==='residential'),'Nenhuma residência entrou na fila');
+  assert(g.total()===total,'O crédito criou ou destruiu dinheiro');
+  assert(g.account('treasury')>=1500000,'A reserva mínima do Tesouro foi violada');
+  assert(g.s.investors.some(i=>i.publicDebt>0),'O empréstimo não ficou registrado no investidor');
+  return started+' obras; reserva municipal preservada';
+ });
  scenario('Cidade em crescimento',()=>{
   const {game:g}=make();g.setTax('service',1);
   g.setTax('permit',0);g.startWork('avenida');g.startWork('escola');
