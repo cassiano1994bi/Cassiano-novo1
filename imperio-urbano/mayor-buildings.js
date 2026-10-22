@@ -2,7 +2,7 @@
  * A frente aponta para +Z; o mapa aplica a orientação do lote.
  * Sem texturas externas nem imagens estáticas.
  */
-import {CITY_MODELS} from './mayor-economy.js?v=11.17';
+import {CITY_MODELS} from './mayor-economy.js?v=11.18';
 const commercialLights=new Set();let commercialNight=0,lastCommercialNight=-1;
 const brandTextures=new Map();
 export function setCommercialNight(level){
