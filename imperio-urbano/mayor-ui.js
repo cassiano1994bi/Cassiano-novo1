@@ -92,7 +92,7 @@ export function mountMayorUI(engine,ctx){
     const companies=active.filter(c=>c.investor===i.id).length;
     return '<div class="mayorItem"><b>'+esc(i.name)+'</b>'+
      '<small>'+esc(i.profile)+' · '+esc(i.interest)+' · capital '+fmt(engine.account(i.id))+' IU$'+
-     ' · '+owned+' terreno(s) · '+companies+' empresa(s)</small></div>';
+     ' · '+owned+' terreno(s) · '+companies+' empresa(s) · dívida regional '+fmt(i.debt||0)+' IU$ · crédito habitacional '+fmt(i.publicDebt||0)+' IU$</small></div>';
    }).join('');
  }
  function newsView(){
