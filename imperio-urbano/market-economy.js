@@ -81,8 +81,8 @@ export function submitOffer(state, lot, offer, appraisal, lotId) {
     const result=completeNpcPurchase(state,lot,offer,appraisal,lotId,'Proposta aceita pelo proprietário');
     return result.ok?{...result,accepted:true,message:'O proprietário aceitou sua proposta.'}:{...result,accepted:false,message:result.reason};
   }
-  const counter=Math.min(maximumPropertyPrice(appraisal),Math.max(offer+1000,Math.max(offer*1.12,acceptAt)));
-  const roundedCounter=Math.ceil(counter/100)*100;
+  const ceiling=maximumPropertyPrice(appraisal);
+  const roundedCounter=Math.min(ceiling,Math.ceil(Math.max(offer+1000,offer*1.12,acceptAt)/100)*100);
   const id='offer-'+Date.now()+'-'+lotId;
   state.marketOffers.unshift({id,lotId,owner:'npc',buyer:'Você',amount:offer,counter:roundedCounter,appraisal,status:'countered',createdAt:Date.now()});
   state.marketOffers.length=Math.min(state.marketOffers.length,50);
