@@ -36,10 +36,11 @@ export function startCityMap2D({stage,legacyLots,parkIds,marketState=null,market
  }
  function focus(id){const c=cell(id),l=layout();zoom=2;const n=layout();panX=-c.x*n.scale;panY=-c.y*n.scale;ui?.showLot(id);draw()}
  const refresh=()=>{draw();ui?.refresh(true)};
- let marketPanel=null,marketTitle=null,marketDetails=null,marketActions=null,marketStatus=null;
+ let marketPanel=null,marketTitle=null,marketDetails=null,marketActions=null,marketStatus=null,marketFund=null;
  function showMarketLot(id){
   const lot=legacyLots[id];if(!lot)return;
   marketPanel.hidden=false;
+  marketFund.textContent='💰 Fundo comunitário: '+Math.round(Math.max(0,Number(marketState.marketCommunityPool)||0)).toLocaleString('pt-BR')+' IU$';
   marketTitle.textContent='📍 Terreno #'+String(id+1).padStart(3,'0');
   const value=marketAppraise?marketAppraise(id,lot):0;
   marketDetails.textContent=(lot.owner==='free'?'Disponível':lot.owner==='npc'?'Proprietário: morador/investidor':lot.owner==='me'?'Seu imóvel':'Área pública')+' · Avaliação IU$ '+Math.round(value).toLocaleString('pt-BR')+(lot.price?' · Anunciado por IU$ '+Math.round(lot.price).toLocaleString('pt-BR'):'');
@@ -61,10 +62,11 @@ export function startCityMap2D({stage,legacyLots,parkIds,marketState=null,market
   stage.style.position='relative';
   marketPanel=document.createElement('section');marketPanel.hidden=true;marketPanel.style.cssText='position:absolute;z-index:5;left:10px;right:10px;bottom:10px;max-height:38%;overflow:auto;padding:12px;border:1px solid #63c6bc;border-radius:14px;background:rgba(16,42,61,.96);color:#eff9ff;font:14px system-ui';
   marketTitle=document.createElement('strong');marketDetails=document.createElement('div');marketDetails.style.margin='7px 0';
+  marketFund=document.createElement('div');marketFund.style.cssText='margin:7px 0;color:#a6f6c9;font-size:13px;font-weight:700';marketFund.setAttribute('role','status');
   marketActions=document.createElement('div');marketActions.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
   marketStatus=document.createElement('div');marketStatus.style.cssText='margin-top:7px;color:#b9d3df';
   const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.style.cssText='float:right';close.onclick=()=>marketPanel.hidden=true;
-  marketPanel.append(close,marketTitle,marketDetails,marketActions,marketStatus);stage.append(marketPanel);
+  marketPanel.append(close,marketTitle,marketFund,marketDetails,marketActions,marketStatus);stage.append(marketPanel);
   ui={showLot:showMarketLot,refresh:()=>draw(),close:()=>{marketPanel.hidden=true}};
  }else{
   ui=mountMayorUI(engine,{notice,refresh,paintMap:mode=>{layer=mode||layer;draw()},focusLot:focus,quality:()=> 'economy',setQuality:()=>notice('WebGL indisponível: o mapa 2D usa qualidade econômica.'),camera:action=>{
